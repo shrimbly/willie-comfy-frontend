@@ -3,6 +3,9 @@
     ref="container"
     class="scrollbar-thin scrollbar-track-transparent scrollbar-thumb-(--dialog-surface) h-full overflow-y-auto [overflow-anchor:none] [scrollbar-gutter:stable]"
   >
+    <div v-if="$slots.header" ref="headerRef" data-virtual-grid-header>
+      <slot name="header" />
+    </div>
     <div :style="topSpacerStyle" />
     <div :style="mergedGridStyle">
       <div
@@ -20,7 +23,7 @@
 <script setup lang="ts" generic="T">
 import { useElementSize, useScroll, whenever } from '@vueuse/core'
 import { clamp, debounce } from 'es-toolkit/compat'
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import type { CSSProperties } from 'vue'
 
 type GridState = {
@@ -59,6 +62,8 @@ const emit = defineEmits<{
 const itemHeight = ref(defaultItemHeight)
 const itemWidth = ref(defaultItemWidth)
 const container = ref<HTMLElement | null>(null)
+const headerRef = ref<HTMLElement | null>(null)
+const headerHeight = computed(() => headerRef.value?.offsetHeight ?? 0)
 const { width, height } = useElementSize(container)
 const { y: scrollY } = useScroll(container, {
   throttle: scrollThrottle,
@@ -79,7 +84,9 @@ const mergedGridStyle = computed<CSSProperties>(() => {
 })
 
 const viewRows = computed(() => Math.ceil(height.value / itemHeight.value))
-const offsetRows = computed(() => Math.floor(scrollY.value / itemHeight.value))
+const offsetRows = computed(() =>
+  Math.floor(Math.max(0, scrollY.value - headerHeight.value) / itemHeight.value)
+)
 const isValidGrid = computed(() => height.value && width.value && items?.length)
 
 const state = computed<GridState>(() => {
@@ -135,6 +142,15 @@ function updateItemSize(): void {
 }
 const onResize = debounce(updateItemSize, resizeDebounce)
 watch([width, height], onResize, { flush: 'post' })
+watch(
+  () => gridStyle,
+  () => {
+    itemWidth.value = defaultItemWidth
+    itemHeight.value = defaultItemHeight
+    nextTick(updateItemSize)
+  },
+  { flush: 'post' }
+)
 whenever(() => items, updateItemSize, { flush: 'post' })
 onBeforeUnmount(() => {
   onResize.cancel()

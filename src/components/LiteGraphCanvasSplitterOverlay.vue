@@ -41,9 +41,11 @@
               : 'pointer-events-auto bg-comfy-menu-bg'
           "
           :min-size="
-            sidebarLocation === 'left' ? SIDEBAR_MIN_SIZE : BUILDER_MIN_SIZE
+            sidebarLocation === 'left' ? sidebarPanelMinSize : BUILDER_MIN_SIZE
           "
-          :size="SIDE_PANEL_SIZE"
+          :size="
+            sidebarLocation === 'left' ? sidebarPanelSize : SIDE_PANEL_SIZE
+          "
           :style="firstPanelStyle"
           :role="sidebarLocation === 'left' ? 'complementary' : undefined"
           :aria-label="
@@ -101,9 +103,11 @@
               : 'pointer-events-auto bg-comfy-menu-bg'
           "
           :min-size="
-            sidebarLocation === 'right' ? SIDEBAR_MIN_SIZE : BUILDER_MIN_SIZE
+            sidebarLocation === 'right' ? sidebarPanelMinSize : BUILDER_MIN_SIZE
           "
-          :size="SIDE_PANEL_SIZE"
+          :size="
+            sidebarLocation === 'right' ? sidebarPanelSize : SIDE_PANEL_SIZE
+          "
           :style="lastPanelStyle"
           :role="sidebarLocation === 'right' ? 'complementary' : undefined"
           :aria-label="
@@ -170,6 +174,16 @@ const sidebarPanelVisible = computed(
   () => activeSidebarTab.value !== null && !isBuilderMode.value
 )
 
+// Get panel size from active tab or use default
+const sidebarPanelSize = computed(
+  () => activeSidebarTab.value?.panelSize ?? SIDE_PANEL_SIZE
+)
+
+// Get panel min size from active tab or use default
+const sidebarPanelMinSize = computed(
+  () => activeSidebarTab.value?.panelMinSize ?? SIDEBAR_MIN_SIZE
+)
+
 const firstPanelVisible = computed(
   () =>
     !focusMode.value &&
@@ -197,7 +211,11 @@ const bothSidePanelsVisible = computed(
 )
 
 const centerPanelDefaultSize = computed(() =>
-  bothSidePanelsVisible.value ? 100 - 2 * SIDE_PANEL_SIZE : CENTER_PANEL_SIZE
+  bothSidePanelsVisible.value
+    ? 100 - sidebarPanelSize.value - SIDE_PANEL_SIZE
+    : sidebarPanelVisible.value
+      ? 100 - sidebarPanelSize.value
+      : CENTER_PANEL_SIZE
 )
 
 const sidebarTabKey = computed(() => {

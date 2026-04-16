@@ -12,6 +12,8 @@ interface BaseSidebarTabExtension {
   iconBadge?: string | (() => string | null)
   tooltip?: string
   label?: string
+  panelSize?: number // Panel width percentage (default 20%)
+  panelMinSize?: number // Panel minimum width percentage (default SIDEBAR_MIN_SIZE)
 }
 
 interface BaseBottomPanelExtension {
