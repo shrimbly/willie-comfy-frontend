@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAssetsSidebarTab } from '@/composables/sidebarTabs/useAssetsSidebarTab'
 
@@ -24,6 +24,10 @@ vi.mock('@/stores/workspace/assetsSidebarBadgeStore', () => ({
 }))
 
 describe('useAssetsSidebarTab', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('hides icon badge when QPO V2 is disabled', () => {
     mockGetSetting.mockReturnValue(false)
     mockUnseenAddedAssetsCount.value = 3
@@ -51,5 +55,23 @@ describe('useAssetsSidebarTab', () => {
     const sidebarTab = useAssetsSidebarTab()
 
     expect((sidebarTab.iconBadge as () => string | null)()).toBeNull()
+  })
+
+  it('uses compact width defaults when advanced view is disabled', () => {
+    const sidebarTab = useAssetsSidebarTab()
+
+    expect(sidebarTab.panelSize).toBe(20)
+    expect(sidebarTab.panelMinSize).toBe(15)
+    expect(sidebarTab.panelStateKeySuffix).toBe('')
+  })
+
+  it('uses advanced width when ShowAllAssets is persisted true', () => {
+    localStorage.setItem('Comfy.Assets.ShowAllAssets', 'true')
+
+    const sidebarTab = useAssetsSidebarTab()
+
+    expect(sidebarTab.panelSize).toBe(45)
+    expect(sidebarTab.panelMinSize).toBe(45)
+    expect(sidebarTab.panelStateKeySuffix).toBe('advanced')
   })
 })

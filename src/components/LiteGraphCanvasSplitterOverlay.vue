@@ -227,11 +227,14 @@ const sidebarTabKey = computed(() => {
 
 const sidebarStateKey = computed(() => {
   const base = sidebarTabKey.value
+  const tabSuffix = activeSidebarTab.value?.panelStateKeySuffix
+    ? `-${activeSidebarTab.value.panelStateKeySuffix}`
+    : ''
   if (sidebarLocation.value === 'left' && !showOffsideSplitter.value) {
-    return base
+    return `${base}${tabSuffix}`
   }
-  const suffix = showOffsideSplitter.value ? '-with-offside' : ''
-  return `${base}-${sidebarLocation.value}${suffix}`
+  const offsideSuffix = showOffsideSplitter.value ? '-with-offside' : ''
+  return `${base}-${sidebarLocation.value}${offsideSuffix}${tabSuffix}`
 })
 
 /**
@@ -282,7 +285,8 @@ function normalizeSavedSizes() {
  * to recalculate the width and panel order
  */
 const splitterRefreshKey = computed(() => {
-  return `main-splitter${rightSidePanelVisible.value ? '-with-right-panel' : ''}${isSelectMode.value ? '-builder' : ''}-${sidebarLocation.value}`
+  const tabSuffix = activeSidebarTab.value?.panelStateKeySuffix ?? ''
+  return `main-splitter${rightSidePanelVisible.value ? '-with-right-panel' : ''}${isSelectMode.value ? '-builder' : ''}-${sidebarLocation.value}-${tabSuffix}`
 })
 
 const firstPanelStyle = computed(() => {

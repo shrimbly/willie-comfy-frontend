@@ -14,6 +14,12 @@ interface BaseSidebarTabExtension {
   label?: string
   panelSize?: number // Panel width percentage (default 20%)
   panelMinSize?: number // Panel minimum width percentage (default SIDEBAR_MIN_SIZE)
+  /**
+   * Optional suffix appended to the splitter state key when this tab is active.
+   * Lets a tab persist distinct widths for different internal modes (e.g. the
+   * Assets tab stores one width for compact view and another for advanced view).
+   */
+  panelStateKeySuffix?: string
 }
 
 interface BaseBottomPanelExtension {

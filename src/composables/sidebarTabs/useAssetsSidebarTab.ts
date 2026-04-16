@@ -1,3 +1,4 @@
+import { useStorage } from '@vueuse/core'
 import { markRaw } from 'vue'
 
 import AssetsSidebarTab from '@/components/sidebar/tabs/AssetsSidebarTab.vue'
@@ -6,6 +7,8 @@ import { useAssetsSidebarBadgeStore } from '@/stores/workspace/assetsSidebarBadg
 import type { SidebarTabExtension } from '@/types/extensionTypes'
 
 export const useAssetsSidebarTab = (): SidebarTabExtension => {
+  const showAllAssets = useStorage<boolean>('Comfy.Assets.ShowAllAssets', false)
+
   return {
     id: 'assets',
     icon: 'icon-[comfy--image-ai-edit]',
@@ -14,8 +17,15 @@ export const useAssetsSidebarTab = (): SidebarTabExtension => {
     label: 'sideToolbar.labels.assets',
     component: markRaw(AssetsSidebarTab),
     type: 'vue',
-    panelSize: 45, // Wider panel for assets (default is 20%)
-    panelMinSize: 45,
+    get panelSize() {
+      return showAllAssets.value ? 45 : 20
+    },
+    get panelMinSize() {
+      return showAllAssets.value ? 45 : 15
+    },
+    get panelStateKeySuffix() {
+      return showAllAssets.value ? 'advanced' : ''
+    },
     iconBadge: () => {
       const settingStore = useSettingStore()
 
