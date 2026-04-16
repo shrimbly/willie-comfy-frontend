@@ -68,6 +68,7 @@ const emit = defineEmits<{
   hide: []
   'asset-deleted': []
   'bulk-download': [assets: AssetItem[]]
+  'bulk-move': [assets: AssetItem[]]
   'bulk-delete': [assets: AssetItem[]]
   'bulk-add-to-workflow': [assets: AssetItem[]]
   'bulk-open-workflow': [assets: AssetItem[]]
@@ -181,6 +182,13 @@ const contextMenuItems = computed<MenuItem[]>(() => {
       command: () => emit('bulk-download', selectedAssets)
     })
 
+    // Bulk Move
+    items.push({
+      label: t('mediaAsset.selection.moveSelectedAll'),
+      icon: 'icon-[lucide--folder-input]',
+      command: () => emit('bulk-move', selectedAssets)
+    })
+
     // Bulk Delete (if allowed)
     if (shouldShowDeleteButton.value) {
       items.push({
@@ -218,6 +226,15 @@ const contextMenuItems = computed<MenuItem[]>(() => {
     label: t('mediaAsset.actions.download'),
     icon: 'icon-[lucide--download]',
     command: () => actions.downloadAsset(asset)
+  })
+
+  // Move to
+  items.push({
+    label: t('mediaAsset.actions.moveTo'),
+    icon: 'icon-[lucide--folder-input]',
+    command: async () => {
+      if (asset) await actions.moveAssets(asset)
+    }
   })
 
   // Separator before workflow actions (only if there are workflow actions)
