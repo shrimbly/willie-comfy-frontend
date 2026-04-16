@@ -857,6 +857,7 @@
     "noFilesFound": "No files found",
     "noImportedFiles": "No imported files found",
     "noGeneratedFiles": "No generated files found",
+    "noCustomFiles": "No files in selected directory",
     "generatedAssetsHeader": "Generated assets",
     "importedAssetsHeader": "Imported assets",
     "activeJobStatus": "Active job: {status}",
@@ -3063,7 +3064,8 @@
       "openWorkflow": "Open as workflow in new tab",
       "exportWorkflow": "Export workflow",
       "copyJobId": "Copy job ID",
-      "delete": "Delete"
+      "delete": "Delete",
+      "moveTo": "Move to..."
     },
     "jobIdToast": {
       "jobIdCopied": "Job ID copied to clipboard",
@@ -3082,6 +3084,7 @@
       "insertAllAssetsAsNodes": "Insert all assets as nodes",
       "openWorkflowAll": "Open all workflows",
       "exportWorkflowAll": "Export all workflows",
+      "moveSelectedAll": "Move all to...",
       "downloadStarted": "Downloading {count} file... | Downloading {count} files...",
       "downloadsStarted": "Started downloading {count} file | Started downloading {count} files",
       "exportStarted": "Preparing ZIP export for {count} file | Preparing ZIP export for {count} files",
@@ -3097,6 +3100,21 @@
       "workflowsExported": "{count} workflow(s) exported successfully",
       "noWorkflowsToExport": "No workflow data found to export",
       "partialWorkflowsExported": "{succeeded} exported successfully, {failed} failed"
+    },
+    "directoryPicker": {
+      "browse": "Browse Directory",
+      "error": "Directory Selection Error"
+    },
+    "folderNavigation": {
+      "error": "Navigation Error"
+    },
+    "moveTo": {
+      "dialogTitle": "Move to folder",
+      "dialogTitleBulk": "Move {count} items to folder",
+      "pathLabel": "Destination path",
+      "pathPlaceholder": "e.g. subfolder/new-folder",
+      "moveButton": "Move",
+      "stubToast": "Move to \"{path}\" — not yet implemented"
     },
     "noJobIdFound": "No job ID found for this asset",
     "unsupportedFileType": "Unsupported file type for loader node",
@@ -3754,5 +3772,30 @@
     "training": "Training…",
     "processingVideo": "Processing video…",
     "running": "Running…"
+  },
+  "assets": {
+    "filters": {
+      "title": "Filters",
+      "dateRange": "Date Range",
+      "selectDateRange": "Select date range",
+      "clearAll": "Clear All",
+      "type": "Type",
+      "source": "Source",
+      "addDirectory": "Add directory",
+      "showSubdirectories": "Show folders"
+    },
+    "view": {
+      "tooltip": "View",
+      "list": "List",
+      "gridSmall": "Grid - Small",
+      "gridMedium": "Grid - Medium",
+      "gridLarge": "Grid - Large"
+    },
+    "sort": {
+      "tooltip": "Sort"
+    },
+    "folders": {
+      "showMore": "Show {count} more folders"
+    }
   }
 }
