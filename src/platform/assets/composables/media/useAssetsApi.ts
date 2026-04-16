@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
 import { useAssetsStore } from '@/stores/assetsStore'
 
+import { useFolderNavigation } from './useFolderNavigation'
+
 /**
  * Composable for fetching media assets from cloud environment
  * Uses AssetsStore for centralized state management
@@ -10,7 +12,7 @@ import { useAssetsStore } from '@/stores/assetsStore'
 export function useAssetsApi(directory: 'input' | 'output') {
   const assetsStore = useAssetsStore()
 
-  const media = computed(() =>
+  const allMedia = computed(() =>
     directory === 'input' ? assetsStore.inputAssets : assetsStore.historyAssets
   )
 
@@ -37,18 +39,30 @@ export function useAssetsApi(directory: 'input' | 'output') {
   const refresh = () => fetchMediaList()
 
   const loadMore = async (): Promise<void> => {
-    if (directory === 'output') {
-      await assetsStore.loadMoreHistory()
-    }
+    // No pagination — all files fetched in one request
   }
 
-  const hasMore = computed(() => {
-    return directory === 'output' ? assetsStore.hasMoreHistory : false
-  })
+  const hasMore = computed(() => false)
 
-  const isLoadingMore = computed(() => {
-    return directory === 'output' ? assetsStore.isLoadingMore : false
-  })
+  const isLoadingMore = computed(() => false)
+
+  // Folder navigation for virtual directories parsed from filenames
+  const {
+    folders,
+    filteredMedia,
+    currentPath,
+    navigateInto,
+    navigateUp,
+    navigateToRoot,
+    canNavigateUp,
+    canNavigateBack,
+    canNavigateForward,
+    navigateBack,
+    navigateForward
+  } = useFolderNavigation(() => allMedia.value)
+
+  // media returns filtered assets based on current folder path
+  const media = computed(() => filteredMedia.value)
 
   return {
     media,
@@ -58,6 +72,16 @@ export function useAssetsApi(directory: 'input' | 'output') {
     refresh,
     loadMore,
     hasMore,
-    isLoadingMore
+    isLoadingMore,
+    folders,
+    currentPath,
+    navigateInto,
+    navigateUp,
+    navigateToRoot,
+    canNavigateUp,
+    canNavigateBack,
+    canNavigateForward,
+    navigateBack,
+    navigateForward
   }
 }

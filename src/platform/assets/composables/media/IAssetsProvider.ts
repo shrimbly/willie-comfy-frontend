@@ -1,6 +1,23 @@
 import type { Ref } from 'vue'
 
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
+import type { FolderItem } from '@/utils/directoryPickerUtil'
+
+/**
+ * Interface for folder navigation within asset providers
+ */
+export interface IFolderNavigation {
+  folders: Ref<FolderItem[]>
+  currentPath: Ref<string>
+  navigateInto: (folder: FolderItem) => void
+  navigateUp: () => void
+  navigateToRoot: () => void
+  canNavigateUp: Ref<boolean>
+  canNavigateBack: Ref<boolean>
+  canNavigateForward: Ref<boolean>
+  navigateBack: () => void
+  navigateForward: () => void
+}
 
 /**
  * Interface for media assets providers

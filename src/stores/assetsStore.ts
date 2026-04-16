@@ -2,18 +2,13 @@ import { useAsyncState, whenever } from '@vueuse/core'
 import { difference } from 'es-toolkit'
 import { defineStore } from 'pinia'
 import { computed, reactive, ref, shallowReactive } from 'vue'
-import {
-  mapInputFileToAssetItem,
-  mapTaskOutputToAssetItem
-} from '@/platform/assets/composables/media/assetMappers'
+import { mapInputFileToAssetItem } from '@/platform/assets/composables/media/assetMappers'
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
 import { assetService } from '@/platform/assets/services/assetService'
 import type { PaginationOptions } from '@/platform/assets/services/assetService'
 import { isCloud } from '@/platform/distribution/types'
-import type { JobListItem } from '@/platform/remote/comfyui/jobs/jobTypes'
 import { api } from '@/scripts/api'
 
-import { TaskItemImpl } from './queueStore'
 import { useAssetDownloadStore } from './assetDownloadStore'
 import { useModelToNodeStore } from './modelToNodeStore'
 
@@ -33,9 +28,9 @@ async function fetchInputFilesFromAPI(): Promise<AssetItem[]> {
     throw new Error('Failed to fetch input files')
   }
 
-  const filenames: string[] = await response.json()
-  return filenames.map((name, index) =>
-    mapInputFileToAssetItem(name, index, 'input')
+  const files: [string, number][] = await response.json()
+  return files.map(([name, mtime], index) =>
+    mapInputFileToAssetItem(name, index, 'input', mtime)
   )
 }
 
@@ -49,43 +44,33 @@ async function fetchInputFilesFromCloud(): Promise<AssetItem[]> {
 }
 
 /**
- * Convert history job items to asset items
+ * Fetch output files from the internal API (OSS version)
  */
-function mapHistoryToAssets(historyItems: JobListItem[]): AssetItem[] {
-  const assetItems: AssetItem[] = []
-
-  for (const job of historyItems) {
-    // Only process completed jobs with preview output
-    if (job.status !== 'completed' || !job.preview_output) {
-      continue
+async function fetchOutputFilesFromAPI(): Promise<AssetItem[]> {
+  const response = await fetch(api.internalURL('/files/output'), {
+    headers: {
+      'Comfy-User': api.user
     }
+  })
 
-    const task = new TaskItemImpl(job)
-
-    if (!task.previewOutput) {
-      continue
-    }
-
-    const assetItem = mapTaskOutputToAssetItem(task, task.previewOutput)
-
-    assetItem.user_metadata = {
-      ...assetItem.user_metadata,
-      outputCount: task.outputsCount ?? task.previewableOutputs.length,
-      allOutputs: task.previewableOutputs
-    }
-
-    assetItems.push(assetItem)
+  if (!response.ok) {
+    throw new Error('Failed to fetch output files')
   }
 
-  return assetItems.sort(
-    (a, b) =>
-      new Date(b.created_at ?? 0).getTime() -
-      new Date(a.created_at ?? 0).getTime()
+  const files: [string, number][] = await response.json()
+  return files.map(([name, mtime], index) =>
+    mapInputFileToAssetItem(name, index, 'output', mtime)
   )
 }
 
-const BATCH_SIZE = 200
-const MAX_HISTORY_ITEMS = 1000 // Maximum items to keep in memory
+/**
+ * Fetch output files from cloud service
+ */
+async function fetchOutputFilesFromCloud(): Promise<AssetItem[]> {
+  return await assetService.getAssetsByTag('output', false, {
+    limit: INPUT_LIMIT
+  })
+}
 
 export const useAssetsStore = defineStore('assets', () => {
   const assetDownloadStore = useAssetDownloadStore()
@@ -106,15 +91,6 @@ export const useAssetsStore = defineStore('assets', () => {
     return deletingAssetIds.has(assetId)
   }
 
-  // Pagination state
-  const historyOffset = ref(0)
-  const hasMoreHistory = ref(true)
-  const isLoadingMore = ref(false)
-
-  const allHistoryItems = ref<AssetItem[]>([])
-
-  const loadedIds = shallowReactive(new Set<string>())
-
   const fetchInputFiles = isCloud
     ? fetchInputFilesFromCloud
     : fetchInputFilesFromAPI
@@ -132,119 +108,22 @@ export const useAssetsStore = defineStore('assets', () => {
     }
   })
 
-  /**
-   * Fetch history assets with pagination support
-   * @param loadMore - true for pagination (append), false for initial load (replace)
-   */
-  const fetchHistoryAssets = async (loadMore = false): Promise<AssetItem[]> => {
-    // Reset state for initial load
-    if (!loadMore) {
-      historyOffset.value = 0
-      hasMoreHistory.value = true
-      allHistoryItems.value = []
-      loadedIds.clear()
+  const fetchOutputFiles = isCloud
+    ? fetchOutputFilesFromCloud
+    : fetchOutputFilesFromAPI
+
+  const {
+    state: historyAssets,
+    isLoading: historyLoading,
+    error: historyError,
+    execute: updateHistory
+  } = useAsyncState(fetchOutputFiles, [], {
+    immediate: false,
+    resetOnExecute: false,
+    onError: (err) => {
+      console.error('Error fetching output assets:', err)
     }
-
-    // Fetch from server with offset
-    const history = await api.getHistory(BATCH_SIZE, {
-      offset: historyOffset.value
-    })
-
-    // Convert JobListItems to AssetItems
-    const newAssets = mapHistoryToAssets(history)
-
-    if (loadMore) {
-      // Filter out duplicates and insert in sorted order
-      for (const asset of newAssets) {
-        if (loadedIds.has(asset.id)) {
-          continue // Skip duplicates
-        }
-        loadedIds.add(asset.id)
-
-        // Find insertion index to maintain sorted order (newest first)
-        const assetTime = new Date(asset.created_at ?? 0).getTime()
-        const insertIndex = allHistoryItems.value.findIndex(
-          (item) => new Date(item.created_at ?? 0).getTime() < assetTime
-        )
-
-        if (insertIndex === -1) {
-          // Asset is oldest, append to end
-          allHistoryItems.value.push(asset)
-        } else {
-          // Insert at the correct position
-          allHistoryItems.value.splice(insertIndex, 0, asset)
-        }
-      }
-    } else {
-      // Initial load: replace all
-      allHistoryItems.value = newAssets
-      newAssets.forEach((asset) => loadedIds.add(asset.id))
-    }
-
-    // Update pagination state
-    historyOffset.value += BATCH_SIZE
-    hasMoreHistory.value = history.length === BATCH_SIZE
-
-    if (allHistoryItems.value.length > MAX_HISTORY_ITEMS) {
-      const removed = allHistoryItems.value.slice(MAX_HISTORY_ITEMS)
-      allHistoryItems.value = allHistoryItems.value.slice(0, MAX_HISTORY_ITEMS)
-
-      // Clean up Set
-      removed.forEach((item) => loadedIds.delete(item.id))
-    }
-
-    return allHistoryItems.value
-  }
-
-  const historyAssets = ref<AssetItem[]>([])
-  const historyLoading = ref(false)
-  const historyError = ref<unknown>(null)
-
-  /**
-   * Initial load of history assets
-   */
-  const updateHistory = async () => {
-    historyLoading.value = true
-    historyError.value = null
-    try {
-      await fetchHistoryAssets(false)
-      historyAssets.value = allHistoryItems.value
-    } catch (err) {
-      console.error('Error fetching history assets:', err)
-      historyError.value = err
-      // Keep existing data when error occurs
-      if (!historyAssets.value.length) {
-        historyAssets.value = []
-      }
-    } finally {
-      historyLoading.value = false
-    }
-  }
-
-  /**
-   * Load more history items (infinite scroll)
-   */
-  const loadMoreHistory = async () => {
-    // Guard: prevent concurrent loads and check if more items available
-    if (!hasMoreHistory.value || isLoadingMore.value) return
-
-    isLoadingMore.value = true
-    historyError.value = null
-
-    try {
-      await fetchHistoryAssets(true)
-      historyAssets.value = allHistoryItems.value
-    } catch (err) {
-      console.error('Error loading more history:', err)
-      historyError.value = err
-      // Keep existing data when error occurs (consistent with updateHistory)
-      if (!historyAssets.value.length) {
-        historyAssets.value = []
-      }
-    } finally {
-      isLoadingMore.value = false
-    }
-  }
+  })
 
   /**
    * Map of asset hash filename to asset item for O(1) lookup
@@ -729,8 +608,6 @@ export const useAssetsStore = defineStore('assets', () => {
     historyLoading,
     inputError,
     historyError,
-    hasMoreHistory,
-    isLoadingMore,
 
     // Deletion tracking
     deletingAssetIds,
@@ -740,7 +617,6 @@ export const useAssetsStore = defineStore('assets', () => {
     // Actions
     updateInputs,
     updateHistory,
-    loadMoreHistory,
 
     // Input mapping helpers
     inputAssetsByFilename,
