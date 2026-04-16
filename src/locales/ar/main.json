@@ -3742,5 +3742,12 @@
     "label": "عناصر التحكم في التكبير",
     "showMinimap": "إظهار الخريطة المصغرة",
     "zoomToFit": "تكبير لتناسب الشاشة"
+  },
+  "assets": {
+    "filters": {
+      "title": "Filters",
+      "dateRange": "Date Range",
+      "clearAll": "Clear All"
+    }
   }
 }

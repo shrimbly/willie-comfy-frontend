@@ -3742,5 +3742,12 @@
     "label": "Yakınlaştırma Kontrolleri",
     "showMinimap": "Mini Haritayı Göster",
     "zoomToFit": "Sığdırmak İçin Yakınlaştır"
+  },
+  "assets": {
+    "filters": {
+      "title": "Filters",
+      "dateRange": "Date Range",
+      "clearAll": "Clear All"
+    }
   }
 }

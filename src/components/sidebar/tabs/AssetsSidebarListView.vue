@@ -2,16 +2,42 @@
   <div class="flex h-full flex-col">
     <VirtualGrid
       class="flex-1"
-      :items="assetItems"
+      :items="listItems"
       :grid-style="listGridStyle"
       :max-columns="1"
       :default-item-height="48"
       @approach-end="emit('approach-end')"
     >
       <template #item="{ item }">
-        <div class="relative">
+        <AssetsListItem
+          v-if="item.type === 'folder'"
+          role="button"
+          tabindex="0"
+          :aria-label="item.folder.name"
+          class="w-full cursor-pointer rounded-lg bg-secondary-background text-text-primary transition-colors hover:bg-secondary-background-hover"
+          icon-name="pi pi-folder"
+          :primary-text="item.folder.name"
+          :secondary-text="
+            item.folder.itemCount !== undefined
+              ? `${item.folder.itemCount} ${item.folder.itemCount === 1 ? 'item' : 'items'}`
+              : ''
+          "
+          @click.stop="emit('folder-click', item.folder)"
+        />
+        <div
+          v-else-if="item.type === 'show-more'"
+          class="flex cursor-pointer items-center gap-2 px-2 py-1"
+          @click="foldersExpanded = true"
+        >
+          <div class="h-px flex-1 bg-(--p-content-border-color)" />
+          <span class="px-2 text-xs whitespace-nowrap text-muted-foreground">
+            {{ t('assets.folders.showMore', { count: hiddenFolderCount }) }}
+          </span>
+          <div class="h-px flex-1 bg-(--p-content-border-color)" />
+        </div>
+        <div v-else class="relative">
           <LoadingOverlay
-            :loading="assetsStore.isAssetDeleting(item.asset.id)"
+            :loading="assetsStore.isAssetDeleting(item.item.asset.id)"
             size="sm"
           >
             <i class="pi pi-trash text-xs" />
@@ -21,39 +47,43 @@
             tabindex="0"
             :aria-label="
               t('assetBrowser.ariaLabel.assetCard', {
-                name: getAssetDisplayName(item.asset),
-                type: getAssetMediaType(item.asset)
+                name: getAssetDisplayName(item.item.asset),
+                type: getAssetMediaType(item.item.asset)
               })
             "
             :class="
               cn(
-                getAssetCardClass(isSelected(item.asset.id)),
-                item.isChild && 'pl-6'
+                getAssetCardClass(isSelected(item.item.asset.id)),
+                item.item.isChild && 'pl-6'
               )
             "
-            :preview-url="getAssetPreviewUrl(item.asset)"
-            :preview-alt="getAssetDisplayName(item.asset)"
-            :icon-name="iconForMediaType(getAssetMediaType(item.asset))"
-            :is-video-preview="isVideoAsset(item.asset)"
-            :primary-text="getAssetPrimaryText(item.asset)"
-            :secondary-text="getAssetSecondaryText(item.asset)"
-            :stack-count="getStackCount(item.asset)"
+            :preview-url="getAssetPreviewUrl(item.item.asset)"
+            :preview-alt="getAssetDisplayName(item.item.asset)"
+            :icon-name="iconForMediaType(getAssetMediaType(item.item.asset))"
+            :is-video-preview="isVideoAsset(item.item.asset)"
+            :primary-text="getAssetPrimaryText(item.item.asset)"
+            :secondary-text="getAssetSecondaryText(item.item.asset)"
+            :stack-count="getStackCount(item.item.asset)"
             :stack-indicator-label="t('mediaAsset.actions.seeMoreOutputs')"
-            :stack-expanded="isStackExpanded(item.asset)"
-            @mouseenter="onAssetEnter(item.asset.id)"
-            @mouseleave="onAssetLeave(item.asset.id)"
-            @contextmenu.prevent.stop="emit('context-menu', $event, item.asset)"
-            @click.stop="emit('select-asset', item.asset, selectableAssets)"
-            @dblclick.stop="emit('preview-asset', item.asset)"
-            @preview-click="emit('preview-asset', item.asset)"
-            @stack-toggle="void toggleStack(item.asset)"
+            :stack-expanded="isStackExpanded(item.item.asset)"
+            @mouseenter="onAssetEnter(item.item.asset.id)"
+            @mouseleave="onAssetLeave(item.item.asset.id)"
+            @contextmenu.prevent.stop="
+              emit('context-menu', $event, item.item.asset)
+            "
+            @click.stop="
+              emit('select-asset', item.item.asset, selectableAssets)
+            "
+            @dblclick.stop="emit('preview-asset', item.item.asset)"
+            @preview-click="emit('preview-asset', item.item.asset)"
+            @stack-toggle="void toggleStack(item.item.asset)"
           >
-            <template v-if="hoveredAssetId === item.asset.id" #actions>
+            <template v-if="hoveredAssetId === item.item.asset.id" #actions>
               <Button
                 variant="secondary"
                 size="icon"
                 :aria-label="t('mediaAsset.actions.moreOptions')"
-                @click.stop="emit('context-menu', $event, item.asset)"
+                @click.stop="emit('context-menu', $event, item.item.asset)"
               >
                 <i class="icon-[lucide--ellipsis] size-4" />
               </Button>
@@ -66,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue'
@@ -79,6 +109,7 @@ import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
 import { getAssetDisplayName } from '@/platform/assets/utils/assetMetadataUtils'
 import { iconForMediaType } from '@/platform/assets/utils/mediaIconUtil'
 import { useAssetsStore } from '@/stores/assetsStore'
+import type { FolderItem } from '@/utils/directoryPickerUtil'
 import {
   formatDuration,
   formatSize,
@@ -89,12 +120,14 @@ import { cn } from '@/utils/tailwindUtil'
 
 const {
   assetItems,
+  folders,
   selectableAssets,
   isSelected,
   isStackExpanded,
   toggleStack
 } = defineProps<{
   assetItems: OutputStackListItem[]
+  folders?: FolderItem[]
   selectableAssets: AssetItem[]
   isSelected: (assetId: string) => boolean
   isStackExpanded: (asset: AssetItem) => boolean
@@ -108,7 +141,51 @@ const emit = defineEmits<{
   (e: 'preview-asset', asset: AssetItem): void
   (e: 'context-menu', event: MouseEvent, asset: AssetItem): void
   (e: 'approach-end'): void
+  (e: 'folder-click', folder: FolderItem): void
 }>()
+
+const MAX_VISIBLE_FOLDERS = 4
+const foldersExpanded = ref(false)
+
+const visibleFolders = computed(() => {
+  if (!folders) return undefined
+  if (folders.length <= MAX_VISIBLE_FOLDERS || foldersExpanded.value)
+    return folders
+  return folders.slice(0, MAX_VISIBLE_FOLDERS)
+})
+
+const hiddenFolderCount = computed(() => {
+  if (!folders) return 0
+  return Math.max(0, folders.length - MAX_VISIBLE_FOLDERS)
+})
+
+watch(
+  () => folders,
+  () => {
+    foldersExpanded.value = false
+  }
+)
+
+type ListItem =
+  | { key: string; type: 'folder'; folder: FolderItem }
+  | { key: string; type: 'show-more' }
+  | { key: string; type: 'asset'; item: OutputStackListItem }
+
+const listItems = computed<ListItem[]>(() => {
+  const items: ListItem[] = []
+  if (visibleFolders.value) {
+    visibleFolders.value.forEach((folder) => {
+      items.push({ key: `folder-${folder.path}`, type: 'folder', folder })
+    })
+    if (!foldersExpanded.value && hiddenFolderCount.value > 0) {
+      items.push({ key: 'show-more-folders', type: 'show-more' })
+    }
+  }
+  assetItems.forEach((item) => {
+    items.push({ key: `asset-${item.asset.id}`, type: 'asset', item })
+  })
+  return items
+})
 
 const { t } = useI18n()
 const hoveredAssetId = ref<string | null>(null)

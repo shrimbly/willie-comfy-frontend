@@ -3795,7 +3795,8 @@
       "tooltip": "Sort"
     },
     "folders": {
-      "showMore": "Show {count} more folders"
+      "showMore": "Show {count} more folders",
+      "itemCount": "{count} item | {count} items"
     }
   }
 }

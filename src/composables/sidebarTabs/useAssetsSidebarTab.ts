@@ -14,6 +14,8 @@ export const useAssetsSidebarTab = (): SidebarTabExtension => {
     label: 'sideToolbar.labels.assets',
     component: markRaw(AssetsSidebarTab),
     type: 'vue',
+    panelSize: 45, // Wider panel for assets (default is 20%)
+    panelMinSize: 45,
     iconBadge: () => {
       const settingStore = useSettingStore()
 

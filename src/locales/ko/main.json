@@ -3742,5 +3742,12 @@
     "label": "줌 컨트롤",
     "showMinimap": "미니맵 표시",
     "zoomToFit": "화면에 맞추기"
+  },
+  "assets": {
+    "filters": {
+      "title": "Filters",
+      "dateRange": "Date Range",
+      "clearAll": "Clear All"
+    }
   }
 }
