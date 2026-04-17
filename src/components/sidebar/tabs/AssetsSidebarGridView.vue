@@ -28,6 +28,9 @@
                 : ''
             "
             @click.stop="emit('folder-click', folder)"
+            @contextmenu.prevent.stop="
+              emit('folder-context-menu', $event, folder)
+            "
           />
           <div
             v-if="!foldersExpanded && hiddenFolderCount > 0"
@@ -120,6 +123,7 @@ const emit = defineEmits<{
   (e: 'zoom', asset: AssetItem): void
   (e: 'output-count-click', asset: AssetItem): void
   (e: 'folder-click', folder: FolderItem): void
+  (e: 'folder-context-menu', event: MouseEvent, folder: FolderItem): void
 }>()
 
 const { t } = useI18n()

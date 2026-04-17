@@ -3071,7 +3071,9 @@
       "showInDirectoryView": "Show in directory view",
       "showInFinder": "Show in Finder",
       "showInExplorer": "Show in Explorer",
-      "showInFileManager": "Show in file manager"
+      "showInFileManager": "Show in file manager",
+      "exportAll": "Export all",
+      "moveFolderTo": "Move to..."
     },
     "jobIdToast": {
       "jobIdCopied": "Job ID copied to clipboard",
@@ -3121,6 +3123,21 @@
       "pathPlaceholder": "e.g. subfolder/new-folder",
       "moveButton": "Move",
       "stubToast": "Move to \"{path}\" — not yet implemented"
+    },
+    "details": {
+      "togglePanel": "Toggle details panel",
+      "assetDetails": "Asset Details",
+      "generationDetails": "Generation Details",
+      "name": "Name",
+      "type": "Type",
+      "dimensions": "Dimensions",
+      "size": "Size",
+      "duration": "Duration",
+      "model": "Model",
+      "lora": "LoRA",
+      "vae": "VAE",
+      "steps": "Steps",
+      "seed": "Seed"
     },
     "noJobIdFound": "No job ID found for this asset",
     "unsupportedFileType": "Unsupported file type for loader node",

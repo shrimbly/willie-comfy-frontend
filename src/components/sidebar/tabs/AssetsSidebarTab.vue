@@ -75,7 +75,13 @@
       <!-- Subfolder breadcrumb removed from header — now inside body -->
     </template>
     <template #body>
-      <div :class="showAllAssets ? 'assets-content-layout' : 'contents'">
+      <div
+        :class="
+          showAllAssets || showDetailPanel
+            ? 'assets-content-layout'
+            : 'contents'
+        "
+      >
         <!-- Left Filter Panel (advanced view only) -->
         <AssetFilterPanel
           v-if="showAllAssets && !isInFolderView && showFilterPanel"
@@ -90,7 +96,26 @@
         />
 
         <!-- Main Content Area -->
-        <div :class="showAllAssets ? 'assets-main-content' : 'contents'">
+        <div
+          :class="
+            showAllAssets || showDetailPanel
+              ? 'assets-main-content'
+              : 'contents'
+          "
+        >
+          <!-- Detail panel toggle (default view) -->
+          <div
+            v-if="!showAllAssets && !isInFolderView"
+            class="sticky top-0 z-10 flex items-center justify-end border-b border-comfy-input bg-base-background px-2 py-1"
+          >
+            <button
+              class="shrink-0 cursor-pointer rounded-sm border-none bg-transparent p-1 text-muted-foreground transition-colors hover:bg-secondary-background-hover hover:text-text-primary"
+              :aria-label="t('mediaAsset.details.togglePanel')"
+              @click="showDetailPanel = !showDetailPanel"
+            >
+              <i class="icon-[lucide--panel-right] size-3" />
+            </button>
+          </div>
           <!-- Breadcrumb navigation (advanced view only) -->
           <div
             v-if="showAllAssets && !isInFolderView && singleActiveSource"
@@ -168,6 +193,13 @@
             </template>
             <button
               class="ml-auto shrink-0 cursor-pointer rounded-sm border-none bg-transparent p-1 text-muted-foreground transition-colors hover:bg-secondary-background-hover hover:text-text-primary"
+              :aria-label="t('mediaAsset.details.togglePanel')"
+              @click="showDetailPanel = !showDetailPanel"
+            >
+              <i class="icon-[lucide--panel-right] size-3" />
+            </button>
+            <button
+              class="shrink-0 cursor-pointer rounded-sm border-none bg-transparent p-1 text-muted-foreground transition-colors hover:bg-secondary-background-hover hover:text-text-primary"
               :aria-label="t('refresh')"
               @click="refreshAssets"
             >
@@ -215,6 +247,7 @@
               @context-menu="handleAssetContextMenu"
               @approach-end="handleApproachEnd"
               @folder-click="handleFolderClick"
+              @folder-context-menu="handleFolderContextMenu"
             />
             <AssetsSidebarGridView
               v-else
@@ -226,6 +259,7 @@
               v-bind="showAllAssets ? { folders: currentFolders } : {}"
               @select-asset="handleAssetSelect"
               @folder-click="handleFolderClick"
+              @folder-context-menu="handleFolderContextMenu"
               @context-menu="handleAssetContextMenu"
               @approach-end="handleApproachEnd"
               @zoom="handleZoomClick"
@@ -233,6 +267,13 @@
             />
           </div>
         </div>
+
+        <!-- Right Detail Panel -->
+        <AssetDetailPanel
+          v-if="activeDetailAsset"
+          :asset="activeDetailAsset"
+          :prompt-metadata="detailPromptMeta"
+        />
       </div>
     </template>
     <template #footer>
@@ -328,6 +369,15 @@
     @bulk-open-workflow="handleBulkOpenWorkflow"
     @bulk-export-workflow="handleBulkExportWorkflow"
   />
+  <FolderContextMenu
+    v-if="contextMenuFolder"
+    ref="folderContextMenuRef"
+    :allow-move-actions="showAllAssets"
+    @hide="handleFolderContextMenuHide"
+    @open-in-finder="handleFolderOpenInFinder"
+    @export-all="handleFolderExportAll"
+    @move-to="handleFolderMoveTo"
+  />
 </template>
 
 <script setup lang="ts">
@@ -362,7 +412,9 @@ import Tab from '@/components/tab/Tab.vue'
 import TabList from '@/components/tab/TabList.vue'
 import Button from '@/components/ui/button/Button.vue'
 import Popover from '@/components/ui/Popover.vue'
+import AssetDetailPanel from '@/platform/assets/components/AssetDetailPanel.vue'
 import AssetFilterPanel from '@/platform/assets/components/AssetFilterPanel.vue'
+import FolderContextMenu from '@/platform/assets/components/FolderContextMenu.vue'
 import MediaAssetContextMenu from '@/platform/assets/components/MediaAssetContextMenu.vue'
 import MediaAssetFilterBar from '@/platform/assets/components/MediaAssetFilterBar.vue'
 import type { ViewMode } from '@/platform/assets/components/MediaAssetFilterBar.vue'
@@ -372,6 +424,7 @@ import { useOutputJobsAssets } from '@/platform/assets/composables/media/useOutp
 import { useCustomDirectoryAssets } from '@/platform/assets/composables/media/useCustomDirectoryAssets'
 import { useAssetPromptMetadata } from '@/platform/assets/composables/useAssetPromptMetadata'
 import { useAssetSelection } from '@/platform/assets/composables/useAssetSelection'
+import { useAssetSelectionStore } from '@/platform/assets/composables/useAssetSelectionStore'
 import { useMediaAssetActions } from '@/platform/assets/composables/useMediaAssetActions'
 import { useMediaAssetFiltering } from '@/platform/assets/composables/useMediaAssetFiltering'
 import { useAssetFilters } from '@/platform/assets/composables/useAssetFilters'
@@ -380,10 +433,13 @@ import type { OutputAssetMetadata } from '@/platform/assets/schemas/assetMetadat
 import { getOutputAssetMetadata } from '@/platform/assets/schemas/assetMetadataSchema'
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
 import { getAssetDisplayName } from '@/platform/assets/utils/assetMetadataUtils'
+import type { PromptMetadata } from '@/platform/assets/utils/promptMetadataParser'
 import type { MediaKind } from '@/platform/assets/schemas/mediaAssetSchema'
 import { resolveOutputAssetItems } from '@/platform/assets/utils/outputAssetUtil'
 import type { FolderItem } from '@/utils/directoryPickerUtil'
 import { isCloud } from '@/platform/distribution/types'
+import { useAssetsStore } from '@/stores/assetsStore'
+import { electronAPI } from '@/utils/envUtil'
 import { useDialogStore } from '@/stores/dialogStore'
 import { ResultItemImpl } from '@/stores/queueStore'
 import {
@@ -454,6 +510,10 @@ const showFilterPanel = useStorage<boolean>(
   'Comfy.Assets.ShowFilterPanel',
   false
 )
+const showDetailPanel = useStorage<boolean>(
+  'Comfy.Assets.ShowDetailPanel',
+  false
+)
 const isListView = computed(() => viewMode.value === 'list')
 const gridSize = computed<'sm' | 'md' | 'lg'>(() => {
   if (viewMode.value === 'grid-sm') return 'sm'
@@ -463,6 +523,9 @@ const gridSize = computed<'sm' | 'md' | 'lg'>(() => {
 
 const contextMenuRef = ref<InstanceType<typeof MediaAssetContextMenu>>()
 const contextMenuAsset = ref<AssetItem | null>(null)
+
+const folderContextMenuRef = ref<InstanceType<typeof FolderContextMenu>>()
+const contextMenuFolder = ref<FolderItem | null>(null)
 
 // Hide delete button when only input is active in non-cloud mode
 const shouldShowDeleteButton = computed(() => {
@@ -649,6 +712,26 @@ const baseAssets = computed(() => {
 
 // Prompt metadata extraction for @-filter search
 const metadataExtractor = useAssetPromptMetadata()
+
+// Detail panel — show info for last-clicked asset
+const selectionStore = useAssetSelectionStore()
+
+const activeDetailAsset = computed(() => {
+  if (!showDetailPanel.value) return null
+  const lastId = selectionStore.lastSelectedAssetId
+  if (!lastId) return null
+  return visibleAssets.value.find((a) => a.id === lastId) ?? null
+})
+
+const detailPromptMeta = ref<PromptMetadata | null>(null)
+
+watch(activeDetailAsset, async (asset) => {
+  if (!asset) {
+    detailPromptMeta.value = null
+    return
+  }
+  detailPromptMeta.value = await metadataExtractor.extractMetadata(asset)
+})
 
 // Use media asset filtering composable
 const {
@@ -909,6 +992,62 @@ function handleAssetContextMenu(event: MouseEvent, asset: AssetItem) {
 
 function handleContextMenuHide() {
   scheduleCleanup()
+}
+
+const { start: scheduleFolderCleanup, stop: cancelFolderCleanup } =
+  useTimeoutFn(
+    () => {
+      contextMenuFolder.value = null
+    },
+    0,
+    { immediate: false }
+  )
+
+function handleFolderContextMenu(event: MouseEvent, folder: FolderItem) {
+  cancelFolderCleanup()
+  contextMenuFolder.value = folder
+  void nextTick(() => {
+    folderContextMenuRef.value?.show(event)
+  })
+}
+
+function handleFolderContextMenuHide() {
+  scheduleFolderCleanup()
+}
+
+function handleFolderOpenInFinder() {
+  const source = singleActiveSource.value
+  if (source === 'output') {
+    electronAPI().openOutputsFolder()
+  } else {
+    electronAPI().openInputsFolder()
+  }
+}
+
+const assetsStore = useAssetsStore()
+
+function getAssetsInFolder(folder: FolderItem): AssetItem[] {
+  const prefix = folder.path + '/'
+  const source = singleActiveSource.value
+  const allAssets =
+    source === 'input' ? assetsStore.inputAssets : assetsStore.historyAssets
+  return allAssets.filter((asset) => asset.name.startsWith(prefix))
+}
+
+function handleFolderExportAll() {
+  if (!contextMenuFolder.value) return
+  const assets = getAssetsInFolder(contextMenuFolder.value)
+  if (assets.length > 0) {
+    downloadMultipleAssets(assets)
+  }
+}
+
+async function handleFolderMoveTo() {
+  if (!contextMenuFolder.value) return
+  const assets = getAssetsInFolder(contextMenuFolder.value)
+  if (assets.length > 0) {
+    await moveAssets(assets)
+  }
 }
 
 function handleShowInDirectoryView() {

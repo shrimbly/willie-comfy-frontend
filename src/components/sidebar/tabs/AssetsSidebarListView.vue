@@ -23,6 +23,9 @@
               : ''
           "
           @click.stop="emit('folder-click', item.folder)"
+          @contextmenu.prevent.stop="
+            emit('folder-context-menu', $event, item.folder)
+          "
         />
         <div
           v-else-if="item.type === 'show-more'"
@@ -142,6 +145,7 @@ const emit = defineEmits<{
   (e: 'context-menu', event: MouseEvent, asset: AssetItem): void
   (e: 'approach-end'): void
   (e: 'folder-click', folder: FolderItem): void
+  (e: 'folder-context-menu', event: MouseEvent, folder: FolderItem): void
 }>()
 
 const MAX_VISIBLE_FOLDERS = 4
