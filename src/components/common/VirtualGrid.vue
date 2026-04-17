@@ -7,7 +7,7 @@
       <slot name="header" />
     </div>
     <div :style="topSpacerStyle" />
-    <div :style="mergedGridStyle">
+    <div :style="mergedGridStyle" data-virtual-grid-content>
       <div
         v-for="(item, i) in renderedItems"
         :key="item.key"
@@ -154,5 +154,14 @@ watch(
 whenever(() => items, updateItemSize, { flush: 'post' })
 onBeforeUnmount(() => {
   onResize.cancel()
+})
+
+defineExpose({
+  container,
+  itemHeight,
+  itemWidth,
+  cols,
+  headerHeight,
+  startIndex: computed(() => state.value.start)
 })
 </script>

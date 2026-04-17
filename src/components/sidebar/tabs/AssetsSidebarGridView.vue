@@ -2,6 +2,7 @@
   <div ref="wrapperRef" class="flex h-full flex-col">
     <!-- Assets Grid -->
     <VirtualGrid
+      ref="virtualGridRef"
       class="flex-1"
       :items="gridItems"
       :grid-style="gridStyle"
@@ -59,6 +60,11 @@
         />
       </template>
     </VirtualGrid>
+    <div
+      v-if="isDragging"
+      class="pointer-events-none fixed z-50 rounded-sm border border-modal-card-border-highlighted bg-modal-card-border-highlighted/20"
+      :style="marqueeStyle"
+    />
   </div>
 </template>
 
@@ -90,14 +96,16 @@ export function computeColumns(
 </script>
 
 <script setup lang="ts">
-import { useElementSize } from '@vueuse/core'
+import { useEventListener, useElementSize } from '@vueuse/core'
 import { computed, ref, watch } from 'vue'
+import type { ComponentExposed } from 'vue-component-type-helpers'
 import type { CSSProperties } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import VirtualGrid from '@/components/common/VirtualGrid.vue'
 import AssetsListItem from '@/platform/assets/components/AssetsListItem.vue'
 import MediaAssetCard from '@/platform/assets/components/MediaAssetCard.vue'
+import { useMarqueeSelection } from '@/platform/assets/composables/useMarqueeSelection'
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
 import type { FolderItem } from '@/utils/directoryPickerUtil'
 
@@ -132,6 +140,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const wrapperRef = ref<HTMLElement | null>(null)
+const virtualGridRef = ref<ComponentExposed<typeof VirtualGrid> | null>(null)
 const { width: wrapperWidth } = useElementSize(wrapperRef)
 
 const effectiveWidth = computed(() =>
@@ -185,4 +194,27 @@ const gridStyle = computed<CSSProperties>(() => ({
   padding: '0 0.5rem',
   gap: '0.5rem'
 }))
+
+const containerEl = computed(() => virtualGridRef.value?.container ?? null)
+const marqueeItemWidth = computed(
+  () => virtualGridRef.value?.itemWidth ?? estimatedCellWidth.value
+)
+const marqueeItemHeight = computed(
+  () => virtualGridRef.value?.itemHeight ?? estimatedCellWidth.value + 40
+)
+const marqueeCols = computed(() => virtualGridRef.value?.cols ?? columns.value)
+const marqueeStartIndex = computed(() => virtualGridRef.value?.startIndex ?? 0)
+
+const { isDragging, marqueeStyle, onPointerDown } = useMarqueeSelection({
+  containerEl,
+  allAssets: computed(() => assets),
+  cols: marqueeCols,
+  itemWidth: marqueeItemWidth,
+  itemHeight: marqueeItemHeight,
+  startIndex: marqueeStartIndex,
+  gap: GAP_PX,
+  padLeft: PAD_PX
+})
+
+useEventListener(containerEl, 'pointerdown', onPointerDown)
 </script>
