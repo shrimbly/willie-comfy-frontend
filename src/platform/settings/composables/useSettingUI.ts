@@ -30,6 +30,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   Other: 'icon-[lucide--ellipsis]',
   PlanCredits: 'icon-[lucide--credit-card]',
   secrets: 'icon-[lucide--key-round]',
+  'filename-variables': 'icon-[lucide--variable]',
   'server-config': 'icon-[lucide--server]',
   subscription: 'icon-[lucide--credit-card]',
   user: 'icon-[lucide--user]',
@@ -211,6 +212,17 @@ export function useSettingUI(
     )
   }
 
+  const filenameVariablesPanel: SettingPanelItem = {
+    node: {
+      key: 'filename-variables',
+      label: 'Filename Variables',
+      children: []
+    },
+    component: defineAsyncComponent(
+      () => import('@/platform/settings/components/FilenameVariablesPanel.vue')
+    )
+  }
+
   const extensionPanel: SettingPanelItem = {
     node: {
       key: 'extension',
@@ -240,6 +252,7 @@ export function useSettingUI(
       userPanel,
       ...(shouldShowWorkspacePanel.value ? [workspacePanel] : []),
       keybindingPanel,
+      filenameVariablesPanel,
       extensionPanel,
       ...(isDesktop ? [serverConfigPanel] : []),
       ...(shouldShowPlanCreditsPanel.value && subscriptionPanel
@@ -307,6 +320,7 @@ export function useSettingUI(
           : []),
         ...coreSettingCategories.value.slice(1).map(translateCategory),
         translateCategory(keybindingPanel.node),
+        translateCategory(filenameVariablesPanel.node),
         translateCategory(extensionPanel.node),
         translateCategory(aboutPanel.node),
         ...(isDesktop ? [translateCategory(serverConfigPanel.node)] : [])
@@ -356,6 +370,7 @@ export function useSettingUI(
       label: 'Special Settings',
       children: [
         keybindingPanel.node,
+        filenameVariablesPanel.node,
         extensionPanel.node,
         aboutPanel.node,
         ...(isDesktop ? [serverConfigPanel.node] : [])

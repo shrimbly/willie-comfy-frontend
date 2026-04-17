@@ -70,6 +70,7 @@ export type SettingPanelType =
   | 'about'
   | 'credits'
   | 'extension'
+  | 'filename-variables'
   | 'keybinding'
   | 'secrets'
   | 'server-config'

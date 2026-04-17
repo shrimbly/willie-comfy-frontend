@@ -1523,7 +1523,8 @@
     "Error System": "Error System",
     "Other": "Other",
     "Secrets": "Secrets",
-    "Node Library": "Node Library"
+    "Node Library": "Node Library",
+    "Filename Variables": "Filename Variables"
   },
   "serverConfigItems": {
     "listen": {
@@ -3912,5 +3913,24 @@
         "green": "Green"
       }
     }
+  },
+  "templateVariables": {
+    "projectDesc": "Project name",
+    "workflowTitleDesc": "Current workflow filename",
+    "groupTitleDesc": "Parent group title",
+    "nodeTitleDesc": "Node title"
+  },
+  "filenameVariables": {
+    "title": "Filename Variables",
+    "description": "Variables available in filename prefix fields. Use @variableName in the filename prefix widget.",
+    "builtIn": "Built-in",
+    "custom": "Custom",
+    "addVariable": "Add variable",
+    "namePlaceholder": "Variable name",
+    "valuePlaceholder": "Value",
+    "nameConflict": "Name conflicts with a built-in variable",
+    "nameInvalid": "Name must contain only letters, numbers, and underscores",
+    "nameDuplicate": "Duplicate variable name",
+    "nameEmpty": "Name is required"
   }
 }
