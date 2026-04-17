@@ -59,11 +59,15 @@ export function getAssetBaseModels(asset: AssetItem): string[] {
 /**
  * Gets the display name for an asset
  * Checks user_metadata.name, then metadata.name, then display_name, then asset.name
+ * Strips any directory prefix so only the basename is shown.
  * @param asset - The asset to get display name from
  * @returns The display name
  */
 export function getAssetDisplayName(asset: AssetItem): string {
-  return getStringProperty(asset, 'name') || asset.display_name || asset.name
+  const raw =
+    getStringProperty(asset, 'name') || asset.display_name || asset.name
+  const lastSep = Math.max(raw.lastIndexOf('/'), raw.lastIndexOf('\\'))
+  return lastSep >= 0 ? raw.slice(lastSep + 1) : raw
 }
 
 /**
