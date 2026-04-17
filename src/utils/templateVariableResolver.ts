@@ -20,9 +20,6 @@ export const BUILT_IN_TEMPLATE_VARIABLES: TemplateVariable[] = [
   { name: 'nodeTitle', description: 'templateVariables.nodeTitleDesc' }
 ]
 
-/** @deprecated Use BUILT_IN_TEMPLATE_VARIABLES instead */
-export const TEMPLATE_VARIABLES = BUILT_IN_TEMPLATE_VARIABLES
-
 const BUILT_IN_NAMES = new Set(BUILT_IN_TEMPLATE_VARIABLES.map((v) => v.name))
 
 function sanitize(value: string): string {
