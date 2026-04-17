@@ -37,10 +37,11 @@ import { useI18n } from 'vue-i18n'
 
 import Button from '@/components/ui/button/Button.vue'
 import { useDismissableOverlay } from '@/composables/useDismissableOverlay'
-import { isCloud } from '@/platform/distribution/types'
+import { isCloud, isDesktop } from '@/platform/distribution/types'
 import { supportsWorkflowMetadata } from '@/platform/workflow/utils/workflowExtractionUtil'
 import { isPreviewableMediaType } from '@/utils/formatUtil'
 import { detectNodeTypeFromFilename } from '@/utils/loaderNodeUtil'
+import { electronAPI } from '@/utils/envUtil'
 import { cn } from '@/utils/tailwindUtil'
 
 import { useMediaAssetActions } from '../composables/useMediaAssetActions'
@@ -54,7 +55,8 @@ const {
   showDeleteButton,
   selectedAssets,
   isBulkMode,
-  allowMoveActions = false
+  allowMoveActions = false,
+  showDirectoryViewAction = false
 } = defineProps<{
   asset: AssetItem
   assetType: AssetContext['type']
@@ -63,12 +65,14 @@ const {
   selectedAssets?: AssetItem[]
   isBulkMode?: boolean
   allowMoveActions?: boolean
+  showDirectoryViewAction?: boolean
 }>()
 
 const emit = defineEmits<{
   zoom: []
   hide: []
   'asset-deleted': []
+  'show-in-directory-view': []
   'bulk-download': [assets: AssetItem[]]
   'bulk-move': [assets: AssetItem[]]
   'bulk-delete': [assets: AssetItem[]]
@@ -239,6 +243,41 @@ const contextMenuItems = computed<MenuItem[]>(() => {
       icon: 'icon-[lucide--folder-input]',
       command: async () => {
         if (asset) await actions.moveAssets(asset)
+      }
+    })
+  }
+
+  // Show in directory view
+  if (showDirectoryViewAction) {
+    items.push({
+      label: t('mediaAsset.actions.showInDirectoryView'),
+      icon: 'icon-[lucide--folder-search]',
+      command: () => emit('show-in-directory-view')
+    })
+  }
+
+  // Show in OS file manager (desktop only)
+  if (isDesktop) {
+    const platform = electronAPI().getPlatform()
+    const labelKey =
+      platform === 'darwin'
+        ? 'mediaAsset.actions.showInFinder'
+        : platform === 'win32'
+          ? 'mediaAsset.actions.showInExplorer'
+          : 'mediaAsset.actions.showInFileManager'
+    const iconClass =
+      platform === 'darwin'
+        ? 'icon-[comfy--finder]'
+        : 'icon-[lucide--folder-open]'
+    items.push({
+      label: t(labelKey),
+      icon: iconClass,
+      command: () => {
+        if (assetType === 'output') {
+          electronAPI().openOutputsFolder()
+        } else {
+          electronAPI().openInputsFolder()
+        }
       }
     })
   }

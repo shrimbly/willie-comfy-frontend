@@ -316,9 +316,11 @@
     :selected-assets="selectedAssets"
     :is-bulk-mode="isBulkMode"
     :allow-move-actions="showAllAssets"
+    :show-directory-view-action="!showAllAssets"
     @zoom="handleZoomClick(contextMenuAsset)"
     @hide="handleContextMenuHide"
     @asset-deleted="refreshAssets"
+    @show-in-directory-view="handleShowInDirectoryView"
     @bulk-download="handleBulkDownload"
     @bulk-move="handleBulkMove"
     @bulk-delete="handleBulkDelete"
@@ -504,6 +506,31 @@ const outputJobsAssets = useOutputJobsAssets()
 const activeOutputSource = computed(() =>
   showAllAssets.value ? outputAssets : outputJobsAssets
 )
+
+// Apply pending folder navigation set before component remount.
+// Changing showAllAssets changes the splitter key which destroys and recreates
+// this component tree, so the handler stores the target in localStorage.
+const PENDING_NAV_KEY = 'Comfy.Assets.PendingNav'
+const pendingNavStr = localStorage.getItem(PENDING_NAV_KEY)
+if (pendingNavStr) {
+  localStorage.removeItem(PENDING_NAV_KEY)
+  try {
+    const { source, path } = JSON.parse(pendingNavStr) as {
+      source: string
+      path: string
+    }
+    const assets = source === 'output' ? outputAssets : inputAssets
+    if (path) {
+      assets.navigateInto({
+        name: path.split('/').pop() || path,
+        path,
+        type: 'folder'
+      })
+    }
+  } catch {
+    // Ignore malformed pending navigation
+  }
+}
 
 // Date range filtering
 const dateRangeFilter = useStorage<[Date, Date] | null>(
@@ -882,6 +909,31 @@ function handleAssetContextMenu(event: MouseEvent, asset: AssetItem) {
 
 function handleContextMenuHide() {
   scheduleCleanup()
+}
+
+function handleShowInDirectoryView() {
+  if (!contextMenuAsset.value) return
+
+  const asset = contextMenuAsset.value
+  const assetName = asset.name
+  const lastSlash = assetName.lastIndexOf('/')
+  // Jobs view stores subfolder in user_metadata; file view embeds it in name
+  const folderPath =
+    lastSlash > 0
+      ? assetName.substring(0, lastSlash)
+      : (asset.user_metadata?.subfolder as string) || ''
+  const source = contextMenuAssetType.value
+
+  // Store navigation target before toggling showAllAssets.
+  // Changing showAllAssets changes panelStateKeySuffix which changes the
+  // splitter key, destroying and recreating this entire component tree.
+  // The new instance reads this in setup and navigates.
+  localStorage.setItem(
+    PENDING_NAV_KEY,
+    JSON.stringify({ source, path: folderPath })
+  )
+  showAllAssets.value = true
+  activeSources.value = [source]
 }
 
 const handleBulkDownload = (assets: AssetItem[]) => {

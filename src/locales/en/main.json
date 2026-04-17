@@ -3067,7 +3067,11 @@
       "exportWorkflow": "Export workflow",
       "copyJobId": "Copy job ID",
       "delete": "Delete",
-      "moveTo": "Move to..."
+      "moveTo": "Move to...",
+      "showInDirectoryView": "Show in directory view",
+      "showInFinder": "Show in Finder",
+      "showInExplorer": "Show in Explorer",
+      "showInFileManager": "Show in file manager"
     },
     "jobIdToast": {
       "jobIdCopied": "Job ID copied to clipboard",
