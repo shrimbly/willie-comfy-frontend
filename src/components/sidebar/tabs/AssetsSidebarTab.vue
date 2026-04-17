@@ -1,7 +1,10 @@
 <template>
-  <SidebarTabTemplate title="" v-bind="$attrs">
+  <SidebarTabTemplate
+    :title="showAllAssets ? '' : $t('sideToolbar.mediaAssets.title')"
+    v-bind="$attrs"
+  >
     <template #alt-title>
-      <!-- Folder view: job ID display -->
+      <!-- Folder view: job ID display (both modes) -->
       <div
         v-if="isInFolderView"
         class="flex w-full items-center justify-between gap-2"
@@ -21,8 +24,11 @@
           <span>{{ formattedExecutionTime }}</span>
         </div>
       </div>
-      <!-- Normal view: title only (source selection moved to filter panel) -->
-      <div v-else class="flex w-full items-center justify-between gap-2">
+      <!-- Advanced view title -->
+      <div
+        v-else-if="showAllAssets"
+        class="flex w-full items-center justify-between gap-2"
+      >
         <span
           class="truncate font-bold"
           :title="$t('sideToolbar.mediaAssets.title')"
@@ -46,20 +52,35 @@
         v-model:sort-by="sortBy"
         v-model:view-mode="viewMode"
         v-model:media-type-filters="mediaTypeFilters"
+        v-model:show-all-assets="showAllAssets"
+        v-model:show-filter-panel="showFilterPanel"
         bottom-divider
-        :show-generation-time-sort="activeSources.includes('output')"
+        :show-generation-time-sort="
+          showAllAssets
+            ? activeSources.includes('output')
+            : activeTab === 'output'
+        "
       />
+      <!-- Default-mode Tab list -->
+      <div
+        v-if="!showAllAssets && !isInFolderView"
+        class="border-b border-comfy-input p-2 2xl:px-4"
+      >
+        <TabList v-model="activeTab">
+          <Tab value="output">{{ $t('sideToolbar.labels.generated') }}</Tab>
+          <Tab value="input">{{ $t('sideToolbar.labels.imported') }}</Tab>
+        </TabList>
+      </div>
       <!-- Subfolder breadcrumb removed from header — now inside body -->
     </template>
     <template #body>
-      <div class="assets-content-layout">
-        <!-- Left Filter Panel -->
+      <div :class="showAllAssets ? 'assets-content-layout' : 'contents'">
+        <!-- Left Filter Panel (advanced view only) -->
         <AssetFilterPanel
-          v-if="!isInFolderView"
+          v-if="showAllAssets && !isInFolderView && showFilterPanel"
           v-model:date-range="dateRangeFilter"
           v-model:media-type-filters="mediaTypeFilters"
           v-model:active-sources="activeSources"
-          v-model:show-subdirectories="showSubdirectories"
           :assets="baseAssets"
           :custom-directories="savedCustomDirectories"
           @clear-filters="clearAllFilters"
@@ -68,10 +89,10 @@
         />
 
         <!-- Main Content Area -->
-        <div class="assets-main-content">
-          <!-- Breadcrumb navigation -->
+        <div :class="showAllAssets ? 'assets-main-content' : 'contents'">
+          <!-- Breadcrumb navigation (advanced view only) -->
           <div
-            v-if="!isInFolderView && singleActiveSource"
+            v-if="showAllAssets && !isInFolderView && singleActiveSource"
             class="sticky top-0 z-10 flex items-center gap-0.5 border-b border-comfy-input bg-base-background px-2 py-1.5 text-xs"
           >
             <button
@@ -88,6 +109,10 @@
             </button>
             <!-- Truncated breadcrumb: root > ... > last -->
             <template v-if="breadcrumbSegments.length > 1">
+              <i
+                class="icon-[lucide--chevron-right] size-3 shrink-0 text-muted-foreground/50"
+                aria-hidden="true"
+              />
               <Popover :show-arrow="false">
                 <template #button>
                   <button
@@ -105,16 +130,17 @@
                       )"
                       :key="index"
                       class="cursor-pointer rounded-sm border-none bg-transparent px-3 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:bg-secondary-background-hover hover:text-text-primary"
-                      @click="
-                        handleBreadcrumbNavigate(index)
-                        close()
-                      "
+                      @click="handleBreadcrumbItemClick(index, close)"
                     >
                       {{ sentenceCase(segment) }}
                     </button>
                   </div>
                 </template>
               </Popover>
+              <i
+                class="icon-[lucide--chevron-right] size-3 shrink-0 text-muted-foreground/50"
+                aria-hidden="true"
+              />
               <button
                 class="truncate rounded-sm border-none bg-transparent px-1 py-0.5 font-medium text-text-primary transition-colors"
                 disabled
@@ -128,6 +154,10 @@
             </template>
             <!-- Single segment: root > segment -->
             <template v-else-if="breadcrumbSegments.length === 1">
+              <i
+                class="icon-[lucide--chevron-right] size-3 shrink-0 text-muted-foreground/50"
+                aria-hidden="true"
+              />
               <button
                 class="truncate rounded-sm border-none bg-transparent px-1 py-0.5 font-medium text-text-primary transition-colors"
                 disabled
@@ -174,11 +204,11 @@
             <AssetsSidebarListView
               v-if="isListView"
               :asset-items="listViewAssetItems"
-              :folders="currentFolders"
               :is-selected="isSelected"
               :selectable-assets="listViewSelectableAssets"
               :is-stack-expanded="isListViewStackExpanded"
               :toggle-stack="toggleListViewStack"
+              v-bind="showAllAssets ? { folders: currentFolders } : {}"
               @select-asset="handleAssetSelect"
               @preview-asset="handleZoomClick"
               @context-menu="handleAssetContextMenu"
@@ -188,11 +218,11 @@
             <AssetsSidebarGridView
               v-else
               :assets="displayAssets"
-              :folders="currentFolders"
               :is-selected="isSelected"
               :show-output-count="shouldShowOutputCount"
               :get-output-count="getOutputCount"
               :grid-size="gridSize"
+              v-bind="showAllAssets ? { folders: currentFolders } : {}"
               @select-asset="handleAssetSelect"
               @folder-click="handleFolderClick"
               @context-menu="handleAssetContextMenu"
@@ -284,6 +314,7 @@
     :show-delete-button="shouldShowDeleteButton"
     :selected-assets="selectedAssets"
     :is-bulk-mode="isBulkMode"
+    :allow-move-actions="showAllAssets"
     @zoom="handleZoomClick(contextMenuAsset)"
     @hide="handleContextMenuHide"
     @asset-deleted="refreshAssets"
@@ -324,6 +355,8 @@ import AssetsSidebarListView from '@/components/sidebar/tabs/AssetsSidebarListVi
 import SidebarTabTemplate from '@/components/sidebar/tabs/SidebarTabTemplate.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 import MediaLightbox from '@/components/sidebar/tabs/queue/MediaLightbox.vue'
+import Tab from '@/components/tab/Tab.vue'
+import TabList from '@/components/tab/TabList.vue'
 import Button from '@/components/ui/button/Button.vue'
 import Popover from '@/components/ui/Popover.vue'
 import AssetFilterPanel from '@/platform/assets/components/AssetFilterPanel.vue'
@@ -332,6 +365,7 @@ import MediaAssetFilterBar from '@/platform/assets/components/MediaAssetFilterBa
 import type { ViewMode } from '@/platform/assets/components/MediaAssetFilterBar.vue'
 import { getAssetType } from '@/platform/assets/composables/media/assetMappers'
 import { useMediaAssets } from '@/platform/assets/composables/media/useMediaAssets'
+import { useOutputJobsAssets } from '@/platform/assets/composables/media/useOutputJobsAssets'
 import { useCustomDirectoryAssets } from '@/platform/assets/composables/media/useCustomDirectoryAssets'
 import { useAssetSelection } from '@/platform/assets/composables/useAssetSelection'
 import { useMediaAssetActions } from '@/platform/assets/composables/useMediaAssetActions'
@@ -387,13 +421,22 @@ activeSources.value = activeSources.value.filter(
   (s) => s === 'output' || s === 'input'
 )
 
+// Advanced-view toggle (opt-in; default UI matches main branch)
+const showAllAssets = useStorage<boolean>('Comfy.Assets.ShowAllAssets', false)
+
+// Bridge between advanced-view activeSources and default-view two-tab UI
+const activeTab = computed<'output' | 'input'>({
+  get: () => (activeSources.value[0] === 'input' ? 'input' : 'output'),
+  set: (tab) => {
+    activeSources.value = [tab]
+  }
+})
+
 // Computed helper: which single source is active (null if 0 or 2+)
 const singleActiveSource = computed(() => {
   if (activeSources.value.length === 1) return activeSources.value[0]
   return null
 })
-
-const showSubdirectories = ref(true)
 
 const folderJobId = ref<string | null>(null)
 const folderExecutionTime = ref<number | undefined>(undefined)
@@ -402,6 +445,10 @@ const isInFolderView = computed(() => folderJobId.value !== null)
 const viewMode = useStorage<ViewMode>(
   'Comfy.Assets.Sidebar.ViewMode',
   'grid-md'
+)
+const showFilterPanel = useStorage<boolean>(
+  'Comfy.Assets.ShowFilterPanel',
+  false
 )
 const isListView = computed(() => viewMode.value === 'list')
 const gridSize = computed<'sm' | 'md' | 'lg'>(() => {
@@ -448,6 +495,13 @@ const toast = useToast()
 
 const inputAssets = useMediaAssets('input')
 const outputAssets = useMediaAssets('output')
+const outputJobsAssets = useOutputJobsAssets()
+
+// Default view uses jobs-based source (per-job stacks, generation-time sort,
+// pagination); advanced view uses file-based source (folder nav, custom dirs).
+const activeOutputSource = computed(() =>
+  showAllAssets.value ? outputAssets : outputJobsAssets
+)
 
 // Date range filtering
 const dateRangeFilter = useStorage<[Date, Date] | null>(
@@ -507,7 +561,7 @@ const totalOutputCount = computed(() => {
 const mergedAssets = computed(() => {
   const result: AssetItem[] = []
   if (activeSources.value.includes('output')) {
-    result.push(...outputAssets.media.value)
+    result.push(...activeOutputSource.value.media.value)
   }
   if (activeSources.value.includes('input')) {
     result.push(...inputAssets.media.value)
@@ -525,7 +579,8 @@ const mergedAssets = computed(() => {
 
 const loading = computed(() => {
   for (const source of activeSources.value) {
-    if (source === 'output' && outputAssets.loading.value) return true
+    if (source === 'output' && activeOutputSource.value.loading.value)
+      return true
     if (source === 'input' && inputAssets.loading.value) return true
     const provider = customDirProviders.get(source)
     if (provider?.loading.value) return true
@@ -694,7 +749,7 @@ const galleryItems = computed(() => {
 const refreshAssets = async () => {
   const promises: Promise<unknown>[] = []
   if (activeSources.value.includes('output')) {
-    promises.push(outputAssets.fetchMediaList())
+    promises.push(activeOutputSource.value.fetchMediaList())
   }
   if (activeSources.value.includes('input')) {
     promises.push(inputAssets.fetchMediaList())
@@ -705,11 +760,27 @@ const refreshAssets = async () => {
 // --- Source activation watcher ---
 // Initial fetch for active sources
 if (activeSources.value.includes('output')) {
-  void outputAssets.fetchMediaList()
+  void activeOutputSource.value.fetchMediaList()
 }
 if (activeSources.value.includes('input')) {
   void inputAssets.fetchMediaList()
 }
+
+// Swap output data sources when the user toggles advanced view; fetch the
+// newly-active source so the view isn't empty.
+watch(showAllAssets, (isOn) => {
+  if (activeSources.value.includes('output')) {
+    void activeOutputSource.value.fetchMediaList()
+  }
+
+  if (isOn) return
+  const first = activeSources.value[0]
+  activeSources.value = [first === 'input' ? 'input' : 'output']
+  if (viewMode.value === 'grid-sm' || viewMode.value === 'grid-lg') {
+    viewMode.value = 'grid-md'
+  }
+  if (isInFolderView.value) exitFolderView()
+})
 
 // Watch for source changes after initial setup
 watch(activeSources, (newSources, oldSources) => {
@@ -720,7 +791,7 @@ watch(activeSources, (newSources, oldSources) => {
   for (const source of added) {
     if (source === 'output') {
       outputAssets.navigateToRoot()
-      void outputAssets.fetchMediaList()
+      void activeOutputSource.value.fetchMediaList()
     } else if (source === 'input') {
       inputAssets.navigateToRoot()
       void inputAssets.fetchMediaList()
@@ -947,10 +1018,10 @@ const handleApproachEnd = useDebounceFn(async () => {
   if (
     activeSources.value.includes('output') &&
     !isInFolderView.value &&
-    outputAssets.hasMore.value &&
-    !outputAssets.isLoadingMore.value
+    activeOutputSource.value.hasMore.value &&
+    !activeOutputSource.value.isLoadingMore.value
   ) {
-    await outputAssets.loadMore()
+    await activeOutputSource.value.loadMore()
   }
 }, 300)
 
@@ -1023,7 +1094,6 @@ const handleFolderClick = async (folder: FolderItem) => {
 }
 
 const currentFolders = computed(() => {
-  if (!showSubdirectories.value) return undefined
   if (!singleActiveSource.value) return undefined
   if (singleActiveSource.value === 'output') return outputAssets.folders.value
   if (singleActiveSource.value === 'input') return inputAssets.folders.value
@@ -1068,6 +1138,11 @@ const breadcrumbRootLabel = computed(() => {
   )
   return sentenceCase(dir?.name || 'Custom')
 })
+
+const handleBreadcrumbItemClick = (index: number, close: () => void) => {
+  handleBreadcrumbNavigate(index)
+  close()
+}
 
 const handleBreadcrumbNavigate = (index: number) => {
   if (!singleActiveSource.value) return

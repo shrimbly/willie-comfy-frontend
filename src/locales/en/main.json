@@ -834,7 +834,9 @@
       "filterAudio": "Audio",
       "filter3D": "3D",
       "filterText": "Text",
-      "viewSettings": "View settings"
+      "viewSettings": "View settings",
+      "directoryView": "Directory view",
+      "recentlyGenerated": "Recently generated"
     },
     "backToAssets": "Back to all assets",
     "folderView": {
@@ -3782,7 +3784,7 @@
       "type": "Type",
       "source": "Source",
       "addDirectory": "Add directory",
-      "showSubdirectories": "Show folders"
+      "togglePanel": "Toggle filter panel"
     },
     "view": {
       "tooltip": "View",

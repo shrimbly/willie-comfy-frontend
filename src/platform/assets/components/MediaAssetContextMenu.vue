@@ -53,7 +53,8 @@ const {
   fileKind,
   showDeleteButton,
   selectedAssets,
-  isBulkMode
+  isBulkMode,
+  allowMoveActions = false
 } = defineProps<{
   asset: AssetItem
   assetType: AssetContext['type']
@@ -61,6 +62,7 @@ const {
   showDeleteButton?: boolean
   selectedAssets?: AssetItem[]
   isBulkMode?: boolean
+  allowMoveActions?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -183,11 +185,13 @@ const contextMenuItems = computed<MenuItem[]>(() => {
     })
 
     // Bulk Move
-    items.push({
-      label: t('mediaAsset.selection.moveSelectedAll'),
-      icon: 'icon-[lucide--folder-input]',
-      command: () => emit('bulk-move', selectedAssets)
-    })
+    if (allowMoveActions) {
+      items.push({
+        label: t('mediaAsset.selection.moveSelectedAll'),
+        icon: 'icon-[lucide--folder-input]',
+        command: () => emit('bulk-move', selectedAssets)
+      })
+    }
 
     // Bulk Delete (if allowed)
     if (shouldShowDeleteButton.value) {
@@ -229,13 +233,15 @@ const contextMenuItems = computed<MenuItem[]>(() => {
   })
 
   // Move to
-  items.push({
-    label: t('mediaAsset.actions.moveTo'),
-    icon: 'icon-[lucide--folder-input]',
-    command: async () => {
-      if (asset) await actions.moveAssets(asset)
-    }
-  })
+  if (allowMoveActions) {
+    items.push({
+      label: t('mediaAsset.actions.moveTo'),
+      icon: 'icon-[lucide--folder-input]',
+      command: async () => {
+        if (asset) await actions.moveAssets(asset)
+      }
+    })
+  }
 
   // Separator before workflow actions (only if there are workflow actions)
   if (showWorkflowActions.value) {

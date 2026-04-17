@@ -1,5 +1,5 @@
-import { computed, ref } from 'vue';
-import type { Ref } from 'vue';
+import { computed, ref } from 'vue'
+import type { Ref } from 'vue'
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
 
 export interface DateRange {

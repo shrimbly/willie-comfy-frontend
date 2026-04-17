@@ -65,13 +65,24 @@ describe('useAssetsSidebarTab', () => {
     expect(sidebarTab.panelStateKeySuffix).toBe('')
   })
 
-  it('uses advanced width when ShowAllAssets is persisted true', () => {
+  it('uses directory width when ShowAllAssets is true without filter panel', () => {
     localStorage.setItem('Comfy.Assets.ShowAllAssets', 'true')
 
     const sidebarTab = useAssetsSidebarTab()
 
-    expect(sidebarTab.panelSize).toBe(45)
-    expect(sidebarTab.panelMinSize).toBe(45)
-    expect(sidebarTab.panelStateKeySuffix).toBe('advanced')
+    expect(sidebarTab.panelSize).toBe(25)
+    expect(sidebarTab.panelMinSize).toBe(20)
+    expect(sidebarTab.panelStateKeySuffix).toBe('directory')
+  })
+
+  it('uses wider width when both directory view and filter panel are open', () => {
+    localStorage.setItem('Comfy.Assets.ShowAllAssets', 'true')
+    localStorage.setItem('Comfy.Assets.ShowFilterPanel', 'true')
+
+    const sidebarTab = useAssetsSidebarTab()
+
+    expect(sidebarTab.panelSize).toBe(30)
+    expect(sidebarTab.panelMinSize).toBe(25)
+    expect(sidebarTab.panelStateKeySuffix).toBe('directory-filters')
   })
 })

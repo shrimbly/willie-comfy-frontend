@@ -2,15 +2,55 @@ import { useAsyncState, whenever } from '@vueuse/core'
 import { difference } from 'es-toolkit'
 import { defineStore } from 'pinia'
 import { computed, reactive, ref, shallowReactive } from 'vue'
-import { mapInputFileToAssetItem } from '@/platform/assets/composables/media/assetMappers'
+import {
+  mapInputFileToAssetItem,
+  mapTaskOutputToAssetItem
+} from '@/platform/assets/composables/media/assetMappers'
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
 import { assetService } from '@/platform/assets/services/assetService'
 import type { PaginationOptions } from '@/platform/assets/services/assetService'
 import { isCloud } from '@/platform/distribution/types'
+import type { JobListItem } from '@/platform/remote/comfyui/jobs/jobTypes'
 import { api } from '@/scripts/api'
 
+import { TaskItemImpl } from './queueStore'
 import { useAssetDownloadStore } from './assetDownloadStore'
 import { useModelToNodeStore } from './modelToNodeStore'
+
+const OUTPUT_JOBS_BATCH_SIZE = 200
+const OUTPUT_JOBS_MAX_ITEMS = 1000
+
+/**
+ * Convert history job items to asset items.
+ * One asset per job (using previewOutput); multi-output jobs are
+ * represented with outputCount metadata so the UI can render stacks.
+ */
+function mapHistoryToAssets(historyItems: JobListItem[]): AssetItem[] {
+  const assetItems: AssetItem[] = []
+
+  for (const job of historyItems) {
+    if (job.status !== 'completed' || !job.preview_output) continue
+
+    const task = new TaskItemImpl(job)
+    if (!task.previewOutput) continue
+
+    const assetItem = mapTaskOutputToAssetItem(task, task.previewOutput)
+
+    assetItem.user_metadata = {
+      ...assetItem.user_metadata,
+      outputCount: task.outputsCount ?? task.previewableOutputs.length,
+      allOutputs: task.previewableOutputs
+    }
+
+    assetItems.push(assetItem)
+  }
+
+  return assetItems.sort(
+    (a, b) =>
+      new Date(b.created_at ?? 0).getTime() -
+      new Date(a.created_at ?? 0).getTime()
+  )
+}
 
 const INPUT_LIMIT = 100
 
@@ -124,6 +164,90 @@ export const useAssetsStore = defineStore('assets', () => {
       console.error('Error fetching output assets:', err)
     }
   })
+
+  // Jobs-based output assets (used by default Output tab).
+  // Parallel to file-based historyAssets which still powers advanced view.
+  const outputJobAssets = ref<AssetItem[]>([])
+  const outputJobsLoading = ref(false)
+  const outputJobsError = ref<unknown>(null)
+  const outputJobsOffset = ref(0)
+  const outputJobsHasMore = ref(true)
+  const outputJobsLoadingMore = ref(false)
+  const outputJobLoadedIds = shallowReactive(new Set<string>())
+
+  const fetchOutputJobsPage = async (loadMore: boolean): Promise<void> => {
+    if (!loadMore) {
+      outputJobsOffset.value = 0
+      outputJobsHasMore.value = true
+      outputJobAssets.value = []
+      outputJobLoadedIds.clear()
+    }
+
+    const history = await api.getHistory(OUTPUT_JOBS_BATCH_SIZE, {
+      offset: outputJobsOffset.value
+    })
+
+    const newAssets = mapHistoryToAssets(history)
+
+    if (loadMore) {
+      for (const asset of newAssets) {
+        if (outputJobLoadedIds.has(asset.id)) continue
+        outputJobLoadedIds.add(asset.id)
+
+        const assetTime = new Date(asset.created_at ?? 0).getTime()
+        const insertIndex = outputJobAssets.value.findIndex(
+          (item) => new Date(item.created_at ?? 0).getTime() < assetTime
+        )
+        if (insertIndex === -1) {
+          outputJobAssets.value.push(asset)
+        } else {
+          outputJobAssets.value.splice(insertIndex, 0, asset)
+        }
+      }
+    } else {
+      outputJobAssets.value = newAssets
+      for (const asset of newAssets) outputJobLoadedIds.add(asset.id)
+    }
+
+    outputJobsOffset.value += OUTPUT_JOBS_BATCH_SIZE
+    outputJobsHasMore.value = history.length === OUTPUT_JOBS_BATCH_SIZE
+
+    if (outputJobAssets.value.length > OUTPUT_JOBS_MAX_ITEMS) {
+      const removed = outputJobAssets.value.slice(OUTPUT_JOBS_MAX_ITEMS)
+      outputJobAssets.value = outputJobAssets.value.slice(
+        0,
+        OUTPUT_JOBS_MAX_ITEMS
+      )
+      for (const item of removed) outputJobLoadedIds.delete(item.id)
+    }
+  }
+
+  const updateOutputJobs = async () => {
+    outputJobsLoading.value = true
+    outputJobsError.value = null
+    try {
+      await fetchOutputJobsPage(false)
+    } catch (err) {
+      console.error('Error fetching output jobs:', err)
+      outputJobsError.value = err
+    } finally {
+      outputJobsLoading.value = false
+    }
+  }
+
+  const loadMoreOutputJobs = async () => {
+    if (!outputJobsHasMore.value || outputJobsLoadingMore.value) return
+    outputJobsLoadingMore.value = true
+    outputJobsError.value = null
+    try {
+      await fetchOutputJobsPage(true)
+    } catch (err) {
+      console.error('Error loading more output jobs:', err)
+      outputJobsError.value = err
+    } finally {
+      outputJobsLoadingMore.value = false
+    }
+  }
 
   /**
    * Map of asset hash filename to asset item for O(1) lookup
@@ -608,6 +732,15 @@ export const useAssetsStore = defineStore('assets', () => {
     historyLoading,
     inputError,
     historyError,
+
+    // Jobs-based output (for default Output tab)
+    outputJobAssets,
+    outputJobsLoading,
+    outputJobsError,
+    outputJobsHasMore,
+    outputJobsLoadingMore,
+    updateOutputJobs,
+    loadMoreOutputJobs,
 
     // Deletion tracking
     deletingAssetIds,

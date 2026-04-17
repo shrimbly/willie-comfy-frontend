@@ -21,6 +21,17 @@
         </template>
       </MediaAssetFilterButton>
 
+      <!-- Filter panel toggle (directory view only) -->
+      <Button
+        v-if="showAllAssets"
+        v-tooltip.top="$t('assets.filters.togglePanel')"
+        variant="secondary"
+        size="icon"
+        @click="showFilterPanel = !showFilterPanel"
+      >
+        <i class="icon-[lucide--sliders-horizontal]" />
+      </Button>
+
       <!-- Sort button -->
       <Popover>
         <template #button>
@@ -102,59 +113,50 @@
         <template #default>
           <div class="flex flex-col">
             <Button
+              v-for="option in ALL_VIEW_OPTIONS"
+              :key="option.value"
               variant="textonly"
               class="w-full"
-              @click="viewMode = 'list'"
+              @click="viewMode = option.value"
             >
               <span class="flex items-center gap-2">
-                <i class="icon-[lucide--list] size-4" />
-                <span>{{ $t('assets.view.list') }}</span>
+                <i :class="option.icon" class="size-4" />
+                <span>{{ $t(option.labelKey) }}</span>
               </span>
               <i
                 class="ml-auto icon-[lucide--check] size-4"
-                :class="viewMode !== 'list' && 'opacity-0'"
+                :class="viewMode !== option.value && 'opacity-0'"
+              />
+            </Button>
+            <div class="mx-2 my-1 h-px bg-(--p-content-border-color)" />
+            <Button
+              variant="textonly"
+              class="w-full"
+              @click="showAllAssets = false"
+            >
+              <span class="flex items-center gap-2">
+                <i class="icon-[lucide--clock] size-4" />
+                <span>{{
+                  $t('sideToolbar.mediaAssets.recentlyGenerated')
+                }}</span>
+              </span>
+              <i
+                class="ml-auto icon-[lucide--check] size-4"
+                :class="showAllAssets && 'opacity-0'"
               />
             </Button>
             <Button
               variant="textonly"
               class="w-full"
-              @click="viewMode = 'grid-sm'"
+              @click="showAllAssets = true"
             >
               <span class="flex items-center gap-2">
-                <i class="icon-[lucide--grid-3x3] size-4" />
-                <span>{{ $t('assets.view.gridSmall') }}</span>
+                <i class="icon-[lucide--folder-tree] size-4" />
+                <span>{{ $t('sideToolbar.mediaAssets.directoryView') }}</span>
               </span>
               <i
                 class="ml-auto icon-[lucide--check] size-4"
-                :class="viewMode !== 'grid-sm' && 'opacity-0'"
-              />
-            </Button>
-            <Button
-              variant="textonly"
-              class="w-full"
-              @click="viewMode = 'grid-md'"
-            >
-              <span class="flex items-center gap-2">
-                <i class="icon-[lucide--layout-grid] size-4" />
-                <span>{{ $t('assets.view.gridMedium') }}</span>
-              </span>
-              <i
-                class="ml-auto icon-[lucide--check] size-4"
-                :class="viewMode !== 'grid-md' && 'opacity-0'"
-              />
-            </Button>
-            <Button
-              variant="textonly"
-              class="w-full"
-              @click="viewMode = 'grid-lg'"
-            >
-              <span class="flex items-center gap-2">
-                <i class="icon-[lucide--square] size-4" />
-                <span>{{ $t('assets.view.gridLarge') }}</span>
-              </span>
-              <i
-                class="ml-auto icon-[lucide--check] size-4"
-                :class="viewMode !== 'grid-lg' && 'opacity-0'"
+                :class="!showAllAssets && 'opacity-0'"
               />
             </Button>
           </div>
@@ -200,8 +202,37 @@ const emit = defineEmits<{
 
 const sortBy = defineModel<SortBy>('sortBy', { required: true })
 const viewMode = defineModel<ViewMode>('viewMode', { required: true })
+const showAllAssets = defineModel<boolean>('showAllAssets', { default: false })
+const showFilterPanel = defineModel<boolean>('showFilterPanel', {
+  default: true
+})
 
 const viewModeIcon = computed(() => VIEW_MODE_ICONS[viewMode.value])
+
+interface ViewOption {
+  value: ViewMode
+  icon: string
+  labelKey: string
+}
+
+const ALL_VIEW_OPTIONS: ViewOption[] = [
+  { value: 'list', icon: 'icon-[lucide--list]', labelKey: 'assets.view.list' },
+  {
+    value: 'grid-sm',
+    icon: 'icon-[lucide--grid-3x3]',
+    labelKey: 'assets.view.gridSmall'
+  },
+  {
+    value: 'grid-md',
+    icon: 'icon-[lucide--layout-grid]',
+    labelKey: 'assets.view.gridMedium'
+  },
+  {
+    value: 'grid-lg',
+    icon: 'icon-[lucide--square]',
+    labelKey: 'assets.view.gridLarge'
+  }
+]
 
 const handleSearchChange = (value: string | undefined) => {
   emit('update:searchQuery', value ?? '')

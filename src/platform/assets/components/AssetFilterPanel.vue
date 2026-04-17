@@ -105,40 +105,6 @@
         </div>
       </div>
 
-      <!-- Show Subdirectories Toggle -->
-      <div class="filter-section">
-        <div
-          class="flex h-8 cursor-pointer items-center gap-2 rounded-lg px-3 hover:bg-secondary-background-hover"
-          tabindex="0"
-          role="checkbox"
-          :aria-checked="showSubdirectories"
-          @click="emit('update:showSubdirectories', !showSubdirectories)"
-          @keydown.enter.prevent="
-            emit('update:showSubdirectories', !showSubdirectories)
-          "
-          @keydown.space.prevent="
-            emit('update:showSubdirectories', !showSubdirectories)
-          "
-        >
-          <div
-            class="flex size-4 shrink-0 items-center justify-center rounded-sm p-0.5 transition-all duration-200"
-            :class="
-              showSubdirectories
-                ? 'border-primary-background bg-primary-background'
-                : 'bg-secondary-background'
-            "
-          >
-            <i
-              v-if="showSubdirectories"
-              class="icon-[lucide--check] text-xs font-bold text-white"
-            />
-          </div>
-          <span class="text-xs">{{
-            $t('assets.filters.showSubdirectories')
-          }}</span>
-        </div>
-      </div>
-
       <!-- Future filter slots can be added here -->
       <slot name="additionalFilters" />
     </div>
@@ -173,14 +139,12 @@ interface Props {
   assets?: AssetItem[]
   activeSources?: string[]
   customDirectories?: CustomDirectory[]
-  showSubdirectories?: boolean
 }
 
 interface Emits {
   (e: 'update:dateRange', value: [Date, Date] | null): void
   (e: 'update:mediaTypeFilters', value: string[]): void
   (e: 'update:activeSources', value: string[]): void
-  (e: 'update:showSubdirectories', value: boolean): void
   (e: 'clearFilters'): void
   (e: 'addDirectory'): void
   (e: 'removeDirectory', id: string): void
@@ -190,8 +154,7 @@ const props = withDefaults(defineProps<Props>(), {
   mediaTypeFilters: () => [],
   assets: () => [],
   activeSources: () => ['output'],
-  customDirectories: () => [],
-  showSubdirectories: true
+  customDirectories: () => []
 })
 const emit = defineEmits<Emits>()
 
