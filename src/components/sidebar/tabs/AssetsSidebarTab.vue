@@ -61,6 +61,7 @@
             ? activeSources.includes('output')
             : activeTab === 'output'
         "
+        :available-tags="availableTags"
       />
       <!-- Default-mode Tab list -->
       <div
@@ -105,7 +106,11 @@
         >
           <!-- Detail panel toggle (default view) -->
           <div
-            v-if="!showAllAssets && !isInFolderView"
+            v-if="
+              !showAllAssets &&
+              !isInFolderView &&
+              selectionStore.lastSelectedAssetId
+            "
             class="sticky top-0 z-10 flex items-center justify-end border-b border-comfy-input bg-base-background px-2 py-1"
           >
             <button
@@ -192,6 +197,7 @@
               </button>
             </template>
             <button
+              v-if="selectionStore.lastSelectedAssetId"
               class="ml-auto shrink-0 cursor-pointer rounded-sm border-none bg-transparent p-1 text-muted-foreground transition-colors hover:bg-secondary-background-hover hover:text-text-primary"
               :aria-label="t('mediaAsset.details.togglePanel')"
               @click="showDetailPanel = !showDetailPanel"
@@ -710,6 +716,18 @@ const baseAssets = computed(() => {
   return mergedAssets.value
 })
 
+const availableTags = computed(() => {
+  const tagSet = new Set<string>()
+  for (const asset of baseAssets.value) {
+    if (asset.tags) {
+      for (const tag of asset.tags) {
+        tagSet.add(tag)
+      }
+    }
+  }
+  return [...tagSet].sort()
+})
+
 // Prompt metadata extraction for @-filter search
 const metadataExtractor = useAssetPromptMetadata()
 
@@ -1194,6 +1212,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   deactivateSelection()
+  showDetailPanel.value = false
 })
 
 const handleDeselectAll = () => {

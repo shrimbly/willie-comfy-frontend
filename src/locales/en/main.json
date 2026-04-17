@@ -3826,8 +3826,18 @@
       "lora": "LoRA",
       "vae": "VAE",
       "prompt": "Prompt",
+      "date": "Date",
+      "tag": "Tag",
       "searchPlaceholder": "Search or type {'@'} to filter",
-      "enterValue": "Type {field} value..."
+      "enterValue": "Type {field} value...",
+      "datePresets": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisWeek": "This week",
+        "lastWeek": "Last week",
+        "thisMonth": "This month",
+        "lastMonth": "Last month"
+      }
     }
   }
 }

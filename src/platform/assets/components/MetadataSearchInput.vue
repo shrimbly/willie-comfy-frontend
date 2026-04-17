@@ -21,7 +21,7 @@
         <span class="text-muted-foreground">
           {{ $t(`assets.metadata.${filter.field}`) }}:
         </span>
-        <span>{{ filter.value }}</span>
+        <span>{{ chipLabel(filter) }}</span>
         <TagsInputItemDelete
           class="ml-0.5 aspect-square cursor-pointer rounded-full border-none bg-transparent text-muted-foreground hover:text-base-foreground"
         >
@@ -67,7 +67,7 @@
       class="absolute inset-x-0 top-full z-50 mt-1 rounded-lg border border-comfy-input bg-modal-card-background shadow-lg"
     >
       <button
-        v-for="(field, index) in METADATA_FIELDS"
+        v-for="(field, index) in filteredFields"
         :key="field"
         type="button"
         :class="
@@ -77,12 +77,38 @@
               ? 'bg-secondary-background-hover text-text-primary'
               : 'bg-transparent text-muted-foreground hover:bg-secondary-background-hover hover:text-text-primary',
             index === 0 && 'rounded-t-lg',
-            index === METADATA_FIELDS.length - 1 && 'rounded-b-lg'
+            index === filteredFields.length - 1 && 'rounded-b-lg'
           )
         "
         @click="selectField(field)"
       >
         {{ $t(`assets.metadata.${field}`) }}
+      </button>
+    </div>
+
+    <!-- Options dropdown (date presets / tag options) -->
+    <div
+      v-if="showOptionsDropdown && filteredOptions.length > 0"
+      ref="optionsDropdownRef"
+      class="absolute inset-x-0 top-full z-50 mt-1 rounded-lg border border-comfy-input bg-modal-card-background shadow-lg"
+    >
+      <button
+        v-for="(option, index) in filteredOptions"
+        :key="option.value"
+        type="button"
+        :class="
+          cn(
+            'flex w-full cursor-pointer items-center gap-2 border-none px-3 py-2 text-left text-xs transition-colors',
+            index === highlightedOptionIndex
+              ? 'bg-secondary-background-hover text-text-primary'
+              : 'bg-transparent text-muted-foreground hover:bg-secondary-background-hover hover:text-text-primary',
+            index === 0 && 'rounded-t-lg',
+            index === filteredOptions.length - 1 && 'rounded-b-lg'
+          )
+        "
+        @click="selectOption(option.value)"
+      >
+        {{ option.label }}
       </button>
     </div>
   </div>
@@ -100,13 +126,21 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type {
+  DatePreset,
   MetadataField,
   MetadataFilter
 } from '@/platform/assets/types/metadataFilter'
-import { METADATA_FIELDS } from '@/platform/assets/types/metadataFilter'
+import {
+  DATE_PRESETS,
+  METADATA_FIELDS
+} from '@/platform/assets/types/metadataFilter'
 import { cn } from '@/utils/tailwindUtil'
 
 const { t } = useI18n()
+
+const { availableTags = [] } = defineProps<{
+  availableTags?: string[]
+}>()
 
 const searchQuery = defineModel<string>('searchQuery', { required: true })
 const metadataFilters = defineModel<MetadataFilter[]>('metadataFilters', {
@@ -115,9 +149,11 @@ const metadataFilters = defineModel<MetadataFilter[]>('metadataFilters', {
 
 const inputRef = ref<HTMLInputElement>()
 const dropdownRef = ref<HTMLElement>()
+const optionsDropdownRef = ref<HTMLElement>()
 const activeField = ref<MetadataField | null>(null)
 const showFieldDropdown = ref(false)
 const highlightedIndex = ref(0)
+const highlightedOptionIndex = ref(0)
 
 onClickOutside(
   dropdownRef,
@@ -125,6 +161,56 @@ onClickOutside(
     showFieldDropdown.value = false
   },
   { ignore: [inputRef] }
+)
+
+onClickOutside(
+  optionsDropdownRef,
+  () => {
+    activeField.value = null
+  },
+  { ignore: [inputRef] }
+)
+
+interface FieldOption {
+  value: string
+  label: string
+}
+
+const fieldHasOptions = computed(
+  () => activeField.value === 'date' || activeField.value === 'tag'
+)
+
+const fieldOptions = computed<FieldOption[]>(() => {
+  if (activeField.value === 'date') {
+    return DATE_PRESETS.map((preset) => ({
+      value: preset,
+      label: t(`assets.metadata.datePresets.${preset}`)
+    }))
+  }
+  if (activeField.value === 'tag') {
+    return availableTags.map((tag) => ({ value: tag, label: tag }))
+  }
+  return []
+})
+
+const filteredFields = computed(() => {
+  const query = searchQuery.value.toLowerCase()
+  if (!query) return METADATA_FIELDS
+  return METADATA_FIELDS.filter((field) =>
+    t(`assets.metadata.${field}`).toLowerCase().includes(query)
+  )
+})
+
+const filteredOptions = computed(() => {
+  const query = searchQuery.value.toLowerCase()
+  if (!query) return fieldOptions.value
+  return fieldOptions.value.filter((opt) =>
+    opt.label.toLowerCase().includes(query)
+  )
+})
+
+const showOptionsDropdown = computed(
+  () => activeField.value && fieldHasOptions.value
 )
 
 const inputValue = computed({
@@ -149,6 +235,16 @@ function chipKey(filter: MetadataFilter): string {
   return `${filter.field}:${filter.value}`
 }
 
+function chipLabel(filter: MetadataFilter): string {
+  if (
+    filter.field === 'date' &&
+    (DATE_PRESETS as string[]).includes(filter.value)
+  ) {
+    return t(`assets.metadata.datePresets.${filter.value as DatePreset}`)
+  }
+  return filter.value
+}
+
 function onRemoveTag(tagValue: string) {
   metadataFilters.value = metadataFilters.value.filter(
     (f) => chipKey(f) !== tagValue
@@ -159,6 +255,7 @@ function selectField(field: MetadataField) {
   activeField.value = field
   showFieldDropdown.value = false
   searchQuery.value = ''
+  highlightedOptionIndex.value = 0
   inputRef.value?.focus()
 }
 
@@ -166,6 +263,12 @@ function cancelFieldMode() {
   activeField.value = null
   showFieldDropdown.value = false
   inputRef.value?.focus()
+}
+
+function selectOption(value: string) {
+  if (activeField.value) {
+    addFilter(activeField.value, value)
+  }
 }
 
 function addFilter(field: MetadataField, value: string) {
@@ -190,21 +293,46 @@ function handleInput(e: Event) {
 
 function handleKeydown(e: KeyboardEvent) {
   if (showFieldDropdown.value) {
+    const items = filteredFields.value
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      highlightedIndex.value =
-        (highlightedIndex.value + 1) % METADATA_FIELDS.length
+      highlightedIndex.value = (highlightedIndex.value + 1) % items.length
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       highlightedIndex.value =
-        (highlightedIndex.value - 1 + METADATA_FIELDS.length) %
-        METADATA_FIELDS.length
+        (highlightedIndex.value - 1 + items.length) % items.length
     } else if (e.key === 'Enter') {
       e.preventDefault()
-      selectField(METADATA_FIELDS[highlightedIndex.value])
+      if (items.length > 0) {
+        selectField(items[highlightedIndex.value])
+      }
     } else if (e.key === 'Escape') {
       e.preventDefault()
       showFieldDropdown.value = false
+    }
+    return
+  }
+
+  if (activeField.value && fieldHasOptions.value) {
+    const options = filteredOptions.value
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      highlightedOptionIndex.value =
+        (highlightedOptionIndex.value + 1) % options.length
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      highlightedOptionIndex.value =
+        (highlightedOptionIndex.value - 1 + options.length) % options.length
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (options.length > 0) {
+        selectOption(options[highlightedOptionIndex.value].value)
+      } else if (searchQuery.value.trim()) {
+        addFilter(activeField.value, searchQuery.value)
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      cancelFieldMode()
     }
     return
   }

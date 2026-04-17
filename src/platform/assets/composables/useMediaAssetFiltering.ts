@@ -5,7 +5,14 @@ import { computed, ref } from 'vue'
 import type { Ref } from 'vue'
 
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
-import type { MetadataFilter } from '@/platform/assets/types/metadataFilter'
+import type {
+  DatePreset,
+  MetadataFilter
+} from '@/platform/assets/types/metadataFilter'
+import {
+  DATE_PRESETS,
+  getDateRangeForPreset
+} from '@/platform/assets/types/metadataFilter'
 import type { PromptMetadata } from '@/platform/assets/utils/promptMetadataParser'
 import { getMediaTypeFromFilename } from '@/utils/formatUtil'
 
@@ -26,6 +33,27 @@ const getAssetTime = (asset: AssetItem): number => {
  */
 const getAssetExecutionTime = (asset: AssetItem): number => {
   return (asset.user_metadata?.executionTimeInSeconds as number) ?? 0
+}
+
+function matchDateFilter(asset: AssetItem, value: string): boolean {
+  const assetTime = getAssetTime(asset)
+  if (assetTime === 0) return false
+
+  if ((DATE_PRESETS as string[]).includes(value)) {
+    const { start, end } = getDateRangeForPreset(value as DatePreset)
+    return assetTime >= start.getTime() && assetTime < end.getTime()
+  }
+
+  const parsed = Date.parse(value)
+  if (!Number.isNaN(parsed)) {
+    const dayStart = new Date(parsed)
+    dayStart.setHours(0, 0, 0, 0)
+    const dayEnd = new Date(dayStart)
+    dayEnd.setDate(dayEnd.getDate() + 1)
+    return assetTime >= dayStart.getTime() && assetTime < dayEnd.getTime()
+  }
+
+  return false
 }
 
 export interface MetadataExtractor {
@@ -59,17 +87,29 @@ export function useMediaAssetFiltering(
   const metadataFiltered = computed(() => {
     if (metadataFilters.value.length === 0) return assets.value
 
-    const extractor = options.metadataExtractor
-    if (!extractor) return assets.value
-
     return assets.value.filter((asset) => {
-      const metadata = extractor.getCached(asset.id)
-      if (!metadata) return false
-
       return metadataFilters.value.every((filter) => {
-        const fieldValue = metadata[filter.field]
+        if (filter.field === 'date') {
+          return matchDateFilter(asset, filter.value)
+        }
+
+        if (filter.field === 'tag') {
+          return asset.tags?.some((t) =>
+            t.toLowerCase().includes(filter.value.toLowerCase())
+          )
+        }
+
+        const extractor = options.metadataExtractor
+        if (!extractor) return false
+
+        const metadata = extractor.getCached(asset.id)
+        if (!metadata) return false
+
+        const fieldValue = metadata[filter.field as keyof PromptMetadata]
         if (!fieldValue) return false
-        return fieldValue.toLowerCase().includes(filter.value.toLowerCase())
+        return String(fieldValue)
+          .toLowerCase()
+          .includes(filter.value.toLowerCase())
       })
     })
   })

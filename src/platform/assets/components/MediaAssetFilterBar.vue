@@ -3,6 +3,7 @@
     <MetadataSearchInput
       v-model:search-query="internalSearchQuery"
       v-model:metadata-filters="internalMetadataFilters"
+      :available-tags="availableTags"
     />
     <template #actions>
       <MediaAssetFilterButton
@@ -191,12 +192,14 @@ const {
   showGenerationTimeSort = false,
   mediaTypeFilters,
   metadataFilters,
+  availableTags = [],
   bottomDivider = false
 } = defineProps<{
   searchQuery: string
   showGenerationTimeSort?: boolean
   mediaTypeFilters: string[]
   metadataFilters: MetadataFilter[]
+  availableTags?: string[]
   bottomDivider?: boolean
 }>()
 
