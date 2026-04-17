@@ -13,6 +13,7 @@ describe('isPromptMetadataField', () => {
   it('returns false for asset-level fields', () => {
     expect(isPromptMetadataField('date')).toBe(false)
     expect(isPromptMetadataField('tag')).toBe(false)
+    expect(isPromptMetadataField('type')).toBe(false)
   })
 })
 

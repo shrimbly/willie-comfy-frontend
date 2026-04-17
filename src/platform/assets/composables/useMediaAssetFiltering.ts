@@ -99,6 +99,11 @@ export function useMediaAssetFiltering(
           )
         }
 
+        if (filter.field === 'type') {
+          const mediaType = getMediaTypeFromFilename(asset.name)
+          return mediaType.toLowerCase() === filter.value.toLowerCase()
+        }
+
         const extractor = options.metadataExtractor
         if (!extractor) return false
 

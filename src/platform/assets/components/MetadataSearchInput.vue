@@ -132,6 +132,7 @@ import type {
 } from '@/platform/assets/types/metadataFilter'
 import {
   DATE_PRESETS,
+  MEDIA_TYPE_OPTIONS,
   METADATA_FIELDS
 } from '@/platform/assets/types/metadataFilter'
 import { cn } from '@/utils/tailwindUtil'
@@ -177,7 +178,10 @@ interface FieldOption {
 }
 
 const fieldHasOptions = computed(
-  () => activeField.value === 'date' || activeField.value === 'tag'
+  () =>
+    activeField.value === 'date' ||
+    activeField.value === 'tag' ||
+    activeField.value === 'type'
 )
 
 const fieldOptions = computed<FieldOption[]>(() => {
@@ -189,6 +193,12 @@ const fieldOptions = computed<FieldOption[]>(() => {
   }
   if (activeField.value === 'tag') {
     return availableTags.map((tag) => ({ value: tag, label: tag }))
+  }
+  if (activeField.value === 'type') {
+    return MEDIA_TYPE_OPTIONS.map((type) => ({
+      value: type,
+      label: t(`assets.metadata.mediaTypes.${type}`)
+    }))
   }
   return []
 })

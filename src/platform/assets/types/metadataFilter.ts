@@ -1,4 +1,11 @@
-export type MetadataField = 'model' | 'lora' | 'vae' | 'prompt' | 'date' | 'tag'
+export type MetadataField =
+  | 'model'
+  | 'lora'
+  | 'vae'
+  | 'prompt'
+  | 'date'
+  | 'tag'
+  | 'type'
 
 export interface MetadataFilter {
   field: MetadataField
@@ -11,7 +18,8 @@ export const METADATA_FIELDS: MetadataField[] = [
   'vae',
   'prompt',
   'date',
-  'tag'
+  'tag',
+  'type'
 ]
 
 export const PROMPT_METADATA_FIELDS: MetadataField[] = [
@@ -37,6 +45,8 @@ export const DATE_PRESETS: DatePreset[] = [
   'thisMonth',
   'lastMonth'
 ]
+
+export const MEDIA_TYPE_OPTIONS = ['image', 'video', 'audio', '3D'] as const
 
 export function isPromptMetadataField(
   field: MetadataField

@@ -3828,6 +3828,7 @@
       "prompt": "Prompt",
       "date": "Date",
       "tag": "Tag",
+      "type": "Type",
       "searchPlaceholder": "Search or type {'@'} to filter",
       "enterValue": "Type {field} value...",
       "datePresets": {
@@ -3837,6 +3838,12 @@
         "lastWeek": "Last week",
         "thisMonth": "This month",
         "lastMonth": "Last month"
+      },
+      "mediaTypes": {
+        "image": "Image",
+        "video": "Video",
+        "audio": "Audio",
+        "3D": "3D"
       }
     }
   }

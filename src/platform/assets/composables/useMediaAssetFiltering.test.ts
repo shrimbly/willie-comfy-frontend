@@ -146,6 +146,44 @@ describe('useMediaAssetFiltering - tag filter', () => {
   })
 })
 
+describe('useMediaAssetFiltering - type filter', () => {
+  it('filters assets by media type', async () => {
+    const imageAsset = makeAsset({ id: '1', name: 'photo.png' })
+    const videoAsset = makeAsset({ id: '2', name: 'clip.mp4' })
+    const audioAsset = makeAsset({ id: '3', name: 'song.mp3' })
+    const assets = ref([imageAsset, videoAsset, audioAsset])
+
+    const { metadataFilters, filteredAssets } = useMediaAssetFiltering(assets)
+    metadataFilters.value = [{ field: 'type', value: 'image' }]
+    await nextTick()
+
+    expect(filteredAssets.value.map((a) => a.id)).toEqual(['1'])
+  })
+
+  it('matches type case-insensitively', async () => {
+    const videoAsset = makeAsset({ id: '1', name: 'clip.mp4' })
+    const assets = ref([videoAsset])
+
+    const { metadataFilters, filteredAssets } = useMediaAssetFiltering(assets)
+    metadataFilters.value = [{ field: 'type', value: 'Video' }]
+    await nextTick()
+
+    expect(filteredAssets.value.map((a) => a.id)).toEqual(['1'])
+  })
+
+  it('filters 3D assets', async () => {
+    const modelAsset = makeAsset({ id: '1', name: 'scene.glb' })
+    const imageAsset = makeAsset({ id: '2', name: 'photo.png' })
+    const assets = ref([modelAsset, imageAsset])
+
+    const { metadataFilters, filteredAssets } = useMediaAssetFiltering(assets)
+    metadataFilters.value = [{ field: 'type', value: '3D' }]
+    await nextTick()
+
+    expect(filteredAssets.value.map((a) => a.id)).toEqual(['1'])
+  })
+})
+
 describe('useMediaAssetFiltering - prompt metadata filter', () => {
   it('filters by prompt metadata field using extractor', async () => {
     const asset1 = makeAsset({ id: '1', name: 'a.png' })
