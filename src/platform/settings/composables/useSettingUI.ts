@@ -30,7 +30,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   Other: 'icon-[lucide--ellipsis]',
   PlanCredits: 'icon-[lucide--credit-card]',
   secrets: 'icon-[lucide--key-round]',
-  'filename-variables': 'icon-[lucide--variable]',
+  'filename-variables': 'icon-[lucide--code]',
   'server-config': 'icon-[lucide--server]',
   subscription: 'icon-[lucide--credit-card]',
   user: 'icon-[lucide--user]',
