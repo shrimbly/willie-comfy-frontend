@@ -52,6 +52,7 @@
         v-model:sort-by="sortBy"
         v-model:view-mode="viewMode"
         v-model:media-type-filters="mediaTypeFilters"
+        v-model:metadata-filters="metadataFilters"
         v-model:show-all-assets="showAllAssets"
         v-model:show-filter-panel="showFilterPanel"
         bottom-divider
@@ -367,6 +368,7 @@ import { getAssetType } from '@/platform/assets/composables/media/assetMappers'
 import { useMediaAssets } from '@/platform/assets/composables/media/useMediaAssets'
 import { useOutputJobsAssets } from '@/platform/assets/composables/media/useOutputJobsAssets'
 import { useCustomDirectoryAssets } from '@/platform/assets/composables/media/useCustomDirectoryAssets'
+import { useAssetPromptMetadata } from '@/platform/assets/composables/useAssetPromptMetadata'
 import { useAssetSelection } from '@/platform/assets/composables/useAssetSelection'
 import { useMediaAssetActions } from '@/platform/assets/composables/useMediaAssetActions'
 import { useMediaAssetFiltering } from '@/platform/assets/composables/useMediaAssetFiltering'
@@ -618,9 +620,28 @@ const baseAssets = computed(() => {
   return mergedAssets.value
 })
 
+// Prompt metadata extraction for @-filter search
+const metadataExtractor = useAssetPromptMetadata()
+
 // Use media asset filtering composable
-const { searchQuery, sortBy, mediaTypeFilters, filteredAssets } =
-  useMediaAssetFiltering(baseAssets)
+const {
+  searchQuery,
+  sortBy,
+  mediaTypeFilters,
+  metadataFilters,
+  filteredAssets
+} = useMediaAssetFiltering(baseAssets, { metadataExtractor })
+
+// Extract metadata in background when metadata filters are active
+watch(
+  [metadataFilters, baseAssets],
+  ([filters, assets]) => {
+    if (filters.length > 0) {
+      metadataExtractor.extractBatch(assets)
+    }
+  },
+  { immediate: true }
+)
 
 // Apply date filtering using useAssetFilters
 const assetFilters = useAssetFilters(filteredAssets)

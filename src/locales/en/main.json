@@ -3799,6 +3799,14 @@
     "folders": {
       "showMore": "Show {count} more folders",
       "itemCount": "{count} item | {count} items"
+    },
+    "metadata": {
+      "model": "Model",
+      "lora": "LoRA",
+      "vae": "VAE",
+      "prompt": "Prompt",
+      "searchPlaceholder": "Search or type {'@'} to filter",
+      "enterValue": "Type {field} value..."
     }
   }
 }

@@ -1,11 +1,8 @@
 <template>
   <SidebarTopArea :bottom-divider>
-    <SearchInput
-      :model-value="searchQuery"
-      :placeholder="
-        $t('g.searchPlaceholder', { subject: $t('sideToolbar.labels.assets') })
-      "
-      @update:model-value="handleSearchChange"
+    <MetadataSearchInput
+      v-model:search-query="internalSearchQuery"
+      v-model:metadata-filters="internalMetadataFilters"
     />
     <template #actions>
       <MediaAssetFilterButton
@@ -172,11 +169,12 @@ import { computed } from 'vue'
 import Button from '@/components/ui/button/Button.vue'
 import Popover from '@/components/ui/Popover.vue'
 import SidebarTopArea from '@/components/sidebar/tabs/SidebarTopArea.vue'
-import SearchInput from '@/components/ui/search-input/SearchInput.vue'
+import type { MetadataFilter } from '@/platform/assets/types/metadataFilter'
 import { isCloud } from '@/platform/distribution/types'
 
 import MediaAssetFilterButton from './MediaAssetFilterButton.vue'
 import MediaAssetFilterMenu from './MediaAssetFilterMenu.vue'
+import MetadataSearchInput from './MetadataSearchInput.vue'
 
 export type SortBy = 'newest' | 'oldest' | 'longest' | 'fastest'
 export type ViewMode = 'list' | 'grid-sm' | 'grid-md' | 'grid-lg'
@@ -188,16 +186,24 @@ const VIEW_MODE_ICONS: Record<ViewMode, string> = {
   'grid-lg': 'icon-[lucide--square]'
 }
 
-const { showGenerationTimeSort = false, bottomDivider = false } = defineProps<{
+const {
+  searchQuery,
+  showGenerationTimeSort = false,
+  mediaTypeFilters,
+  metadataFilters,
+  bottomDivider = false
+} = defineProps<{
   searchQuery: string
   showGenerationTimeSort?: boolean
   mediaTypeFilters: string[]
+  metadataFilters: MetadataFilter[]
   bottomDivider?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:searchQuery': [value: string]
   'update:mediaTypeFilters': [value: string[]]
+  'update:metadataFilters': [value: MetadataFilter[]]
 }>()
 
 const sortBy = defineModel<SortBy>('sortBy', { required: true })
@@ -234,9 +240,15 @@ const ALL_VIEW_OPTIONS: ViewOption[] = [
   }
 ]
 
-const handleSearchChange = (value: string | undefined) => {
-  emit('update:searchQuery', value ?? '')
-}
+const internalSearchQuery = computed({
+  get: () => searchQuery,
+  set: (value: string) => emit('update:searchQuery', value)
+})
+
+const internalMetadataFilters = computed({
+  get: () => metadataFilters,
+  set: (value: MetadataFilter[]) => emit('update:metadataFilters', value)
+})
 
 const handleMediaTypeFiltersChange = (value: string[]) => {
   emit('update:mediaTypeFilters', value)

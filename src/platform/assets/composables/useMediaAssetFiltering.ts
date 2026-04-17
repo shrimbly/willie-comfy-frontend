@@ -5,6 +5,8 @@ import { computed, ref } from 'vue'
 import type { Ref } from 'vue'
 
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
+import type { MetadataFilter } from '@/platform/assets/types/metadataFilter'
+import type { PromptMetadata } from '@/platform/assets/utils/promptMetadataParser'
 import { getMediaTypeFromFilename } from '@/utils/formatUtil'
 
 type SortOption = 'newest' | 'oldest' | 'longest' | 'fastest'
@@ -26,15 +28,27 @@ const getAssetExecutionTime = (asset: AssetItem): number => {
   return (asset.user_metadata?.executionTimeInSeconds as number) ?? 0
 }
 
+export interface MetadataExtractor {
+  getCached: (assetId: string) => PromptMetadata | null
+}
+
+interface UseMediaAssetFilteringOptions {
+  metadataExtractor?: MetadataExtractor
+}
+
 /**
  * Media Asset Filtering composable
  * Manages search, filter, and sort for media assets
  */
-export function useMediaAssetFiltering(assets: Ref<AssetItem[]>) {
+export function useMediaAssetFiltering(
+  assets: Ref<AssetItem[]>,
+  options: UseMediaAssetFilteringOptions = {}
+) {
   const searchQuery = ref('')
   const debouncedSearchQuery = refDebounced(searchQuery, 50)
   const sortBy = ref<SortOption>('newest')
   const mediaTypeFilters = ref<string[]>([])
+  const metadataFilters = ref<MetadataFilter[]>([])
 
   const fuseOptions = {
     keys: ['display_name', 'name'],
@@ -42,11 +56,29 @@ export function useMediaAssetFiltering(assets: Ref<AssetItem[]>) {
     includeScore: true
   }
 
-  const fuse = computed(() => new Fuse(assets.value, fuseOptions))
+  const metadataFiltered = computed(() => {
+    if (metadataFilters.value.length === 0) return assets.value
+
+    const extractor = options.metadataExtractor
+    if (!extractor) return assets.value
+
+    return assets.value.filter((asset) => {
+      const metadata = extractor.getCached(asset.id)
+      if (!metadata) return false
+
+      return metadataFilters.value.every((filter) => {
+        const fieldValue = metadata[filter.field]
+        if (!fieldValue) return false
+        return fieldValue.toLowerCase().includes(filter.value.toLowerCase())
+      })
+    })
+  })
+
+  const fuse = computed(() => new Fuse(metadataFiltered.value, fuseOptions))
 
   const searchFiltered = computed(() => {
     if (!debouncedSearchQuery.value.trim()) {
-      return assets.value
+      return metadataFiltered.value
     }
 
     const results = fuse.value.search(debouncedSearchQuery.value)
@@ -54,36 +86,29 @@ export function useMediaAssetFiltering(assets: Ref<AssetItem[]>) {
   })
 
   const typeFiltered = computed(() => {
-    // Apply media type filter
     if (mediaTypeFilters.value.length === 0) {
       return searchFiltered.value
     }
 
     return searchFiltered.value.filter((asset) => {
       const mediaType = getMediaTypeFromFilename(asset.name)
-      // Convert '3D' to '3d' for comparison
       const normalizedType = mediaType.toLowerCase()
       return mediaTypeFilters.value.includes(normalizedType)
     })
   })
 
   const filteredAssets = computed(() => {
-    // Sort by create_time (output assets) or created_at (input assets)
     switch (sortBy.value) {
       case 'oldest':
-        // Ascending order (oldest first)
         return sortByUtil(typeFiltered.value, [getAssetTime])
       case 'longest':
-        // Descending order (longest execution time first)
         return sortByUtil(typeFiltered.value, [
           (asset) => -getAssetExecutionTime(asset)
         ])
       case 'fastest':
-        // Ascending order (fastest execution time first)
         return sortByUtil(typeFiltered.value, [getAssetExecutionTime])
       case 'newest':
       default:
-        // Descending order (newest first) - negate for descending
         return sortByUtil(typeFiltered.value, [(asset) => -getAssetTime(asset)])
     }
   })
@@ -92,6 +117,7 @@ export function useMediaAssetFiltering(assets: Ref<AssetItem[]>) {
     searchQuery,
     sortBy,
     mediaTypeFilters,
+    metadataFilters,
     filteredAssets
   }
 }
