@@ -19,17 +19,6 @@
         </template>
       </MediaAssetFilterButton>
 
-      <!-- Filter panel toggle (directory view only) -->
-      <Button
-        v-if="showAllAssets"
-        v-tooltip.top="$t('assets.filters.togglePanel')"
-        variant="secondary"
-        size="icon"
-        @click="showFilterPanel = !showFilterPanel"
-      >
-        <i class="icon-[lucide--sliders-horizontal]" />
-      </Button>
-
       <!-- Sort button -->
       <Popover>
         <template #button>
@@ -105,7 +94,7 @@
             variant="secondary"
             size="icon"
           >
-            <i :class="viewModeIcon" />
+            <i class="icon-[lucide--settings-2]" />
           </Button>
         </template>
         <template #default>
@@ -157,6 +146,23 @@
                 :class="!showAllAssets && 'opacity-0'"
               />
             </Button>
+            <template v-if="showAllAssets">
+              <div class="mx-2 my-1 h-px bg-(--p-content-border-color)" />
+              <Button
+                variant="textonly"
+                class="w-full"
+                @click="showFilterPanel = !showFilterPanel"
+              >
+                <span class="flex items-center gap-2">
+                  <i class="icon-[lucide--sliders-horizontal] size-4" />
+                  <span>{{ $t('assets.filters.togglePanel') }}</span>
+                </span>
+                <i
+                  class="ml-auto icon-[lucide--check] size-4"
+                  :class="!showFilterPanel && 'opacity-0'"
+                />
+              </Button>
+            </template>
           </div>
         </template>
       </Popover>
@@ -179,13 +185,6 @@ import MetadataSearchInput from './MetadataSearchInput.vue'
 
 export type SortBy = 'newest' | 'oldest' | 'longest' | 'fastest'
 export type ViewMode = 'list' | 'grid-sm' | 'grid-md' | 'grid-lg'
-
-const VIEW_MODE_ICONS: Record<ViewMode, string> = {
-  list: 'icon-[lucide--list]',
-  'grid-sm': 'icon-[lucide--grid-3x3]',
-  'grid-md': 'icon-[lucide--layout-grid]',
-  'grid-lg': 'icon-[lucide--square]'
-}
 
 const {
   searchQuery,
@@ -215,8 +214,6 @@ const showAllAssets = defineModel<boolean>('showAllAssets', { default: false })
 const showFilterPanel = defineModel<boolean>('showFilterPanel', {
   default: true
 })
-
-const viewModeIcon = computed(() => VIEW_MODE_ICONS[viewMode.value])
 
 interface ViewOption {
   value: ViewMode
