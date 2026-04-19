@@ -66,6 +66,7 @@ export function useAssetsApi(directory: 'input' | 'output') {
 
   return {
     media,
+    allMedia,
     loading,
     error,
     fetchMediaList,

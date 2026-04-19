@@ -24,8 +24,11 @@ export interface IFolderNavigation {
  * Defines the common API for both cloud and internal file implementations
  */
 export interface IAssetsProvider {
-  /** Current media assets */
+  /** Current media assets (filtered by folder navigation) */
   media: Ref<AssetItem[]>
+
+  /** All media assets regardless of folder navigation */
+  allMedia: Ref<AssetItem[]>
 
   /** Loading state indicator */
   loading: Ref<boolean>

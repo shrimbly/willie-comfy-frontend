@@ -291,6 +291,7 @@ export function useCustomDirectoryAssets(): IAssetsProvider & {
   return {
     // IAssetsProvider interface
     media,
+    allMedia: media,
     loading,
     error,
     fetchMediaList,

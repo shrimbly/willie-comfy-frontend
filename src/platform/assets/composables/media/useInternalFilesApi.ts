@@ -66,6 +66,7 @@ export function useInternalFilesApi(directory: 'input' | 'output') {
 
   return {
     media,
+    allMedia,
     loading,
     error,
     fetchMediaList,

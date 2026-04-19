@@ -441,6 +441,7 @@ import type { OutputAssetMetadata } from '@/platform/assets/schemas/assetMetadat
 import { getOutputAssetMetadata } from '@/platform/assets/schemas/assetMetadataSchema'
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
 import { getAssetDisplayName } from '@/platform/assets/utils/assetMetadataUtils'
+import type { MetadataFilter } from '@/platform/assets/types/metadataFilter'
 import type { PromptMetadata } from '@/platform/assets/utils/promptMetadataParser'
 import type { MediaKind } from '@/platform/assets/schemas/mediaAssetSchema'
 import { resolveOutputAssetItems } from '@/platform/assets/utils/outputAssetUtil'
@@ -657,14 +658,26 @@ const totalOutputCount = computed(() => {
   return getTotalOutputCount(selectedAssets.value)
 })
 
+// Filter refs — defined early so baseAssets can reference them
+const searchQuery = ref('')
+const metadataFilters = ref<MetadataFilter[]>([])
+const mediaTypeFilters = ref<string[]>([])
+const isSearchActive = computed(
+  () =>
+    searchQuery.value.trim() !== '' ||
+    metadataFilters.value.length > 0 ||
+    mediaTypeFilters.value.length > 0
+)
+
 // --- Merged assets from all active sources ---
-const mergedAssets = computed(() => {
+function collectAssets(useAll: boolean): AssetItem[] {
   const result: AssetItem[] = []
   if (activeSources.value.includes('output')) {
-    result.push(...activeOutputSource.value.media.value)
+    const source = activeOutputSource.value
+    result.push(...(useAll ? source.allMedia : source.media).value)
   }
   if (activeSources.value.includes('input')) {
-    result.push(...inputAssets.media.value)
+    result.push(...(useAll ? inputAssets.allMedia : inputAssets.media).value)
   }
   for (const dir of savedCustomDirectories.value) {
     if (activeSources.value.includes(dir.id)) {
@@ -675,7 +688,10 @@ const mergedAssets = computed(() => {
     }
   }
   return result
-})
+}
+
+const mergedAssets = computed(() => collectAssets(false))
+const allMergedAssets = computed(() => collectAssets(true))
 
 const loading = computed(() => {
   for (const source of activeSources.value) {
@@ -711,9 +727,13 @@ const {
 )
 
 // Base assets before search filtering
+// When searching in directory mode, use all assets across all subdirectories
 const baseAssets = computed(() => {
   if (isInFolderView.value) {
     return folderAssets.value
+  }
+  if (showAllAssets.value && isSearchActive.value) {
+    return allMergedAssets.value
   }
   return mergedAssets.value
 })
@@ -754,13 +774,12 @@ watch(activeDetailAsset, async (asset) => {
 })
 
 // Use media asset filtering composable
-const {
+const { sortBy, filteredAssets } = useMediaAssetFiltering(baseAssets, {
+  metadataExtractor,
   searchQuery,
-  sortBy,
-  mediaTypeFilters,
   metadataFilters,
-  filteredAssets
-} = useMediaAssetFiltering(baseAssets, { metadataExtractor })
+  mediaTypeFilters
+})
 
 // Extract metadata in background when metadata filters are active
 watch(
@@ -1327,6 +1346,7 @@ const handleFolderClick = async (folder: FolderItem) => {
 }
 
 const currentFolders = computed(() => {
+  if (isSearchActive.value) return undefined
   if (!singleActiveSource.value) return undefined
   if (singleActiveSource.value === 'output') return outputAssets.folders.value
   if (singleActiveSource.value === 'input') return inputAssets.folders.value

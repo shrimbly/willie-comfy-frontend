@@ -42,6 +42,7 @@ export function useOutputJobsAssets(): IAssetsProvider & IFolderNavigation {
 
   return {
     media,
+    allMedia: media,
     loading,
     error,
     fetchMediaList,

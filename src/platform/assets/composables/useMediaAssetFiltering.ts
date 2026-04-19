@@ -62,6 +62,9 @@ export interface MetadataExtractor {
 
 interface UseMediaAssetFilteringOptions {
   metadataExtractor?: MetadataExtractor
+  searchQuery?: Ref<string>
+  metadataFilters?: Ref<MetadataFilter[]>
+  mediaTypeFilters?: Ref<string[]>
 }
 
 /**
@@ -72,11 +75,11 @@ export function useMediaAssetFiltering(
   assets: Ref<AssetItem[]>,
   options: UseMediaAssetFilteringOptions = {}
 ) {
-  const searchQuery = ref('')
+  const searchQuery = options.searchQuery ?? ref('')
   const debouncedSearchQuery = refDebounced(searchQuery, 50)
   const sortBy = ref<SortOption>('newest')
-  const mediaTypeFilters = ref<string[]>([])
-  const metadataFilters = ref<MetadataFilter[]>([])
+  const mediaTypeFilters = options.mediaTypeFilters ?? ref<string[]>([])
+  const metadataFilters = options.metadataFilters ?? ref<MetadataFilter[]>([])
 
   const fuseOptions = {
     keys: ['display_name', 'name'],
