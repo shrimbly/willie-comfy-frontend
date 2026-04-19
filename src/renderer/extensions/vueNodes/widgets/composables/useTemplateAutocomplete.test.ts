@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 
+vi.mock('@/utils/formatUtil', () => ({
+  formatDate: vi.fn((fmt: string) => fmt)
+}))
+
 vi.mock('@/platform/settings/settingStore', () => ({
   useSettingStore: vi.fn(() => ({
     get: (key: string) => {
@@ -31,7 +35,7 @@ describe('useTemplateAutocomplete', () => {
     handleInput()
 
     expect(isOpen.value).toBe(true)
-    expect(filteredSuggestions.value.length).toBe(4)
+    expect(filteredSuggestions.value.length).toBe(10)
   })
 
   it('filters suggestions by partial query', () => {
@@ -97,7 +101,7 @@ describe('useTemplateAutocomplete', () => {
     Object.defineProperty(event, 'preventDefault', { value: () => {} })
     handleKeydown(event)
 
-    expect(highlightIndex.value).toBe(3)
+    expect(highlightIndex.value).toBe(9)
   })
 
   it('closes on Escape', () => {

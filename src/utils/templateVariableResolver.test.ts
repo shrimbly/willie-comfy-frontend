@@ -23,6 +23,20 @@ const mockCustomVariables = vi.hoisted(() => ({
   value: [] as { name: string; value: string }[]
 }))
 
+vi.mock('@/utils/formatUtil', () => ({
+  formatDate: vi.fn((fmt: string) => {
+    const map: Record<string, string> = {
+      'yyyy-MM-dd': '2025-01-15',
+      'yyyy-MM-dd-HH-mm-ss': '2025-01-15-14-30-00',
+      yyyy: '2025',
+      MM: '01',
+      dd: '15',
+      'HH-mm-ss': '14-30-00'
+    }
+    return map[fmt] ?? fmt
+  })
+}))
+
 vi.mock('@/platform/settings/settingStore', () => ({
   useSettingStore: vi.fn(() => ({
     get: (key: string) => {
@@ -146,6 +160,42 @@ describe('resolveTemplateVariables', () => {
     expect(result).toBe('a_b_c')
     mockCustomVariables.value = []
   })
+
+  it('resolves @DateYYYYMMDD', () => {
+    const result = resolveTemplateVariables(
+      makeGraph(),
+      makeNode('SaveImage'),
+      '@DateYYYYMMDD/output'
+    )
+    expect(result).toBe('2025-01-15/output')
+  })
+
+  it('resolves @DateYYYYMMDDHHmmss', () => {
+    const result = resolveTemplateVariables(
+      makeGraph(),
+      makeNode('SaveImage'),
+      '@DateYYYYMMDDHHmmss'
+    )
+    expect(result).toBe('2025-01-15-14-30-00')
+  })
+
+  it('resolves @DateYYYY', () => {
+    const result = resolveTemplateVariables(
+      makeGraph(),
+      makeNode('SaveImage'),
+      '@DateYYYY'
+    )
+    expect(result).toBe('2025')
+  })
+
+  it('resolves date variables alongside other variables', () => {
+    const result = resolveTemplateVariables(
+      makeGraph(),
+      makeNode('SaveImage'),
+      '@project/@DateYYYYMMDD/@nodeTitle'
+    )
+    expect(result).toBe('My-project/2025-01-15/SaveImage')
+  })
 })
 
 describe('parseTemplateSegments', () => {
@@ -226,24 +276,30 @@ describe('getTemplateVariables', () => {
   it('returns built-in variables when no custom defined', () => {
     mockCustomVariables.value = []
     const vars = getTemplateVariables()
-    expect(vars).toHaveLength(4)
+    expect(vars).toHaveLength(10)
     expect(vars.map((v) => v.name)).toEqual([
       'project',
       'workflowTitle',
       'groupTitle',
-      'nodeTitle'
+      'nodeTitle',
+      'DateYYYYMMDD',
+      'DateYYYYMMDDHHmmss',
+      'DateYYYY',
+      'DateMM',
+      'DateDD',
+      'DateHHmmss'
     ])
   })
 
-  it('includes custom variables', () => {
+  it('includes custom variables after built-in ones', () => {
     mockCustomVariables.value = [
       { name: 'client', value: 'acme' },
       { name: 'studio', value: 'pixar' }
     ]
     const vars = getTemplateVariables()
-    expect(vars).toHaveLength(6)
-    expect(vars[4].name).toBe('client')
-    expect(vars[5].name).toBe('studio')
+    expect(vars).toHaveLength(12)
+    expect(vars[10].name).toBe('client')
+    expect(vars[11].name).toBe('studio')
     mockCustomVariables.value = []
   })
 })

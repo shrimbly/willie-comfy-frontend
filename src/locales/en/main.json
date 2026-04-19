@@ -3918,7 +3918,13 @@
     "projectDesc": "Project name",
     "workflowTitleDesc": "Current workflow filename",
     "groupTitleDesc": "Parent group title",
-    "nodeTitleDesc": "Node title"
+    "nodeTitleDesc": "Node title",
+    "dateYYYYMMDD": "Date (YYYY-MM-DD)",
+    "dateYYYYMMDDHHmmss": "Date and time (YYYY-MM-DD-HH-mm-ss)",
+    "dateYYYY": "Year (YYYY)",
+    "dateMM": "Month (MM)",
+    "dateDD": "Day (DD)",
+    "dateHHmmss": "Time (HH-mm-ss)"
   },
   "filenameVariables": {
     "title": "Filename Variables",
