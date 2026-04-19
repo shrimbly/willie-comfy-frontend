@@ -43,6 +43,9 @@ declare module '@/lib/litegraph/src/types/widgets' {
 
     /** If the widget is hidden, this will be set to true. */
     hidden?: boolean
+
+    /** If true, renders a template input with @variable autocomplete. */
+    templateInput?: boolean
   }
 
   interface WidgetCallbackOptions {
