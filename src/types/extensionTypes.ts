@@ -20,6 +20,12 @@ interface BaseSidebarTabExtension {
    * Assets tab stores one width for compact view and another for advanced view).
    */
   panelStateKeySuffix?: string
+  /**
+   * Extra pixels added to the panel's min-width at runtime (e.g. for a detail
+   * panel that should expand the sidebar additively without triggering a
+   * splitter remount).
+   */
+  panelExtraWidthPx?: number
 }
 
 interface BaseBottomPanelExtension {

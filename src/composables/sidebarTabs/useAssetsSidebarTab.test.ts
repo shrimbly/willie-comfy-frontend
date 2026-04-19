@@ -85,4 +85,21 @@ describe('useAssetsSidebarTab', () => {
     expect(sidebarTab.panelMinSize).toBe(25)
     expect(sidebarTab.panelStateKeySuffix).toBe('directory-filters')
   })
+
+  it('provides extra pixel width when detail panel is open', () => {
+    localStorage.setItem('Comfy.Assets.ShowDetailPanel', 'true')
+
+    const sidebarTab = useAssetsSidebarTab()
+
+    expect(sidebarTab.panelSize).toBe(20)
+    expect(sidebarTab.panelMinSize).toBe(15)
+    expect(sidebarTab.panelExtraWidthPx).toBe(200)
+    expect(sidebarTab.panelStateKeySuffix).toBe('')
+  })
+
+  it('has no extra pixel width when detail panel is closed', () => {
+    const sidebarTab = useAssetsSidebarTab()
+
+    expect(sidebarTab.panelExtraWidthPx).toBe(0)
+  })
 })

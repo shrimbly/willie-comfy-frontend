@@ -43,13 +43,26 @@ export function useAssetPromptMetadata() {
   return { extractMetadata, getCached, extractBatch }
 }
 
+function hasData(meta: PromptMetadata | null): meta is PromptMetadata {
+  if (!meta) return false
+  return (
+    meta.model !== null ||
+    meta.lora !== null ||
+    meta.vae !== null ||
+    meta.prompt !== null ||
+    meta.steps !== null ||
+    meta.seed !== null
+  )
+}
+
 async function fetchMetadata(asset: AssetItem): Promise<PromptMetadata | null> {
   const jobId = asset.user_metadata?.jobId as string | undefined
   if (jobId) {
-    return fetchFromJob(jobId)
+    const result = await fetchFromJob(jobId)
+    if (hasData(result)) return result
   }
 
-  if (asset.preview_url?.endsWith('.png')) {
+  if (asset.preview_url && asset.name.endsWith('.png')) {
     return fetchFromPng(asset.preview_url)
   }
 

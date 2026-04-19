@@ -3,6 +3,8 @@ export interface PromptMetadata {
   lora: string | null
   vae: string | null
   prompt: string | null
+  steps: number | null
+  seed: number | null
 }
 
 interface PromptNode {
@@ -28,6 +30,8 @@ export function parsePromptMetadata(
   const loras: string[] = []
   let vae: string | null = null
   let prompt: string | null = null
+  let steps: number | null = null
+  let seed: number | null = null
 
   for (const node of Object.values(nodes)) {
     if (!node.class_type || !node.inputs) continue
@@ -62,12 +66,22 @@ export function parsePromptMetadata(
       const text = node.inputs.text
       if (typeof text === 'string') prompt = text
     }
+
+    if (
+      steps === null &&
+      (classType === 'KSampler' || classType === 'KSamplerAdvanced')
+    ) {
+      if (typeof node.inputs.steps === 'number') steps = node.inputs.steps
+      if (typeof node.inputs.seed === 'number') seed = node.inputs.seed
+    }
   }
 
   return {
     model,
     lora: loras.length > 0 ? loras.join(', ') : null,
     vae,
-    prompt
+    prompt,
+    steps,
+    seed
   }
 }

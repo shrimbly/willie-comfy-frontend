@@ -12,6 +12,12 @@ export const useAssetsSidebarTab = (): SidebarTabExtension => {
     'Comfy.Assets.ShowFilterPanel',
     false
   )
+  const showDetailPanel = useStorage<boolean>(
+    'Comfy.Assets.ShowDetailPanel',
+    false
+  )
+
+  const DETAIL_PANEL_WIDTH_PX = 200
 
   return {
     id: 'assets',
@@ -32,6 +38,9 @@ export const useAssetsSidebarTab = (): SidebarTabExtension => {
     get panelStateKeySuffix() {
       if (!showAllAssets.value) return ''
       return showFilterPanel.value ? 'directory-filters' : 'directory'
+    },
+    get panelExtraWidthPx() {
+      return showDetailPanel.value ? DETAIL_PANEL_WIDTH_PX : 0
     },
     iconBadge: () => {
       const settingStore = useSettingStore()

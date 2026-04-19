@@ -113,13 +113,17 @@
             "
             class="sticky top-0 z-10 flex items-center justify-end border-b border-comfy-input bg-base-background px-2 py-1"
           >
-            <button
-              class="shrink-0 cursor-pointer rounded-sm border-none bg-transparent p-1 text-muted-foreground transition-colors hover:bg-secondary-background-hover hover:text-text-primary"
-              :aria-label="t('mediaAsset.details.togglePanel')"
+            <Button
+              variant="secondary"
+              size="sm"
               @click="showDetailPanel = !showDetailPanel"
             >
-              <i class="icon-[lucide--panel-right] size-3" />
-            </button>
+              {{
+                showDetailPanel
+                  ? t('mediaAsset.details.hideDetails')
+                  : t('mediaAsset.details.showDetails')
+              }}
+            </Button>
           </div>
           <!-- Breadcrumb navigation (advanced view only) -->
           <div
@@ -196,21 +200,19 @@
                 {{ sentenceCase(breadcrumbSegments[0]) }}
               </button>
             </template>
-            <button
+            <Button
               v-if="selectionStore.lastSelectedAssetId"
-              class="ml-auto shrink-0 cursor-pointer rounded-sm border-none bg-transparent p-1 text-muted-foreground transition-colors hover:bg-secondary-background-hover hover:text-text-primary"
-              :aria-label="t('mediaAsset.details.togglePanel')"
+              variant="secondary"
+              size="sm"
+              class="ml-auto shrink-0"
               @click="showDetailPanel = !showDetailPanel"
             >
-              <i class="icon-[lucide--panel-right] size-3" />
-            </button>
-            <button
-              class="shrink-0 cursor-pointer rounded-sm border-none bg-transparent p-1 text-muted-foreground transition-colors hover:bg-secondary-background-hover hover:text-text-primary"
-              :aria-label="t('refresh')"
-              @click="refreshAssets"
-            >
-              <i class="icon-[lucide--refresh-cw] size-3" />
-            </button>
+              {{
+                showDetailPanel
+                  ? t('mediaAsset.details.hideDetails')
+                  : t('mediaAsset.details.showDetails')
+              }}
+            </Button>
           </div>
           <div
             v-if="showLoadingState"

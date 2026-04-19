@@ -38,7 +38,9 @@ describe('parsePromptMetadata', () => {
       model: 'sd_xl_base_1.0.safetensors',
       lora: 'detail_enhancer.safetensors',
       vae: 'sdxl_vae.safetensors',
-      prompt: 'a beautiful sunset over the ocean'
+      prompt: 'a beautiful sunset over the ocean',
+      steps: null,
+      seed: null
     })
   })
 
@@ -61,8 +63,8 @@ describe('parsePromptMetadata', () => {
   it('returns null fields when none are present', () => {
     const promptData = {
       '1': {
-        class_type: 'KSampler',
-        inputs: { seed: 12345 }
+        class_type: 'SomeOtherNode',
+        inputs: { value: 42 }
       }
     }
 
@@ -71,7 +73,9 @@ describe('parsePromptMetadata', () => {
       model: null,
       lora: null,
       vae: null,
-      prompt: null
+      prompt: null,
+      steps: null,
+      seed: null
     })
   })
 
@@ -123,7 +127,48 @@ describe('parsePromptMetadata', () => {
       model: null,
       lora: null,
       vae: null,
-      prompt: null
+      prompt: null,
+      steps: null,
+      seed: null
     })
+  })
+
+  it('extracts steps and seed from KSampler', () => {
+    const promptData = {
+      '1': {
+        class_type: 'KSampler',
+        inputs: { steps: 20, seed: 42, cfg: 7.5 }
+      }
+    }
+
+    const result = parsePromptMetadata(promptData)
+    expect(result!.steps).toBe(20)
+    expect(result!.seed).toBe(42)
+  })
+
+  it('extracts steps and seed from KSamplerAdvanced', () => {
+    const promptData = {
+      '1': {
+        class_type: 'KSamplerAdvanced',
+        inputs: { steps: 30, seed: 12345 }
+      }
+    }
+
+    const result = parsePromptMetadata(promptData)
+    expect(result!.steps).toBe(30)
+    expect(result!.seed).toBe(12345)
+  })
+
+  it('ignores linked array refs for steps and seed', () => {
+    const promptData = {
+      '1': {
+        class_type: 'KSampler',
+        inputs: { steps: ['5', 0], seed: ['6', 0] }
+      }
+    }
+
+    const result = parsePromptMetadata(promptData)
+    expect(result!.steps).toBeNull()
+    expect(result!.seed).toBeNull()
   })
 })

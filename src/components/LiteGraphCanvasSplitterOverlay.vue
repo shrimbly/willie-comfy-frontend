@@ -289,16 +289,50 @@ const splitterRefreshKey = computed(() => {
   return `main-splitter${rightSidePanelVisible.value ? '-with-right-panel' : ''}${isSelectMode.value ? '-builder' : ''}-${sidebarLocation.value}-${tabSuffix}`
 })
 
+const sidebarExtraWidthPx = computed(
+  () => activeSidebarTab.value?.panelExtraWidthPx ?? 0
+)
+
+function getSavedSidebarSize(): number {
+  const raw = localStorage.getItem(sidebarStateKey.value)
+  if (!raw) return sidebarPanelSize.value
+  try {
+    const sizes: unknown = JSON.parse(raw)
+    if (!Array.isArray(sizes) || sizes.length === 0)
+      return sidebarPanelSize.value
+    const idx = sidebarLocation.value === 'left' ? 0 : sizes.length - 1
+    const saved = sizes[idx]
+    return typeof saved === 'number' && Number.isFinite(saved)
+      ? saved
+      : sidebarPanelSize.value
+  } catch {
+    return sidebarPanelSize.value
+  }
+}
+
+const sidebarMinWidth = computed(() => {
+  if (!sidebarPanelVisible.value || sidebarExtraWidthPx.value <= 0)
+    return undefined
+  const actualSize = getSavedSidebarSize()
+  return `calc(${actualSize}% + ${sidebarExtraWidthPx.value}px)`
+})
+
 const firstPanelStyle = computed(() => {
   if (sidebarLocation.value === 'left') {
-    return { display: sidebarPanelVisible.value ? 'flex' : 'none' }
+    return {
+      display: sidebarPanelVisible.value ? 'flex' : 'none',
+      minWidth: sidebarMinWidth.value
+    }
   }
   return undefined
 })
 
 const lastPanelStyle = computed(() => {
   if (sidebarLocation.value === 'right') {
-    return { display: sidebarPanelVisible.value ? 'flex' : 'none' }
+    return {
+      display: sidebarPanelVisible.value ? 'flex' : 'none',
+      minWidth: sidebarMinWidth.value
+    }
   }
   return undefined
 })
