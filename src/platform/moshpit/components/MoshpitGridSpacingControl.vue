@@ -43,8 +43,8 @@ const filterStore = useMoshpitFilterStore()
 
 const isDisabled = computed(() => filterStore.sortX === null)
 
-function onSliderChange(values: number[]): void {
-  if (values[0] !== undefined) {
+function onSliderChange(values: number[] | undefined): void {
+  if (values !== undefined && values[0] !== undefined) {
     filterStore.setGridSpacing(values[0])
   }
 }
