@@ -6,10 +6,10 @@
     class="relative size-full overflow-hidden outline-none"
     @pointerdown="onContainerPointerDown"
   >
-    <MoshpitCanvas v-if="containerEl" :containerEl="containerEl" />
+    <MoshpitCanvas v-if="containerEl" :container-el="containerEl" />
     <MoshpitMarqueeOverlay
-      :isDragging="marquee.isDragging.value"
-      :overlayStyle="marquee.overlayStyle.value"
+      :is-dragging="marquee.isDragging.value"
+      :overlay-style="marquee.overlayStyle.value"
     />
   </div>
 </template>
@@ -34,7 +34,7 @@ const marquee = useMoshpitMarquee({
 
 function onContainerPointerDown(e: PointerEvent) {
   containerEl.value?.focus()
-  sidebarStore.collapseOnFirstClick()
+  if (e.button === 0) sidebarStore.collapseOnFirstClick()
   marquee.onPointerDown(e)
 }
 </script>
