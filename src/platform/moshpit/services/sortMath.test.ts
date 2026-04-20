@@ -22,7 +22,8 @@ function makeParams(overrides: Partial<NormalizedParams>): NormalizedParams {
     width: undefined,
     height: undefined,
     timestamp: 0,
-    workflowFingerprint: undefined,
+    workflowFingerprint: '',
+    workflowFilename: null,
     ...overrides
   }
 }
