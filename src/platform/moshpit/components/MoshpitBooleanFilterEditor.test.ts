@@ -36,7 +36,7 @@ describe('MoshpitBooleanFilterEditor', () => {
   it('emits boolean ChipValue with value=true on mount (default checked)', () => {
     const { emitted } = mountEditor()
     // The watcher fires immediately on mount
-    const updates = emitted('update:modelValue')
+    const updates = emitted<unknown[]>('update:modelValue')
     expect(updates).toBeTruthy()
     const firstUpdate = updates![0][0]
     expect(firstUpdate).toMatchObject({ kind: 'boolean', value: true })
@@ -49,7 +49,7 @@ describe('MoshpitBooleanFilterEditor', () => {
     const checkbox = screen.getByRole('checkbox')
     await user.click(checkbox)
 
-    const updates = emitted('update:modelValue')
+    const updates = emitted<unknown[]>('update:modelValue')
     const lastUpdate = updates![updates!.length - 1][0]
     expect(lastUpdate).toMatchObject({ kind: 'boolean', value: false })
   })

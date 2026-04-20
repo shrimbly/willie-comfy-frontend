@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/vue'
 import userEvent from '@testing-library/user-event'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { createI18n } from 'vue-i18n'
 
 import enMessages from '@/locales/en/main.json'
@@ -63,7 +63,7 @@ describe('MoshpitNumericFilterEditor', () => {
     await user.type(minInput, '6')
 
     // Should emit update:modelValue with numeric range
-    const updates = emitted('update:modelValue')
+    const updates = emitted<unknown[]>('update:modelValue')
     expect(updates).toBeTruthy()
     const lastUpdate = updates![updates!.length - 1][0]
     expect(lastUpdate).toMatchObject({ kind: 'numeric', min: 6 })
@@ -82,7 +82,7 @@ describe('MoshpitNumericFilterEditor', () => {
     const exactInput = screen.getByPlaceholderText(enMessages.moshpit.filters.editorExact)
     await user.type(exactInput, '20')
 
-    const updates = emitted('update:modelValue')
+    const updates = emitted<unknown[]>('update:modelValue')
     const lastUpdate = updates![updates!.length - 1][0]
     expect(lastUpdate).toMatchObject({ kind: 'numeric', exact: 20, min: null, max: null })
   })
@@ -99,7 +99,7 @@ describe('MoshpitNumericFilterEditor', () => {
     await user.type(minInput, '6')
     await user.clear(minInput)
 
-    const updates = emitted('update:modelValue')
+    const updates = emitted<unknown[]>('update:modelValue')
     const lastUpdate = updates![updates!.length - 1][0]
     expect(lastUpdate).toBeNull()
   })

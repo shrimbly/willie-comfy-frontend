@@ -91,7 +91,7 @@ describe('MoshpitCategoricalFilterEditor', () => {
     const checkbox = screen.getByRole('checkbox')
     await user.click(checkbox)
 
-    const updates = emitted('update:modelValue')
+    const updates = emitted<unknown[]>('update:modelValue')
     expect(updates).toBeTruthy()
     const lastUpdate = updates![updates!.length - 1][0]
     expect(lastUpdate).toMatchObject({ kind: 'categorical', values: ['euler'] })
@@ -111,7 +111,7 @@ describe('MoshpitCategoricalFilterEditor', () => {
     await user.click(checkbox)
     await user.click(checkbox)
 
-    const updates = emitted('update:modelValue')
+    const updates = emitted<unknown[]>('update:modelValue')
     const lastUpdate = updates![updates!.length - 1][0]
     expect(lastUpdate).toBeNull()
   })

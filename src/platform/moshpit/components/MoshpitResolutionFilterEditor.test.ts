@@ -72,7 +72,7 @@ describe('MoshpitResolutionFilterEditor', () => {
     const checkbox = screen.getByRole('checkbox')
     await user.click(checkbox)
 
-    const updates = emitted('update:modelValue')
+    const updates = emitted<unknown[]>('update:modelValue')
     expect(updates).toBeTruthy()
     const lastUpdate = updates![updates!.length - 1][0]
     expect(lastUpdate).toMatchObject({ kind: 'resolution', pairs: [[512, 512]] })
@@ -91,7 +91,7 @@ describe('MoshpitResolutionFilterEditor', () => {
     await user.click(checkbox)
     await user.click(checkbox)
 
-    const updates = emitted('update:modelValue')
+    const updates = emitted<unknown[]>('update:modelValue')
     const lastUpdate = updates![updates!.length - 1][0]
     expect(lastUpdate).toBeNull()
   })
@@ -115,7 +115,7 @@ describe('MoshpitResolutionFilterEditor', () => {
     const addBtn = screen.getByRole('button', { name: '+' })
     await user.click(addBtn)
 
-    const updates = emitted('update:modelValue')
+    const updates = emitted<unknown[]>('update:modelValue')
     expect(updates).toBeTruthy()
     const lastUpdate = updates![updates!.length - 1][0]
     expect(lastUpdate).toMatchObject({ kind: 'resolution', pairs: [[1024, 768]] })

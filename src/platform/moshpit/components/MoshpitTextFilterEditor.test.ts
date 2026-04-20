@@ -39,7 +39,7 @@ describe('MoshpitTextFilterEditor', () => {
     )
     await user.type(textarea, 'masterpiece')
 
-    const updates = emitted('update:modelValue')
+    const updates = emitted<unknown[]>('update:modelValue')
     expect(updates).toBeTruthy()
     const lastUpdate = updates![updates!.length - 1][0]
     expect(lastUpdate).toMatchObject({ kind: 'text', substring: 'masterpiece' })
@@ -55,7 +55,7 @@ describe('MoshpitTextFilterEditor', () => {
     await user.type(textarea, 'test')
     await user.clear(textarea)
 
-    const updates = emitted('update:modelValue')
+    const updates = emitted<unknown[]>('update:modelValue')
     const lastUpdate = updates![updates!.length - 1][0]
     expect(lastUpdate).toBeNull()
   })
@@ -70,7 +70,7 @@ describe('MoshpitTextFilterEditor', () => {
     // Type text with surrounding spaces; the watcher trims before emitting
     await user.type(textarea, 'masterpiece')
 
-    const updates = emitted('update:modelValue')
+    const updates = emitted<unknown[]>('update:modelValue')
     expect(updates).toBeTruthy()
     const lastUpdate = updates![updates!.length - 1][0]
     // substring should be trimmed (no leading/trailing whitespace)
