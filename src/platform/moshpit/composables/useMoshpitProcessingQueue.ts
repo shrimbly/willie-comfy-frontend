@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, ref } from 'vue'
 
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
 import { getAssetUrl } from '@/platform/assets/utils/assetUrlUtil'
+import type { NormalizedParams } from '@/platform/moshpit/services/paramNormalize'
 import {
   getAssetMeta,
   getAllThumbHashes
@@ -79,6 +80,11 @@ export function useMoshpitProcessingQueue(options?: {
   const activeFilterId = ref('')
   const isActive = computed(() => total.value > 0 && done.value < total.value)
 
+  // Snapshot of the current filter's assets — used to look up the real
+  // AssetItem.created_at for each thumbReady so params.timestamp reflects
+  // the actual creation time rather than the worker's Date.now() fallback.
+  const assetsSnapshot = ref<readonly AssetItem[]>([])
+
   const offReady = bridge.onThumbReady((msg) => {
     thumbStore.addThumb(msg.contentHash, msg.blob)
     metaStore.setMetadata(msg.contentHash, msg.metadata)
@@ -86,6 +92,19 @@ export function useMoshpitProcessingQueue(options?: {
     // useMoshpitAssetRegistry can resolve a.asset_hash ?? getHashForAssetId(a.id)
     // for local-backend assets whose server-side asset_hash is null.
     metaStore.recordAssetHash(msg.assetId, msg.contentHash)
+
+    // Overwrite params.timestamp with the real AssetItem.created_at epoch.
+    // The worker uses Date.now() as a fallback; the processing queue knows the
+    // actual creation timestamp from the AssetItem loaded by setFilter.
+    const asset = assetsSnapshot.value.find((a) => a.id === msg.assetId)
+    const createdAtMs =
+      asset?.created_at ? new Date(asset.created_at).getTime() : NaN
+    const paramsWithRealTimestamp: NormalizedParams = {
+      ...msg.params,
+      timestamp: Number.isFinite(createdAtMs) ? createdAtMs : msg.params.timestamp
+    }
+    metaStore.setParams(msg.contentHash, paramsWithRealTimestamp)
+
     // Hydrate curation from IDB so hidden/favourite flags are reflected
     // even for thumbs that landed on a prior session.
     void getAssetMeta(msg.contentHash).then((rec) => {
@@ -117,6 +136,9 @@ export function useMoshpitProcessingQueue(options?: {
     activeFilterId.value = filterKey
     bridge.setActiveFilterId(filterKey)
 
+    // Snapshot assets for timestamp correction in the thumbReady handler.
+    assetsSnapshot.value = assets
+
     // D-08 warm-cache diff against IDB (D-07 auto-resume on re-entry)
     const cached = new Set(await getAllThumbHashes())
     const asViews: QueueAssetView[] = assets.map((a) => ({
@@ -124,6 +146,25 @@ export function useMoshpitProcessingQueue(options?: {
       assetHash: a.asset_hash ?? null
     }))
     const delta = computeQueueDelta(asViews, cached)
+
+    // Warm-cache re-entry: populate metaStore.paramsByHash from IDB for assets
+    // whose thumbs are already cached. This avoids re-running the worker and
+    // ensures paramsByHash is fully populated for filter/sort on re-entry.
+    // Chunk size 10 bounds concurrent IDB reads (T-03-05-02 mitigation).
+    const cachedViews = asViews.filter((v) => v.assetHash && cached.has(v.assetHash))
+    const CHUNK_SIZE = 10
+    for (let i = 0; i < cachedViews.length; i += CHUNK_SIZE) {
+      const chunk = cachedViews.slice(i, i + CHUNK_SIZE)
+      await Promise.allSettled(
+        chunk.map(async (view) => {
+          if (!view.assetHash) return
+          const rec = await getAssetMeta(view.assetHash)
+          if (!rec) return
+          metaStore.setMetadata(view.assetHash, rec.metadata)
+          metaStore.setParams(view.assetHash, rec.params)
+        })
+      )
+    }
 
     total.value = delta.length
     done.value = 0

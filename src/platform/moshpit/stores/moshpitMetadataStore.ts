@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 import type { NormalizedParams } from '../services/paramNormalize'
-import { normalizeParams } from '../services/paramNormalize'
 
 export const useMoshpitMetadataStore = defineStore('moshpitMetadata', () => {
   const metaByHash = ref(new Map<string, Readonly<Record<string, string>>>())
@@ -13,18 +12,14 @@ export const useMoshpitMetadataStore = defineStore('moshpitMetadata', () => {
   const assetIdToHash = ref(new Map<string, string>())
   const excludedCount = ref(0)
   const size = computed(() => metaByHash.value.size)
-  // Parsed NormalizedParams keyed by contentHash. Derived from metaByHash so
-  // filter/sort composables (Plan 03-07) can read typed params without
-  // re-parsing. The Map is recomputed reactively when metaByHash mutates.
-  const paramsByHash = computed<ReadonlyMap<string, NormalizedParams>>(() => {
-    const out = new Map<string, NormalizedParams>()
-    for (const [hash, meta] of metaByHash.value) {
-      const createdAt = Number(meta['created_at'] ?? '0')
-      const sourceFilename = meta['source_filename'] ?? null
-      out.set(hash, normalizeParams(meta, createdAt, sourceFilename))
-    }
-    return out
-  })
+  // Explicit params store keyed by contentHash. Populated by the processing
+  // queue on thumbReady (cold path) and by setFilter warm-cache re-entry.
+  // The worker produces params with the correct workflowFilename derived from
+  // the source filename at processing time (Plan 03-05).
+  const _paramsByHash = ref(new Map<string, NormalizedParams>())
+  // Expose as a plain Map (not a Ref wrapper) so consumers can call .get()/.size
+  // directly without .value dereference. Reactivity is preserved via the ref.
+  const paramsByHash = computed(() => _paramsByHash.value)
 
   function setMetadata(
     contentHash: string,
@@ -37,6 +32,14 @@ export const useMoshpitMetadataStore = defineStore('moshpitMetadata', () => {
     contentHash: string
   ): Readonly<Record<string, string>> | undefined {
     return metaByHash.value.get(contentHash)
+  }
+
+  function setParams(contentHash: string, params: NormalizedParams): void {
+    _paramsByHash.value.set(contentHash, params)
+  }
+
+  function getParams(contentHash: string): NormalizedParams | undefined {
+    return _paramsByHash.value.get(contentHash)
   }
 
   function recordAssetHash(assetId: string, contentHash: string): void {
@@ -57,6 +60,7 @@ export const useMoshpitMetadataStore = defineStore('moshpitMetadata', () => {
 
   function reset(): void {
     metaByHash.value.clear()
+    _paramsByHash.value.clear()
     assetIdToHash.value.clear()
     excludedCount.value = 0
   }
@@ -68,6 +72,8 @@ export const useMoshpitMetadataStore = defineStore('moshpitMetadata', () => {
     size,
     setMetadata,
     getMetadata,
+    setParams,
+    getParams,
     recordAssetHash,
     getHashForAssetId,
     incrementExcluded,

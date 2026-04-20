@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { emptyParams } from '../services/paramNormalize'
 import { useMoshpitMetadataStore } from './moshpitMetadataStore'
 
 describe('moshpitMetadataStore', () => {
@@ -41,5 +42,34 @@ describe('moshpitMetadataStore', () => {
     expect(store.getMetadata('h1')).toBeUndefined()
     expect(store.excludedCount).toBe(0)
     expect(store.getHashForAssetId('asset-1')).toBeUndefined()
+  })
+
+  it('setParams + getParams round-trips NormalizedParams by contentHash', () => {
+    const store = useMoshpitMetadataStore()
+    const params = { ...emptyParams(1000), cfg: 7.5, steps: 25, model: 'v1-5.safetensors' }
+    store.setParams('hash-X', params)
+    expect(store.getParams('hash-X')).toEqual(params)
+  })
+
+  it('getParams returns undefined for unknown hash', () => {
+    const store = useMoshpitMetadataStore()
+    expect(store.getParams('unknown')).toBeUndefined()
+  })
+
+  it('reset clears paramsByHash', () => {
+    const store = useMoshpitMetadataStore()
+    store.setParams('hash-X', emptyParams(1000))
+    store.reset()
+    expect(store.getParams('hash-X')).toBeUndefined()
+    expect(store.paramsByHash.size).toBe(0)
+  })
+
+  it('paramsByHash updates reactively when setParams is called', () => {
+    const store = useMoshpitMetadataStore()
+    const params = emptyParams(2000)
+    expect(store.paramsByHash.size).toBe(0)
+    store.setParams('hash-Y', params)
+    expect(store.paramsByHash.size).toBe(1)
+    expect(store.paramsByHash.get('hash-Y')).toEqual(params)
   })
 })

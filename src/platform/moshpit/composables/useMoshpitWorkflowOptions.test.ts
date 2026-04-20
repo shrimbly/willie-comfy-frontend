@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { normalizeParams } from '../services/paramNormalize'
 import { useMoshpitWorkflowOptions } from './useMoshpitWorkflowOptions'
 import { useMoshpitMetadataStore } from '../stores/moshpitMetadataStore'
 
@@ -27,13 +28,27 @@ function makeEntry(contentHash: string): RegistryEntry {
 }
 
 // Build a raw metadata record that produces a known workflowFilename and fingerprint.
-// source_filename is read by moshpitMetadataStore.paramsByHash to derive workflowFilename.
-// prompt JSON is parsed for the workflowFingerprint (class_type set).
 function makeMeta(classType: string, sourceFilename: string | null): Record<string, string> {
   const prompt = JSON.stringify({ n1: { class_type: classType, inputs: {} } })
   const meta: Record<string, string> = { prompt }
   if (sourceFilename !== null) meta['source_filename'] = sourceFilename
   return meta
+}
+
+/**
+ * Seed both raw metadata and the explicit paramsByHash entry for a hash.
+ * Plan 03-05 moved paramsByHash to an explicit ref populated by the worker
+ * pipeline (not derived from metaByHash). Tests must call setParams directly.
+ */
+function seedAsset(
+  metaStore: ReturnType<typeof useMoshpitMetadataStore>,
+  hash: string,
+  classType: string,
+  sourceFilename: string | null
+): void {
+  const meta = makeMeta(classType, sourceFilename)
+  metaStore.setMetadata(hash, meta)
+  metaStore.setParams(hash, normalizeParams(meta, 0, sourceFilename))
 }
 
 describe('useMoshpitWorkflowOptions', () => {
@@ -51,11 +66,11 @@ describe('useMoshpitWorkflowOptions', () => {
   it('groups assets by workflowFingerprint with displayName from workflowFilename', () => {
     const metaStore = useMoshpitMetadataStore()
     // Three assets with fingerprint 'KSampler', using filename 'cfg_sweep'
-    metaStore.setMetadata('hash-A1', makeMeta('KSampler', 'cfg_sweep_00001_.png'))
-    metaStore.setMetadata('hash-A2', makeMeta('KSampler', 'cfg_sweep_00002_.png'))
-    metaStore.setMetadata('hash-A3', makeMeta('KSampler', 'cfg_sweep_00003_.png'))
+    seedAsset(metaStore, 'hash-A1', 'KSampler', 'cfg_sweep_00001_.png')
+    seedAsset(metaStore, 'hash-A2', 'KSampler', 'cfg_sweep_00002_.png')
+    seedAsset(metaStore, 'hash-A3', 'KSampler', 'cfg_sweep_00003_.png')
     // One asset with fingerprint 'CLIPTextEncode', filename 'portrait_v2'
-    metaStore.setMetadata('hash-B1', makeMeta('CLIPTextEncode', 'portrait_v2_00001_.png'))
+    seedAsset(metaStore, 'hash-B1', 'CLIPTextEncode', 'portrait_v2_00001_.png')
 
     const entries = ref<readonly RegistryEntry[]>([
       makeEntry('hash-A1'),
@@ -81,7 +96,7 @@ describe('useMoshpitWorkflowOptions', () => {
   it('uses unnamed- fallback when workflowFilename is null', () => {
     const metaStore = useMoshpitMetadataStore()
     // No source_filename → workflowFilename === null
-    metaStore.setMetadata('hash-X', makeMeta('VAEDecode', null))
+    seedAsset(metaStore, 'hash-X', 'VAEDecode', null)
 
     const entries = ref<readonly RegistryEntry[]>([makeEntry('hash-X')])
     mockRegistry.mockReturnValue({ entries: computed(() => entries.value) })
@@ -96,9 +111,9 @@ describe('useMoshpitWorkflowOptions', () => {
   it('prefers non-null workflowFilename over null within same fingerprint (mixed assets)', () => {
     const metaStore = useMoshpitMetadataStore()
     // Same class_type → same fingerprint; mix of filenames
-    metaStore.setMetadata('hash-F1', makeMeta('KSampler', 'foo_00001_.png'))
-    metaStore.setMetadata('hash-F2', makeMeta('KSampler', null))
-    metaStore.setMetadata('hash-F3', makeMeta('KSampler', 'foo_00003_.png'))
+    seedAsset(metaStore, 'hash-F1', 'KSampler', 'foo_00001_.png')
+    seedAsset(metaStore, 'hash-F2', 'KSampler', null)
+    seedAsset(metaStore, 'hash-F3', 'KSampler', 'foo_00003_.png')
 
     const entries = ref<readonly RegistryEntry[]>([
       makeEntry('hash-F1'),
@@ -117,7 +132,9 @@ describe('useMoshpitWorkflowOptions', () => {
   it('excludes assets with empty workflowFingerprint', () => {
     const metaStore = useMoshpitMetadataStore()
     // No prompt key → empty fingerprint → excluded
-    metaStore.setMetadata('hash-empty', {})
+    const emptyMeta = {}
+    metaStore.setMetadata('hash-empty', emptyMeta)
+    metaStore.setParams('hash-empty', normalizeParams(emptyMeta, 0, null))
 
     const entries = ref<readonly RegistryEntry[]>([makeEntry('hash-empty')])
     mockRegistry.mockReturnValue({ entries: computed(() => entries.value) })
@@ -142,7 +159,9 @@ describe('useMoshpitWorkflowOptions', () => {
       n1: { class_type: 'KSampler', inputs: {} },
       n2: { class_type: 'CLIPTextEncode', inputs: {} }
     })
-    metaStore.setMetadata('hash-long', { prompt })
+    const longMeta = { prompt }
+    metaStore.setMetadata('hash-long', longMeta)
+    metaStore.setParams('hash-long', normalizeParams(longMeta, 0, null))
 
     const entries = ref<readonly RegistryEntry[]>([makeEntry('hash-long')])
     mockRegistry.mockReturnValue({ entries: computed(() => entries.value) })
