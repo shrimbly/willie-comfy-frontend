@@ -8,7 +8,7 @@
 
 - [ ] **Phase 1: Workspace Shell & Canvas Navigation** — Full-bleed Moshpit workspace mounts, pan/zoom/selection feel identical to workflow canvas, Settings panel slot is wired
 - [ ] **Phase 2: Asset Pipeline** — Worker thumbnails + IndexedDB cache + progressive populate turn a filtered AssetItem stream into sprites on the canvas
-- [ ] **Phase 3: Filter & Sort (Core Validation)** — Initial filter gate, subtractive filter chips, 1D and 2D spatial sort; this is the milestone that proves or disproves the core value
+- [x] **Phase 3: Filter & Sort (Core Validation)** — Initial filter gate, subtractive filter chips, 1D and 2D spatial sort; this is the milestone that proves or disproves the core value (completed 2026-04-20)
 - [ ] **Phase 4: Comparison Mode** — Three compare modes with pinned+rotating navigation and automatic metadata/LoRA diff
 - [ ] **Phase 5: Curation** — Favourite, tag, folder, hide, export with toast-based undo; curation state persisted to IndexedDB
 - [ ] **Phase 6: Generate More Like This (Mocked)** — Live-parsed workflow modal with heuristic param exposure and a non-executing queue button
@@ -82,7 +82,7 @@
 4. Filter chips are click-to-remove in the Settings panel; default view hides soft-deleted assets and can reveal them via a "show hidden" toggle
 5. Running a parameter sweep (e.g. CFG on X) on a real workflow produces a visibly legible spatial arrangement of the filtered set
 
-**Plans:** 10/11 plans executed
+**Plans:** 11/11 plans complete
 
 Plans:
 - [x] 03-01-PLAN.md — Pure paramNormalize + NormalizedParamsSchema + extractWorkflowFilename (FILTER-02/03/04/05/06/09 foundation)
@@ -95,7 +95,7 @@ Plans:
 - [x] 03-08-PLAN.md — MoshpitFilterChipRow + MoshpitAddFilterPopover shell + 5 value editor sub-components (FILTER-02/03/04/05/07/10)
 - [x] 03-09-PLAN.md — MoshpitSortControls + grid spacing + show-hidden toggle (SORT-01/02/04, FILTER-11)
 - [x] 03-10-PLAN.md — MoshpitAxisOverlay + viewport injection key (SORT-01/02)
-- [ ] 03-11-PLAN.md — Settings panel composition + Playwright + HUMAN-UAT + VALIDATION map [human checkpoint]
+- [x] 03-11-PLAN.md — Settings panel composition + Playwright + HUMAN-UAT + VALIDATION map [human checkpoint]
 
 **UI hint**: yes
 
@@ -162,7 +162,7 @@ Plans:
 | -------------------------------------- | -------------- | ----------- | ---------- |
 | 1. Workspace Shell & Canvas Navigation | 6/6            | Complete    | 2026-04-20 |
 | 2. Asset Pipeline                      | 0/12           | Planned     | -          |
-| 3. Filter & Sort (Core Validation)     | 10/11 | In Progress|  |
+| 3. Filter & Sort (Core Validation)     | 11/11 | Complete   | 2026-04-20 |
 | 4. Comparison Mode                     | 0/?            | Not started | -          |
 | 5. Curation                            | 0/?            | Not started | -          |
 | 6. Generate More Like This (Mocked)    | 0/?            | Not started | -          |

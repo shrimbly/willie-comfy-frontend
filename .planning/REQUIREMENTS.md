@@ -28,14 +28,14 @@
 
 ### Filtering
 
-- [ ] **FILTER-01**: Initial filter gate requires workflow selector + time range (today / week / month / all / custom) before canvas populates
+- [x] **FILTER-01**: Initial filter gate requires workflow selector + time range (today / week / month / all / custom) before canvas populates
 - [x] **FILTER-02**: User can filter by model (checkpoint)
 - [x] **FILTER-03**: User can filter by LoRA (name + weight)
 - [x] **FILTER-04**: User can filter by CFG, steps, sampler, scheduler, seed, resolution (width × height)
 - [x] **FILTER-05**: User can filter by prompt and negative prompt via substring / keyword match
 - [ ] **FILTER-06**: User can filter by generation time
 - [x] **FILTER-07**: User can filter by user-applied tags and favourite status
-- [ ] **FILTER-08**: Filtering is subtractive — non-matching assets are hidden entirely, not dimmed
+- [x] **FILTER-08**: Filtering is subtractive — non-matching assets are hidden entirely, not dimmed
 - [ ] **FILTER-09**: Assets lacking the filtered parameter are hidden
 - [x] **FILTER-10**: Filter chips render in the Settings panel; clicking removes the chip
 - [x] **FILTER-11**: Default filter set hides soft-deleted (hidden) assets; a "show hidden" toggle reveals them
@@ -44,9 +44,9 @@
 
 - [x] **SORT-01**: User can apply 1D sort with vertical packing (parameter → X-axis columns, Y-axis packs to fit)
 - [x] **SORT-02**: User can apply 2D parameter scatter (parameter → X-axis, parameter → Y-axis)
-- [ ] **SORT-03**: Assets lacking the sorted parameter are hidden
+- [x] **SORT-03**: Assets lacking the sorted parameter are hidden
 - [x] **SORT-04**: User can configure grid spacing between assets
-- [ ] **SORT-05**: All asset positioning is grid-snapped
+- [x] **SORT-05**: All asset positioning is grid-snapped
 
 ### Canvas Navigation
 
@@ -158,22 +158,22 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | ASSET-08    | 2     | Pending |
 | ASSET-09    | 2     | Pending |
 | ASSET-10    | 2     | Pending |
-| FILTER-01   | 3     | Pending |
+| FILTER-01   | 3     | Complete |
 | FILTER-02   | 3     | Complete |
 | FILTER-03   | 3     | Complete |
 | FILTER-04   | 3     | Complete |
 | FILTER-05   | 3     | Complete |
 | FILTER-06   | 3     | Pending |
 | FILTER-07   | 3     | Complete |
-| FILTER-08   | 3     | Pending |
+| FILTER-08   | 3     | Complete |
 | FILTER-09   | 3     | Pending |
 | FILTER-10   | 3     | Complete |
 | FILTER-11   | 3     | Complete |
 | SORT-01     | 3     | Complete |
 | SORT-02     | 3     | Complete |
-| SORT-03     | 3     | Pending |
+| SORT-03     | 3     | Complete |
 | SORT-04     | 3     | Complete |
-| SORT-05     | 3     | Pending |
+| SORT-05     | 3     | Complete |
 | NAV-01      | 1     | Pending |
 | NAV-02      | 1     | Pending |
 | NAV-03      | 1     | Pending |

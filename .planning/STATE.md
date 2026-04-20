@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-last_updated: "2026-04-20T23:24:45.902Z"
+last_updated: "2026-04-20T23:53:00.371Z"
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 29
-  completed_plans: 28
-  percent: 97
+  completed_plans: 29
+  percent: 100
 ---
 
 # Project State
@@ -63,6 +63,8 @@ Progress: `[░░░░░░░░░░] 0 / 7 phases`
 - [Phase 03]: onSliderChange typed as number[] | undefined to match SliderRootEmits payload type from Reka
 - [Phase 03]: shallowRef required for Viewport injection key — Vue ref() deep-unwraps complex classes causing TS2345; shallowRef preserves class type
 - [Phase 03]: transformTick void pattern for 60fps overlay updates — void transformTick.value in style functions registers reactive dep without lint-triggering unused variable
+- [Phase 03-filter-sort-core-validation]: MOSHPIT_LAYOUT_INJECTION_KEY co-located in useMoshpitSpriteLayer.ts (option A) — avoids new module, keeps key adjacent to SpriteLayerOptions type
+- [Phase 03-filter-sort-core-validation]: Phase 3 integration complete — HUMAN-UAT checkpoint returned; Phase 4 go/no-go pending user sign-off on 03-HUMAN-UAT.md
 
 ### Active Todos
 
@@ -74,7 +76,7 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T23:24:45.892Z
+**Last session:** 2026-04-20T23:53:00.367Z
 
 **Context for next session:**
 
