@@ -28,13 +28,14 @@
 3. User can multi-select with drag-rectangle marquee, `Shift`-click (add), `Cmd`/`Ctrl`-click (toggle), `Cmd`/`Ctrl`-A (select all visible), `Esc` (clear)
 4. Left Settings panel is open by default on workspace entry and auto-collapses on the first canvas interaction (pan / zoom / click)
 
-**Plans:** 5 plans
+**Plans:** 6 plans (5 core + 1 gap closure)
 
-- [ ] 01-01-PLAN.md — Regression harness + extract pure `useCanvasInput` composable (D-07/D-08)
-- [ ] 01-02-PLAN.md — Install Pixi deps, `/moshpit` route, MoshpitLayout, `<keep-alive>` wiring, menu entries
-- [ ] 01-03-PLAN.md — Moshpit Pinia stores (viewport/selection/sidebar) + PixiJS Application + pixi-viewport adapter
-- [ ] 01-04-PLAN.md — Marquee composable + Moshpit keybindings (F/Z/Cmd+A/Esc) + keyboard-scoped commands
-- [ ] 01-05-PLAN.md — MoshpitSideRail + Settings panel + Storybook + `@moshpit` Playwright specs (SHELL-05 proof)
+- [x] 01-01-PLAN.md — Regression harness + extract pure `useCanvasInput` composable (D-07/D-08)
+- [x] 01-02-PLAN.md — Install Pixi deps, `/moshpit` route, MoshpitLayout, `<keep-alive>` wiring, menu entries
+- [x] 01-03-PLAN.md — Moshpit Pinia stores (viewport/selection/sidebar) + PixiJS Application + pixi-viewport adapter
+- [x] 01-04-PLAN.md — Marquee composable + Moshpit keybindings (F/Z/Cmd+A/Esc) + keyboard-scoped commands
+- [x] 01-05-PLAN.md — MoshpitSideRail + Settings panel + Storybook + `@moshpit` Playwright specs (SHELL-05 proof)
+- [ ] 01-06-PLAN.md — Gap closure: rename `useMoshpitCanvasInput` → `useMoshpitSpacePan`, remove dead `useCanvasInput` wiring, record SC-2 resolution in CONTEXT.md / VERIFICATION.md (SHELL-03)
 
 **UI hint**: yes
 
