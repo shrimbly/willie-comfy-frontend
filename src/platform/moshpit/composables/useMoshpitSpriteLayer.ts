@@ -64,6 +64,15 @@ export interface SpriteLayerOptions {
    */
   readonly queue: ProcessingQueueState
   readonly cellSize?: number
+  /**
+   * Phase 3: if provided, called inside the registry watchEffect to supply
+   * external layout targets. When absent, the composable falls back to the
+   * Phase 2 jittered-grid `computeLayoutSlots` path.
+   *
+   * Must be a pure function returning one GridSlot per currently-visible
+   * contentHash. Re-invoked on every reactive dep read inside the function.
+   */
+  readonly layoutProvider?: () => readonly GridSlot[]
 }
 
 interface SpriteEntry {
@@ -86,6 +95,9 @@ export function useMoshpitSpriteLayer(
   const spriteMap = new Map<string, SpriteEntry>()
 
   function computeLayoutSlots(hashes: readonly string[]): GridSlot[] {
+    if (options.layoutProvider) {
+      return [...options.layoutProvider()]
+    }
     const sorted = [...hashes].sort()
     const seed = layoutSeedHash(queue.activeFilterId.value, sorted)
     return computeJitteredGrid(sorted, seed, cellSize)
