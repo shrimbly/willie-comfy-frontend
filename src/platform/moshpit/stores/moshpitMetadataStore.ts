@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
+import type { NormalizedParams } from '../services/paramNormalize'
+import { normalizeParams } from '../services/paramNormalize'
+
 export const useMoshpitMetadataStore = defineStore('moshpitMetadata', () => {
   const metaByHash = ref(new Map<string, Readonly<Record<string, string>>>())
   // OSS-path bridge: asset.id → worker-computed contentHash. Populated by the
@@ -10,6 +13,18 @@ export const useMoshpitMetadataStore = defineStore('moshpitMetadata', () => {
   const assetIdToHash = ref(new Map<string, string>())
   const excludedCount = ref(0)
   const size = computed(() => metaByHash.value.size)
+  // Parsed NormalizedParams keyed by contentHash. Derived from metaByHash so
+  // filter/sort composables (Plan 03-07) can read typed params without
+  // re-parsing. The Map is recomputed reactively when metaByHash mutates.
+  const paramsByHash = computed<ReadonlyMap<string, NormalizedParams>>(() => {
+    const out = new Map<string, NormalizedParams>()
+    for (const [hash, meta] of metaByHash.value) {
+      const createdAt = Number(meta['created_at'] ?? '0')
+      const sourceFilename = meta['source_filename'] ?? null
+      out.set(hash, normalizeParams(meta, createdAt, sourceFilename))
+    }
+    return out
+  })
 
   function setMetadata(
     contentHash: string,
@@ -49,6 +64,7 @@ export const useMoshpitMetadataStore = defineStore('moshpitMetadata', () => {
   return {
     excludedCount,
     assetIdToHash,
+    paramsByHash,
     size,
     setMetadata,
     getMetadata,
