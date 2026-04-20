@@ -2,13 +2,22 @@ import { render, screen } from '@testing-library/vue'
 import userEvent from '@testing-library/user-event'
 import { createPinia } from 'pinia'
 import { describe, expect, it } from 'vitest'
+import { createI18n } from 'vue-i18n'
+
+import enMessages from '@/locales/en/main.json'
 
 import MoshpitProcessingIndicator from './MoshpitProcessingIndicator.vue'
+
+const i18n = createI18n({
+  legacy: false,
+  locale: 'en',
+  messages: { en: enMessages }
+})
 
 const mountPill = (props: { done: number; total: number }) =>
   render(MoshpitProcessingIndicator, {
     props,
-    global: { plugins: [createPinia()] }
+    global: { plugins: [createPinia(), i18n] }
   })
 
 describe('MoshpitProcessingIndicator (Wave 4)', () => {
