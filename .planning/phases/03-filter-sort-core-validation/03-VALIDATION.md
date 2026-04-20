@@ -1,11 +1,13 @@
 ---
 phase: 3
 slug: filter-sort-core-validation
-status: draft
+status: deferred-until-plan-11
 nyquist_compliant: false
 wave_0_complete: false
 created: 2026-04-21
 ---
+
+> **Interim state — `status: deferred-until-plan-11`:** Plans 03-01 through 03-10 each carry their own `<verify>` automated commands and acceptance criteria; the Per-Task Verification Map below is populated in a single batch during Plan 03-11 Task 2. Agents running Plans 01..10 should treat `nyquist_compliant: false` as "validation deferred, not a gap." Plan 03-11 flips the frontmatter to `status: active`, `nyquist_compliant: true`, and `wave_0_complete: true` after the map is populated and sampled.
 
 # Phase 3 — Validation Strategy
 

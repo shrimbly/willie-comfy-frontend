@@ -82,19 +82,20 @@
 4. Filter chips are click-to-remove in the Settings panel; default view hides soft-deleted assets and can reveal them via a "show hidden" toggle
 5. Running a parameter sweep (e.g. CFG on X) on a real workflow produces a visibly legible spatial arrangement of the filtered set
 
-**Plans:** 10 plans (4 waves)
+**Plans:** 11 plans (4 waves)
 
 Plans:
-- [ ] 03-01-PLAN.md — Pure paramNormalize + NormalizedParamsSchema (FILTER-02/03/04/05/06/09 foundation)
+- [ ] 03-01-PLAN.md — Pure paramNormalize + NormalizedParamsSchema + extractWorkflowFilename (FILTER-02/03/04/05/06/09 foundation)
 - [ ] 03-02-PLAN.md — Pure filterMath predicates + filterTypes domain (FILTER-02/03/04/05/06/07/08/09/11)
-- [ ] 03-03-PLAN.md — Pure sortMath 1D/2D layout (SORT-01/02/03/04/05)
-- [ ] 03-04-PLAN.md — Worker/IDB v2 migration + metadata store wiring for params (FILTER-02..09)
-- [ ] 03-05-PLAN.md — moshpitFilterStore + useMoshpitFilteredAssets + sprite layer layoutProvider (FILTER-01/08/10/11, SORT-01..05)
-- [ ] 03-06-PLAN.md — i18n + MoshpitWorkflowPicker + MoshpitTimeRangePicker initial gate (FILTER-01, FILTER-06)
-- [ ] 03-07-PLAN.md — MoshpitFilterChipRow + MoshpitAddFilterPopover (FILTER-02/03/04/05/07/10)
-- [ ] 03-08-PLAN.md — MoshpitSortControls + grid spacing + show-hidden toggle (SORT-01/02/04, FILTER-11)
-- [ ] 03-09-PLAN.md — MoshpitAxisOverlay + viewport injection key (SORT-01/02)
-- [ ] 03-10-PLAN.md — Settings panel composition + Playwright + HUMAN-UAT + VALIDATION map [human checkpoint]
+- [ ] 03-03-PLAN.md — Pure sortMath 1D/2D layout with row-band accumulation (SORT-01/02/03/04/05)
+- [ ] 03-04-PLAN.md — IDB schema v2 bump + v1→v2 migration (FILTER-02..09)
+- [ ] 03-05-PLAN.md — Worker/bridge/store wiring for params + AssetItem timestamp overwrite (FILTER-02..09)
+- [ ] 03-06-PLAN.md — moshpitFilterStore + useMoshpitFilteredAssets + sprite layer layoutProvider (FILTER-01/08/10/11, SORT-01..05)
+- [ ] 03-07-PLAN.md — i18n + MoshpitWorkflowPicker (ICU-only labels, workflowFilename displayName) + MoshpitTimeRangePicker (FILTER-01, FILTER-06)
+- [ ] 03-08-PLAN.md — MoshpitFilterChipRow + MoshpitAddFilterPopover shell + 5 value editor sub-components (FILTER-02/03/04/05/07/10)
+- [ ] 03-09-PLAN.md — MoshpitSortControls + grid spacing + show-hidden toggle (SORT-01/02/04, FILTER-11)
+- [ ] 03-10-PLAN.md — MoshpitAxisOverlay + viewport injection key (SORT-01/02)
+- [ ] 03-11-PLAN.md — Settings panel composition + Playwright + HUMAN-UAT + VALIDATION map [human checkpoint]
 
 **UI hint**: yes
 
