@@ -1,32 +1,49 @@
 /**
- * Worker-safe parameter normalization from raw ComfyUI PNG metadata.
+ * Pure parameter extraction from ComfyUI PNG `prompt` metadata — per CONTEXT.md
+ * D-01 / D-02 / D-05. This module is worker-safe: it must not import Vue,
+ * Pinia, or any DOM-only module. The only permitted runtime import is `zod`.
  *
- * Extracts typed NormalizedParams from the `prompt` PNG tEXt chunk
- * (ComfyUI API format). This is a strict leaf module — no Vue, Pinia,
- * or DOM imports — safe to use in a Web Worker context (D-01).
+ * Behaviour (D-03): best-effort, silently null. Missing / unparseable
+ * parameters resolve to `undefined`; the asset stays in the Moshpit but drops
+ * out of any filter/sort query against the missing field.
  *
- * Extraction is best-effort, silently null (D-03): missing or unparseable
- * parameters resolve to `undefined`. Assets with undefined params are
- * excluded from any filter/sort that queries those fields.
+ * Workflow identity: two derived fields live alongside D-05's 12 core fields —
+ *   - `workflowFingerprint` (always string; sorted unique class_type set)
+ *   - `workflowFilename`    (string | null; PNG filename stem heuristic)
+ * The workflow picker (Plan 03-07) prefers `workflowFilename` as displayName
+ * and falls back to the fingerprint when filename is null.
  */
 
-export interface NormalizedParams {
-  readonly model: string | undefined
-  readonly loras: readonly { readonly name: string; readonly weight: number }[]
-  readonly cfg: number | undefined
-  readonly steps: number | undefined
-  readonly sampler: string | undefined
-  readonly scheduler: string | undefined
-  readonly seed: number | undefined
-  readonly positivePrompt: string | undefined
-  readonly negativePrompt: string | undefined
-  readonly width: number | undefined
-  readonly height: number | undefined
-  /** epoch ms — always defined; mirrors AssetItem.created_at */
-  readonly timestamp: number
-  /** Fingerprint derived from sorted node class types for workflow grouping */
-  readonly workflowFingerprint: string | undefined
-}
+import { z } from 'zod'
+
+// ---------------------------------------------------------------------------
+// Zod schema + inferred type (D-05 shape + deviation_note extension)
+// ---------------------------------------------------------------------------
+
+export const NormalizedParamsSchema = z.object({
+  model: z.string().optional(),
+  loras: z
+    .array(z.object({ name: z.string(), weight: z.number() }))
+    .readonly(),
+  cfg: z.number().optional(),
+  steps: z.number().optional(),
+  sampler: z.string().optional(),
+  scheduler: z.string().optional(),
+  seed: z.number().optional(),
+  positivePrompt: z.string().optional(),
+  negativePrompt: z.string().optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  timestamp: z.number(),
+  workflowFingerprint: z.string(),
+  workflowFilename: z.string().nullable()
+})
+
+export type NormalizedParams = z.infer<typeof NormalizedParamsSchema>
+
+// ---------------------------------------------------------------------------
+// Internal ComfyUI prompt graph types
+// ---------------------------------------------------------------------------
 
 type PromptNode = {
   class_type: string
@@ -34,7 +51,51 @@ type PromptNode = {
   _meta?: { title?: string }
 }
 
-export function emptyParams(timestampMs: number): NormalizedParams {
+type PromptGraph = Record<string, PromptNode>
+
+// ---------------------------------------------------------------------------
+// Filename heuristic
+// ---------------------------------------------------------------------------
+
+const IMAGE_EXT_RE = /\.(png|jpe?g|webp)$/i
+const COUNTER_SUFFIX_RE = /_\d{4,6}_?$/
+
+/**
+ * Derive a human-readable workflow display name from a PNG output filename.
+ *
+ * Strips path prefix, image extension, and the ComfyUI counter suffix
+ * (`_NNNNN_` or `_NNNNN`) that ComfyUI appends to generated outputs.
+ * Returns `null` when the remaining stem is empty.
+ *
+ * Used by the workflow picker (Plan 03-07) as the display name for a workflow
+ * group when `workflowFilename` is non-null (OQ-3 resolution).
+ */
+export function extractWorkflowFilename(
+  sourceFilename: string | null | undefined
+): string | null {
+  if (sourceFilename === null || sourceFilename === undefined) return null
+  if (typeof sourceFilename !== 'string') return null
+  // Strip leading path components
+  const lastSlash = Math.max(
+    sourceFilename.lastIndexOf('/'),
+    sourceFilename.lastIndexOf('\\')
+  )
+  const base =
+    lastSlash >= 0 ? sourceFilename.slice(lastSlash + 1) : sourceFilename
+  // Strip image extension
+  const noExt = base.replace(IMAGE_EXT_RE, '')
+  // Strip ComfyUI counter suffix (_NNNNN_ or _NNNNN)
+  const noCounter = noExt.replace(COUNTER_SUFFIX_RE, '')
+  // Trim trailing underscores and whitespace
+  const trimmed = noCounter.replace(/[_\s]+$/, '').trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+// ---------------------------------------------------------------------------
+// emptyParams — all fields undefined except timestamp + identity fields
+// ---------------------------------------------------------------------------
+
+export function emptyParams(createdAtMs: number): NormalizedParams {
   return {
     model: undefined,
     loras: [],
@@ -47,51 +108,99 @@ export function emptyParams(timestampMs: number): NormalizedParams {
     negativePrompt: undefined,
     width: undefined,
     height: undefined,
-    timestamp: timestampMs,
-    workflowFingerprint: undefined
+    timestamp: createdAtMs,
+    workflowFingerprint: '',
+    workflowFilename: null
   }
 }
 
+// ---------------------------------------------------------------------------
+// Graph helpers
+// ---------------------------------------------------------------------------
+
+function isPromptGraph(value: unknown): value is PromptGraph {
+  if (value === null || typeof value !== 'object') return false
+  if (Array.isArray(value)) return false
+  // Shallow check: every own-property value must be an object with class_type
+  for (const key of Object.keys(value as object)) {
+    const node = (value as Record<string, unknown>)[key]
+    if (node === null || typeof node !== 'object') return false
+    if (typeof (node as Record<string, unknown>)['class_type'] !== 'string') {
+      return false
+    }
+  }
+  return true
+}
+
+const KSAMPLER_CLASS_TYPES = new Set([
+  'KSampler',
+  'KSamplerAdvanced',
+  'KSampler (Efficient)'
+])
+
+const CHECKPOINT_CLASS_TYPES = new Set([
+  'CheckpointLoaderSimple',
+  'CheckpointLoader'
+])
+
+const LORA_CLASS_TYPES = new Set([
+  'LoraLoader',
+  'LoraLoaderModelOnly',
+  'LoraTagLoader'
+])
+
+const LATENT_CLASS_TYPES = new Set([
+  'EmptyLatentImage',
+  'EmptySD3LatentImage',
+  'EmptyHunyuanLatentVideo'
+])
+
 function findNodeByClassTypes(
-  graph: Record<string, PromptNode>,
-  classTypes: readonly string[]
+  graph: PromptGraph,
+  classTypes: Set<string>
 ): PromptNode | undefined {
   for (const node of Object.values(graph)) {
-    if (classTypes.includes(node.class_type)) return node
+    if (classTypes.has(node.class_type)) return node
   }
   return undefined
 }
 
 function findAllNodesByClassTypes(
-  graph: Record<string, PromptNode>,
-  classTypes: readonly string[]
+  graph: PromptGraph,
+  classTypes: Set<string>
 ): PromptNode[] {
-  return Object.values(graph).filter((n) => classTypes.includes(n.class_type))
+  const result: PromptNode[] = []
+  for (const node of Object.values(graph)) {
+    if (classTypes.has(node.class_type)) result.push(node)
+  }
+  return result
 }
 
+/**
+ * Resolve positive and negative prompt text from CLIPTextEncode nodes
+ * referenced by a KSampler node's `positive` / `negative` inputs.
+ *
+ * KSampler inputs use array references of the form `[nodeId, outputIndex]`
+ * to point to upstream nodes. Only CLIPTextEncode array references are
+ * resolved in v1 — plain string values return `undefined` (D-02).
+ */
 function resolvePrompts(
-  graph: Record<string, PromptNode>,
+  graph: PromptGraph,
   samplerNode: PromptNode | undefined
 ): { positivePrompt: string | undefined; negativePrompt: string | undefined } {
-  if (!samplerNode) return { positivePrompt: undefined, negativePrompt: undefined }
+  if (!samplerNode) {
+    return { positivePrompt: undefined, negativePrompt: undefined }
+  }
 
-  function resolveRef(
-    ref: unknown
-  ): string | undefined {
-    if (typeof ref === 'string') return ref
-    if (
-      Array.isArray(ref) &&
-      ref.length >= 1 &&
-      typeof ref[0] === 'string'
-    ) {
-      const nodeId = ref[0] as string
-      const node = graph[nodeId]
-      if (node?.class_type === 'CLIPTextEncode') {
-        const text = node.inputs['text']
-        return typeof text === 'string' ? text : undefined
-      }
-    }
-    return undefined
+  function resolveRef(ref: unknown): string | undefined {
+    // Only resolve array references ([nodeId, outputIndex]) — not plain strings
+    if (!Array.isArray(ref) || ref.length < 1) return undefined
+    const nodeId = ref[0]
+    if (typeof nodeId !== 'string') return undefined
+    const node = graph[nodeId]
+    if (!node || node.class_type !== 'CLIPTextEncode') return undefined
+    const text = node.inputs['text']
+    return typeof text === 'string' ? text : undefined
   }
 
   return {
@@ -100,100 +209,142 @@ function resolvePrompts(
   }
 }
 
-function computeWorkflowFingerprint(
-  graph: Record<string, PromptNode>
-): string | undefined {
-  const classTypes = Object.values(graph)
-    .map((n) => n.class_type)
-    .filter(Boolean)
-    .sort()
-  if (classTypes.length === 0) return undefined
-  return [...new Set(classTypes)].join('+')
+/**
+ * Derive `workflowFingerprint` — a stable identifier for the workflow's
+ * node-graph topology, independent of node IDs or ordering.
+ *
+ * Computed as the sorted unique set of `class_type` values joined by `|`.
+ * Two graphs with the same set of node types produce the same fingerprint.
+ * Used by the workflow picker as a grouping key when no filename is available.
+ */
+function computeWorkflowFingerprint(graph: PromptGraph): string {
+  const classTypes = new Set<string>()
+  for (const node of Object.values(graph)) {
+    classTypes.add(node.class_type)
+  }
+  return [...classTypes].sort().join('|')
 }
 
+// ---------------------------------------------------------------------------
+// LoRA extraction helpers
+// ---------------------------------------------------------------------------
+
+type LoraEntry = { readonly name: string; readonly weight: number }
+
+function extractLoras(loraNodes: PromptNode[]): LoraEntry[] {
+  const loras: LoraEntry[] = []
+  for (const node of loraNodes) {
+    const rawName = node.inputs['lora_name'] ?? node.inputs['lora_tag']
+    if (typeof rawName !== 'string' || rawName.length === 0) continue
+    const rawWeight = node.inputs['strength_model'] ?? node.inputs['strength']
+    const weight = typeof rawWeight === 'number' ? rawWeight : 1
+    loras.push({ name: rawName, weight })
+  }
+  return loras
+}
+
+// ---------------------------------------------------------------------------
+// Main extraction function
+// ---------------------------------------------------------------------------
+
 /**
- * Normalize raw PNG metadata into a typed NormalizedParams record.
- * Called from the Web Worker after `getFromPngBuffer`.
+ * Normalize a ComfyUI PNG `prompt` metadata chunk into a typed
+ * `NormalizedParams` record.
+ *
+ * @param rawMeta     The raw PNG tEXt/iTXt chunk map from `getFromPngBuffer`.
+ *                    Expected to contain a `prompt` key with JSON.
+ * @param createdAtMs Epoch milliseconds — mirrors AssetItem.created_at (D-05).
+ * @param sourceFilename Optional PNG output filename used to derive
+ *                    `workflowFilename` via `extractWorkflowFilename`.
+ *
+ * Returns `emptyParams(createdAtMs)` (with workflowFilename applied) on any
+ * parse or validation failure — best-effort, silently null per D-03.
  */
 export function normalizeParams(
-  rawMeta: Record<string, string>,
-  createdAtMs: number
+  rawMeta: Readonly<Record<string, string>>,
+  createdAtMs: number,
+  sourceFilename?: string | null
 ): NormalizedParams {
-  const promptRaw = rawMeta['prompt']
-  if (!promptRaw) return emptyParams(createdAtMs)
-
-  let graph: Record<string, PromptNode>
-  try {
-    graph = JSON.parse(promptRaw) as Record<string, PromptNode>
-    // Basic structure validation
-    if (typeof graph !== 'object' || graph === null || Array.isArray(graph)) {
-      return emptyParams(createdAtMs)
-    }
-  } catch {
-    return emptyParams(createdAtMs)
+  const workflowFilename = extractWorkflowFilename(sourceFilename ?? null)
+  const fallback: NormalizedParams = {
+    ...emptyParams(createdAtMs),
+    workflowFilename
   }
 
-  const samplerNode = findNodeByClassTypes(graph, [
-    'KSampler',
-    'KSamplerAdvanced',
-    'KSamplerSelect'
-  ])
-  const checkpointNode = findNodeByClassTypes(graph, [
-    'CheckpointLoaderSimple',
-    'CheckpointLoader'
-  ])
-  const loraNodes = findAllNodesByClassTypes(graph, [
-    'LoraLoader',
-    'LoraLoaderModelOnly',
-    'LoraTagLoader'
-  ])
-  const latentNode = findNodeByClassTypes(graph, [
-    'EmptyLatentImage',
-    'EmptySD3LatentImage',
-    'EmptyHunyuanLatentVideo'
-  ])
+  const promptRaw = rawMeta['prompt']
+  if (!promptRaw) return fallback
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(promptRaw)
+  } catch {
+    return fallback
+  }
+
+  if (!isPromptGraph(parsed)) return fallback
+
+  const graph: PromptGraph = parsed
+
+  const samplerNode = findNodeByClassTypes(graph, KSAMPLER_CLASS_TYPES)
+  const checkpointNode = findNodeByClassTypes(graph, CHECKPOINT_CLASS_TYPES)
+  const loraNodes = findAllNodesByClassTypes(graph, LORA_CLASS_TYPES)
+  const latentNode = findNodeByClassTypes(graph, LATENT_CLASS_TYPES)
 
   const { positivePrompt, negativePrompt } = resolvePrompts(graph, samplerNode)
+  const loras = extractLoras(loraNodes)
+  const workflowFingerprint = computeWorkflowFingerprint(graph)
 
-  const loras = loraNodes
-    .map((n) => ({
-      name: (
-        n.inputs['lora_name'] ?? n.inputs['lora_tag']
-      ) as string | undefined,
-      weight: ((n.inputs['strength_model'] ?? n.inputs['strength']) ??
-        1) as number
-    }))
-    .filter((l): l is { name: string; weight: number } => typeof l.name === 'string' && l.name.length > 0)
+  const samplerInputs = samplerNode?.inputs
+  const checkpointInputs = checkpointNode?.inputs
+  const latentInputs = latentNode?.inputs
+
+  const cfg =
+    typeof samplerInputs?.['cfg'] === 'number'
+      ? samplerInputs['cfg']
+      : undefined
+  const steps =
+    typeof samplerInputs?.['steps'] === 'number'
+      ? samplerInputs['steps']
+      : undefined
+  const sampler =
+    typeof samplerInputs?.['sampler_name'] === 'string'
+      ? samplerInputs['sampler_name']
+      : undefined
+  const scheduler =
+    typeof samplerInputs?.['scheduler'] === 'string'
+      ? samplerInputs['scheduler']
+      : undefined
+  const seed =
+    typeof samplerInputs?.['seed'] === 'number'
+      ? samplerInputs['seed']
+      : undefined
+  const model =
+    typeof checkpointInputs?.['ckpt_name'] === 'string'
+      ? checkpointInputs['ckpt_name']
+      : undefined
+  const width =
+    typeof latentInputs?.['width'] === 'number'
+      ? latentInputs['width']
+      : undefined
+  const height =
+    typeof latentInputs?.['height'] === 'number'
+      ? latentInputs['height']
+      : undefined
 
   return {
-    model: typeof checkpointNode?.inputs['ckpt_name'] === 'string'
-      ? checkpointNode.inputs['ckpt_name']
-      : undefined,
+    model,
     loras,
-    cfg: typeof samplerNode?.inputs['cfg'] === 'number'
-      ? samplerNode.inputs['cfg']
-      : undefined,
-    steps: typeof samplerNode?.inputs['steps'] === 'number'
-      ? samplerNode.inputs['steps']
-      : undefined,
-    sampler: typeof samplerNode?.inputs['sampler_name'] === 'string'
-      ? samplerNode.inputs['sampler_name']
-      : undefined,
-    scheduler: typeof samplerNode?.inputs['scheduler'] === 'string'
-      ? samplerNode.inputs['scheduler']
-      : undefined,
-    seed: typeof samplerNode?.inputs['seed'] === 'number'
-      ? samplerNode.inputs['seed']
-      : undefined,
+    cfg,
+    steps,
+    sampler,
+    scheduler,
+    seed,
     positivePrompt,
     negativePrompt,
-    width: typeof latentNode?.inputs['width'] === 'number'
-      ? latentNode.inputs['width']
-      : undefined,
-    height: typeof latentNode?.inputs['height'] === 'number'
-      ? latentNode.inputs['height']
-      : undefined,
+    width,
+    height,
     timestamp: createdAtMs,
-    workflowFingerprint: computeWorkflowFingerprint(graph)
+    workflowFingerprint,
+    workflowFilename
   }
 }
