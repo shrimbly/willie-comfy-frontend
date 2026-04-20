@@ -27,8 +27,16 @@
 2. User can pan with `Space`-drag, zoom with scroll/pinch, `F` fits the viewport, `Z` zooms to selection — behaviour is indistinguishable from the workflow canvas
 3. User can multi-select with drag-rectangle marquee, `Shift`-click (add), `Cmd`/`Ctrl`-click (toggle), `Cmd`/`Ctrl`-A (select all visible), `Esc` (clear)
 4. Left Settings panel is open by default on workspace entry and auto-collapses on the first canvas interaction (pan / zoom / click)
-   **Plans**: TBD
-   **UI hint**: yes
+
+**Plans:** 5 plans
+
+- [ ] 01-01-PLAN.md — Regression harness + extract pure `useCanvasInput` composable (D-07/D-08)
+- [ ] 01-02-PLAN.md — Install Pixi deps, `/moshpit` route, MoshpitLayout, `<keep-alive>` wiring, menu entries
+- [ ] 01-03-PLAN.md — Moshpit Pinia stores (viewport/selection/sidebar) + PixiJS Application + pixi-viewport adapter
+- [ ] 01-04-PLAN.md — Marquee composable + Moshpit keybindings (F/Z/Cmd+A/Esc) + keyboard-scoped commands
+- [ ] 01-05-PLAN.md — MoshpitSideRail + Settings panel + Storybook + `@moshpit` Playwright specs (SHELL-05 proof)
+
+**UI hint**: yes
 
 ### Phase 2: Asset Pipeline
 
@@ -120,7 +128,7 @@
 
 | Phase                                  | Plans Complete | Status      | Completed |
 | -------------------------------------- | -------------- | ----------- | --------- |
-| 1. Workspace Shell & Canvas Navigation | 0/?            | Not started | -         |
+| 1. Workspace Shell & Canvas Navigation | 0/5            | Not started | -         |
 | 2. Asset Pipeline                      | 0/?            | Not started | -         |
 | 3. Filter & Sort (Core Validation)     | 0/?            | Not started | -         |
 | 4. Comparison Mode                     | 0/?            | Not started | -         |
