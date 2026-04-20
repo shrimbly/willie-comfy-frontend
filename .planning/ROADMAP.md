@@ -82,7 +82,7 @@
 4. Filter chips are click-to-remove in the Settings panel; default view hides soft-deleted assets and can reveal them via a "show hidden" toggle
 5. Running a parameter sweep (e.g. CFG on X) on a real workflow produces a visibly legible spatial arrangement of the filtered set
 
-**Plans:** 11 plans (4 waves)
+**Plans:** 11 plans (6 waves)
 
 Plans:
 - [ ] 03-01-PLAN.md — Pure paramNormalize + NormalizedParamsSchema + extractWorkflowFilename (FILTER-02/03/04/05/06/09 foundation)

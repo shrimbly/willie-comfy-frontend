@@ -654,27 +654,31 @@ When `layoutProvider` is provided, `syncSprites` calls `layoutProvider()` instea
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Workflow identifier for the picker**
    - What we know: `AssetItem.user_metadata` does NOT contain a workflow filename (verified: assetMappers.ts). The `prompt` PNG chunk contains no filename. The `workflow` chunk contains filename but D-02 prohibits walking it.
    - What's unclear: What stable workflow identifier should the v1 picker group by?
    - Recommendation: Derive a fingerprint from the sorted set of `class_type` values in the `prompt` graph. Include this as `workflowFingerprint: string` in `NormalizedParams`. Picker displays as `"[KSampler + Checkpoint + LoRA] (42 assets)"`. User can distinguish sweep configs even without filenames. **This is a planner-level decision that must be resolved before writing the param-extraction plan.**
+   - **RESOLVED** in Plan 01 (workflowFilename + workflowFingerprint in NormalizedParams) + Plan 07 (picker displayName)
 
 2. **IDB migration strategy: force-on-open vs lazy-per-read**
    - What we know: Version bump to 2 fires the upgrade callback. Iterating all records and re-parsing during upgrade is O(N) in worker. Lazy-per-read means `params` is undefined until next processing run.
    - What's unclear: How many Phase 2 IDB records will exist at Phase 3 dogfood time? (likely < 100 during dev; could be thousands at real user time)
    - Recommendation: Force migration in upgrade callback — bounded, predictable, user sees it as a one-time "migrating..." state. Bounded to the number of cached assets.
+   - **RESOLVED** in Plan 04 (force-on-open v1→v2 migration)
 
 3. **`useMoshpitSpriteLayer` extension strategy**
    - What we know: Current `computeLayoutSlots` is called inside `watchEffect`. Phase 3 layout is conditional on filter/sort state.
    - What's unclear: Whether to (a) pass `layoutProvider` option, (b) move layout computation entirely outside the sprite layer, or (c) add filter store reads inside the sprite layer itself.
    - Recommendation: (b) — `useMoshpitFilteredAssets` is the single source of `{ entries, layoutSlots }`. The sprite layer accepts `layoutSlots` alongside `entries` (or derives positions from entries that now carry `worldX/worldY`). This most cleanly separates concerns: sprite layer handles PixiJS; filtered assets handles filter/sort math.
+   - **RESOLVED** in Plan 06 (layoutProvider option on useMoshpitSpriteLayer)
 
 4. **Grid spacing range and default**
    - What we know: D-04 uses `DEFAULT_CELL_SIZE = 560` (Phase 2 constant). SORT-04 requires user-configurable spacing.
    - What's unclear: Min/max bounds for the slider. Too small → sprites overlap; too large → canvas becomes unusable.
    - Recommendation: min = 200px (thumbnail ~180px + 20px padding), max = 1200px, step = 50px, default = 560.
+   - **RESOLVED** in Plan 06 (GRID_SPACING_MIN=200, GRID_SPACING_MAX=1200, GRID_SPACING_STEP=50, GRID_SPACING_DEFAULT=560)
 
 ---
 
