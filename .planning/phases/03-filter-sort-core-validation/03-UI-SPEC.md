@@ -48,7 +48,7 @@ Exceptions:
 
 - Filter chip remove button: 20px × 20px minimum hit target (`size-5`). Chips are dense UI inside the Settings panel; 32px would make the chip rail impractically tall. The panel-scoped context (not primary interactive surface) justifies the reduced target.
 - Workflow picker trigger: full-width, height 32px (`h-8`) — matches existing `size: md` button height in `button.variants.ts`.
-- Grid-spacing slider thumb: 14px (`size-3.5`) — inherits existing `Slider.vue` thumb spec from Phase 2 design vocabulary.
+- Grid-spacing slider thumb: inherits `Slider.vue` default — do not declare a size in this spec. (`Slider.vue` uses `size-3.5` internally; that is a component implementation detail, not a contract value for this phase.)
 - Axis labels on canvas: 12px left/4px vertical padding (`px-3 py-1`) inside a pill-shaped overlay label.
 
 ---
@@ -149,6 +149,8 @@ Shares the `px-3 py-2` Settings panel padding. Toggle uses `bg-secondary-backgro
 ### Surface 1: Settings Panel Structure Extension
 
 **File:** `src/platform/moshpit/components/MoshpitSettingsPanel.vue` (extended)
+
+**Primary visual anchor:** The filter chip row is the core Phase 3 interaction surface — it is the most visually dense new element and the focal point users will interact with after selecting a workflow.
 
 **Section order (top to bottom):**
 
@@ -473,7 +475,7 @@ exact toggle:
   when checked: hides range row, shows single "Value" input
 
 apply button:
-  variant: primary size: sm h-7 w-full "Apply"
+  variant: primary size: sm h-7 w-full "Apply filter"
 ```
 
 **Categorical editor (model, sampler, scheduler, LoRA, tags):**
@@ -493,7 +495,7 @@ value list (max-h-[180px] overflow-y-auto):
 
 selected values shown as tags above list (if any selected)
 
-apply button: variant: primary size: sm h-7 w-full "Apply"
+apply button: variant: primary size: sm h-7 w-full "Apply filter"
 ```
 
 **Text editor (prompt, negative prompt):**
@@ -507,7 +509,7 @@ textarea: h-16 w-full resize-none text-xs px-2 py-1
   border: border-border-subtle rounded-md
   placeholder: "Substring match, case-insensitive…"
 
-apply button: variant: primary size: sm h-7 w-full "Apply"
+apply button: variant: primary size: sm h-7 w-full "Apply filter"
 ```
 
 **Resolution editor:**
@@ -525,7 +527,7 @@ custom input row:
   "×" separator
   "H" input: w-16 h-7 text-xs
 
-apply button: variant: primary size: sm h-7 w-full "Apply"
+apply button: variant: primary size: sm h-7 w-full "Apply filter"
 ```
 
 **Boolean editor (favourite):**
@@ -539,7 +541,7 @@ toggle row:
   label: "Only favourited assets"
   Reka UI Switch (existing src/components/ui/ pattern if available; else native checkbox)
 
-apply button: variant: primary size: sm h-7 w-full "Apply"
+apply button: variant: primary size: sm h-7 w-full "Apply filter"
 ```
 
 #### Keyboard behavior across all editors
@@ -843,7 +845,7 @@ Settings panel open: canvas area = `100vw − 40px − 256px`. At 1280px minimum
 | `moshpit.filters.paramGenerationTime`     | `"Generation time"`                                                                                       | Parameter display name                     |
 | `moshpit.filters.paramTags`               | `"Tags"`                                                                                                  | Parameter display name                     |
 | `moshpit.filters.paramFavourite`          | `"Favourite"`                                                                                             | Parameter display name                     |
-| `moshpit.filters.editorApply`             | `"Apply"`                                                                                                 | Value editor Apply button                  |
+| `moshpit.filters.editorApply`             | `"Apply filter"`                                                                                          | Value editor Apply button                  |
 | `moshpit.filters.editorBack`              | `"Back"`                                                                                                  | ← Back button in Step 2 editor             |
 | `moshpit.filters.editorMin`               | `"Min"`                                                                                                   | Numeric range min input placeholder        |
 | `moshpit.filters.editorMax`               | `"Max"`                                                                                                   | Numeric range max input placeholder        |
