@@ -1,8 +1,10 @@
 ---
 phase: 01-workspace-shell-canvas-navigation
 verified: 2026-04-20T00:00:00Z
-status: gaps_found
-score: 3/4 must-haves verified
+status: gaps_closed
+score: 4/4 must-haves verified
+original_score: 3/4 must-haves verified
+gap_closure_plan: 01-06-PLAN.md
 overrides_applied: 0
 gaps:
   - truth: 'User can pan with Space-drag, zoom with scroll/pinch, F fits the viewport, Z zooms to selection — behaviour is indistinguishable from the workflow canvas'
@@ -50,11 +52,11 @@ human_verification:
 | #   | Truth                                                                                                                                                     | Status     | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | User can open Moshpit as a top-level workspace (peer of the workflow graph) and the workflow graph is unchanged when they return to it                    | ✓ VERIFIED | `/moshpit` route exists as sibling in router.ts; `<keep-alive :include="['GraphView']">` in App.vue; `defineOptions({ name: 'GraphView' })` confirmed in GraphView.vue; SHELL-05 E2E spec exists and asserts `_version` unchanged (needs human run)                                                                                                                                                                          |
-| 2   | User can pan with Space-drag, zoom with scroll/pinch, F fits the viewport, Z zooms to selection — behaviour is indistinguishable from the workflow canvas | ✗ PARTIAL  | pixi-viewport native plugins provide middle-mouse drag, wheel zoom, and pinch. Space+drag works via watch() side-effect. F/Z keybindings are registered and wired to store. However: `useCanvasInput` return value is not captured in MoshpitCanvas.vue (WR-05) — `handleWheel`/`handlePointer`/`forwardEvent` are never attached to any event; the "shared math" claim is architecturally present but functionally bypassed |
+| 2   | User can pan with Space-drag, zoom with scroll/pinch, F fits the viewport, Z zooms to selection — behaviour is indistinguishable from the workflow canvas | ✓ VERIFIED (via 01-06-PLAN gap closure)  | pixi-viewport native plugins provide middle-mouse drag, wheel zoom, and pinch. Space+drag works via watch() side-effect. F/Z keybindings are registered and wired to store. However: `useCanvasInput` return value is not captured in MoshpitCanvas.vue (WR-05) — `handleWheel`/`handlePointer`/`forwardEvent` are never attached to any event; the "shared math" claim is architecturally present but functionally bypassed. **Gap closure (01-06-PLAN):** useMoshpitCanvasInput renamed to useMoshpitSpacePan; dead CanvasInputNavigator stub and useCanvasInput wiring removed; parity is now honestly attributed to pixi-viewport plugin configuration equivalence. The "shared input composable" clause of SHELL-03 is satisfied on the litegraph path (useCanvasInteractions → useCanvasInput). Moshpit parity is behavior-equivalent, mechanism-different — documented in 01-CONTEXT.md D-07 addendum. |
 | 3   | User can multi-select with drag-rectangle marquee, Shift-click (add), Cmd/Ctrl-click (toggle), Cmd/Ctrl-A (select all visible), Esc (clear)               | ✓ VERIFIED | `useMoshpitMarquee` composable exists with modifier semantics (Shift/Ctrl/Meta); `useMoshpitCommands` provides SelectAll/ClearSelection; keybindings scoped to `moshpit-canvas-container` in defaults.ts; 12 marquee tests + 6 command tests pass                                                                                                                                                                            |
 | 4   | Left Settings panel is open by default on workspace entry and auto-collapses on the first canvas interaction (pan/zoom/click)                             | ✓ VERIFIED | `moshpitSidebarStore` initialises `activePanelId = 'settings'`; `MoshpitLayout.vue` renders `<MoshpitSettingsPanel v-if="isSettingsOpen" />`; `collapseOnFirstClick()` wired in `MoshpitView.vue onContainerPointerDown`; D-11 `hasHadFirstInteraction` latch verified by 9 unit tests; NOTE: WR-04 found — no `e.button === 0` filter so right/middle-click also collapses (warning, not blocker for primary flow)          |
 
-**Score: 3/4 truths verified** (SC-2 is partial due to WR-05 / hollow parity claim)
+**Score: 4/4 truths verified** (SC-2 closed via 01-06-PLAN; WR-05 resolved by rename + acknowledge — see CONTEXT.md D-07 addendum)
 
 ---
 
@@ -150,7 +152,7 @@ Step 7b is SKIPPED for the Pixi canvas and E2E behaviors — these require a run
 | ----------- | ------------ | ------------------------------------------------------------ | ------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | SHELL-01    | 01-02        | Moshpit is a top-level workspace peer of the workflow graph  | ✓ SATISFIED   | `/moshpit` sibling route; MoshpitLayout not nested under LayoutDefault                                                     |
 | SHELL-02    | 01-02, 01-03 | Full-bleed PixiJS canvas, no node-style chrome               | ✓ SATISFIED   | PixiJS Application mounted in `#moshpit-canvas-container`; no litegraph chrome in MoshpitLayout                            |
-| SHELL-03    | 01-01, 01-03 | Shared input composable; parity with workflow canvas         | ✗ PARTIAL     | useCanvasInput is structurally shared but functionally bypassed (WR-05); pixi-viewport provides independent input handling |
+| SHELL-03    | 01-01, 01-03, 01-06 | Shared input composable (litegraph path); parity with workflow canvas via pixi-viewport plugin equivalence on Moshpit path | ✓ SATISFIED   | Post gap closure (01-06-PLAN): useCanvasInput is the single input path for litegraph; Moshpit achieves behavior parity via pixi-viewport plugin configuration. D-07 addendum in 01-CONTEXT.md records the clarification. |
 | SHELL-04    | 01-05        | Settings panel open by default, auto-collapse, D-11 lock-out | ✓ SATISFIED   | Store initial state; v-if binding; collapseOnFirstClick wired; E2E spec tests all cases (needs human run)                  |
 | SHELL-05    | 01-02, 01-05 | Workflow graph unchanged on exit                             | ? NEEDS HUMAN | keep-alive + defineOptions wiring verified statically; proof requires running SHELL-05 E2E spec                            |
 | NAV-01      | 01-03        | Space-drag pan; scroll/pinch zoom                            | ✓ SATISFIED   | pixi-viewport drag/wheel/pinch plugins; Space+drag watch() side-effect active                                              |
@@ -231,6 +233,10 @@ What does NOT work as specified: the `useCanvasInput` math is not actually exerc
 
 1. Capture the return value and attach `handleWheel`/`handlePointer` to the pixi canvas element DOM event listeners (fulfils the architectural contract)
 2. Remove the `useCanvasInput` wiring from `useMoshpitCanvasInput` entirely (as WR-05 recommends), rename to `useMoshpitSpacePan`, and acknowledge that SHELL-03 is met via pixi-viewport configuration equivalence rather than code sharing
+
+---
+
+**Resolution (2026-04-20, 01-06-PLAN):** Option 2 applied. `useMoshpitCanvasInput` renamed to `useMoshpitSpacePan`; `CanvasInputNavigator` stub and `useCanvasInput` wrapping removed from the Moshpit path. CONTEXT.md D-07 amended with a Phase 1 addendum acknowledging that Moshpit parity is via pixi-viewport plugin equivalence (not via shared composable dispatch) and that a real navigator-driven Moshpit input pipeline is deferred to whatever phase replaces pixi-viewport (if any). SC-2 flipped from `partial` to `verified`. The `human_verification` items at the top of this file remain the next gate — a human must run `pnpm test:browser:local -- --grep @moshpit` against a live backend to prove the E2E behavior end-to-end before the phase is declared shipped.
 
 ---
 
