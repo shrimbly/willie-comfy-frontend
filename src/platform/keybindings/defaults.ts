@@ -256,15 +256,10 @@ export const CORE_KEYBINDINGS: Keybinding[] = [
     combo: { key: 'z' },
     commandId: 'Moshpit.Canvas.ZoomToSelection',
     targetElementId: 'moshpit-canvas-container'
-  },
-  {
-    combo: { ctrl: true, key: 'a' },
-    commandId: 'Moshpit.Canvas.SelectAll',
-    targetElementId: 'moshpit-canvas-container'
-  },
-  {
-    combo: { key: 'Escape' },
-    commandId: 'Moshpit.Canvas.ClearSelection',
-    targetElementId: 'moshpit-canvas-container'
   }
+  // NAV-05 (Ctrl+A select-all, Esc clear) temporarily removed — the keybinding
+  // store keys by combo alone (keybindingStore.ts:112), so target-scoped
+  // duplicates of Comfy.Canvas.SelectAll (Ctrl+A) and Comfy.Graph.ExitSubgraph
+  // (Esc) throw on registration and block GraphView mount. Restore after the
+  // store is refactored to key by combo+targetElementId.
 ]
