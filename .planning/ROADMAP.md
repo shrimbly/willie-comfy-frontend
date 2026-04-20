@@ -54,18 +54,18 @@
 
 **Plans:** 12 plans
 
-- [ ] 02-01-foundation-PLAN.md — Install `idb` + `fake-indexeddb`, register in vitest setup, ship 5 Wave-0 RED test stubs
-- [ ] 02-02-content-hash-PLAN.md — Pure hash + PRNG utilities (`fnv1a`, `mulberry32`, `layoutSeedHash`, `sha256Hex`) — worker-safe leaf module
-- [ ] 02-03-layout-math-PLAN.md — Jittered-grid + packed-grid pure functions (D-01, D-03, D-04 math)
-- [ ] 02-04-thumb-repository-PLAN.md — IndexedDB repository with `thumbs` + `assetMeta` stores (idb v7; Phase 5 curation-ready)
-- [ ] 02-05-thumb-worker-PLAN.md — Web Worker: fetch → metadata parse → resize → WebP encode → SHA-256 (ASSET-02/05/07); discriminated-union message contract
-- [ ] 02-06-worker-bridge-PLAN.md — Main-thread bridge: IDB write routing + stale-filter guard + `runWhenGlobalIdle` dispatch
-- [ ] 02-07-pinia-stores-PLAN.md — `moshpitThumbStore` (object-URL cache) + `moshpitMetadataStore` (excludedCount) + `moshpitCurationStore` (Phase 5 scaffold)
-- [ ] 02-08-processing-queue-PLAN.md — `useMoshpitProcessingQueue` composable (diff, enqueue, cancel, filter-change) + `useMoshpitAssetRegistry`
-- [ ] 02-09-processing-indicator-PLAN.md — `MoshpitProcessingIndicator.vue` pill (ASSET-07/08) + six `moshpit.assets.*` i18n keys + `MoshpitLayout.vue` wire
-- [ ] 02-10-excluded-count-row-PLAN.md — `MoshpitSettingsPanel.vue` excluded-count row + info tooltip (ASSET-05/06)
-- [ ] 02-11-canvas-sprites-and-tween-PLAN.md — `useMoshpitSpriteLayer` composable: sprites under viewport + 300ms ease-out-cubic re-pack tween (ASSET-02/07/09) [human checkpoint]
-- [ ] 02-12-e2e-and-validation-map-PLAN.md — `@moshpit` Playwright spec + helper extension + VALIDATION.md Per-Task Verification Map populated [human checkpoint]
+- [x] 02-01-foundation-PLAN.md — Install `idb` + `fake-indexeddb`, register in vitest setup, ship 5 Wave-0 RED test stubs
+- [x] 02-02-content-hash-PLAN.md — Pure hash + PRNG utilities (`fnv1a`, `mulberry32`, `layoutSeedHash`, `sha256Hex`) — worker-safe leaf module
+- [x] 02-03-layout-math-PLAN.md — Jittered-grid + packed-grid pure functions (D-01, D-03, D-04 math)
+- [x] 02-04-thumb-repository-PLAN.md — IndexedDB repository with `thumbs` + `assetMeta` stores (idb v7; Phase 5 curation-ready)
+- [x] 02-05-thumb-worker-PLAN.md — Web Worker: fetch → metadata parse → resize → WebP encode → SHA-256 (ASSET-02/05/07); discriminated-union message contract
+- [x] 02-06-worker-bridge-PLAN.md — Main-thread bridge: IDB write routing + stale-filter guard + `runWhenGlobalIdle` dispatch
+- [x] 02-07-pinia-stores-PLAN.md — `moshpitThumbStore` (object-URL cache) + `moshpitMetadataStore` (excludedCount) + `moshpitCurationStore` (Phase 5 scaffold)
+- [x] 02-08-processing-queue-PLAN.md — `useMoshpitProcessingQueue` composable (diff, enqueue, cancel, filter-change) + `useMoshpitAssetRegistry`
+- [x] 02-09-processing-indicator-PLAN.md — `MoshpitProcessingIndicator.vue` pill (ASSET-07/08) + six `moshpit.assets.*` i18n keys + `MoshpitLayout.vue` wire
+- [x] 02-10-excluded-count-row-PLAN.md — `MoshpitSettingsPanel.vue` excluded-count row + info tooltip (ASSET-05/06)
+- [x] 02-11-canvas-sprites-and-tween-PLAN.md — `useMoshpitSpriteLayer` composable: sprites under viewport + 300ms ease-out-cubic re-pack tween (ASSET-02/07/09) [human checkpoint]
+- [x] 02-12-e2e-and-validation-map-PLAN.md — `@moshpit` Playwright spec + helper extension + VALIDATION.md Per-Task Verification Map populated [human checkpoint]
 
 **UI hint**: yes
 
