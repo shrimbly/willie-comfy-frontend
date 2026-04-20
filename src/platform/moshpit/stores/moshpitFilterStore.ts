@@ -24,6 +24,7 @@ import { DEFAULT_CELL_SIZE } from '../composables/useMoshpitSpriteLayer'
 
 export const GRID_SPACING_MIN = 200
 export const GRID_SPACING_MAX = 1200
+export const GRID_SPACING_STEP = 50
 
 const INITIAL_TIME_RANGE: TimeRange = Object.freeze({
   preset: 'all',

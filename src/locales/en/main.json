@@ -1104,6 +1104,8 @@
       "paramGenerationTime": "Generation time",
       "paramTags": "Tags",
       "paramFavourite": "Favourite",
+      "paramWidth": "Width",
+      "paramHeight": "Height",
       "editorApply": "Apply filter",
       "editorBack": "Back",
       "editorMin": "Min",
