@@ -143,80 +143,82 @@ Deferred to future milestones. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status  |
 | ----------- | ----- | ------- |
-| SHELL-01    | TBD   | Pending |
-| SHELL-02    | TBD   | Pending |
-| SHELL-03    | TBD   | Pending |
-| SHELL-04    | TBD   | Pending |
-| SHELL-05    | TBD   | Pending |
-| ASSET-01    | TBD   | Pending |
-| ASSET-02    | TBD   | Pending |
-| ASSET-03    | TBD   | Pending |
-| ASSET-04    | TBD   | Pending |
-| ASSET-05    | TBD   | Pending |
-| ASSET-06    | TBD   | Pending |
-| ASSET-07    | TBD   | Pending |
-| ASSET-08    | TBD   | Pending |
-| ASSET-09    | TBD   | Pending |
-| ASSET-10    | TBD   | Pending |
-| FILTER-01   | TBD   | Pending |
-| FILTER-02   | TBD   | Pending |
-| FILTER-03   | TBD   | Pending |
-| FILTER-04   | TBD   | Pending |
-| FILTER-05   | TBD   | Pending |
-| FILTER-06   | TBD   | Pending |
-| FILTER-07   | TBD   | Pending |
-| FILTER-08   | TBD   | Pending |
-| FILTER-09   | TBD   | Pending |
-| FILTER-10   | TBD   | Pending |
-| FILTER-11   | TBD   | Pending |
-| SORT-01     | TBD   | Pending |
-| SORT-02     | TBD   | Pending |
-| SORT-03     | TBD   | Pending |
-| SORT-04     | TBD   | Pending |
-| SORT-05     | TBD   | Pending |
-| NAV-01      | TBD   | Pending |
-| NAV-02      | TBD   | Pending |
-| NAV-03      | TBD   | Pending |
-| NAV-04      | TBD   | Pending |
-| NAV-05      | TBD   | Pending |
-| COMPARE-01  | TBD   | Pending |
-| COMPARE-02  | TBD   | Pending |
-| COMPARE-03  | TBD   | Pending |
-| COMPARE-04  | TBD   | Pending |
-| COMPARE-05  | TBD   | Pending |
-| COMPARE-06  | TBD   | Pending |
-| COMPARE-07  | TBD   | Pending |
-| COMPARE-08  | TBD   | Pending |
-| CURATE-01   | TBD   | Pending |
-| CURATE-02   | TBD   | Pending |
-| CURATE-03   | TBD   | Pending |
-| CURATE-04   | TBD   | Pending |
-| CURATE-05   | TBD   | Pending |
-| CURATE-06   | TBD   | Pending |
-| CURATE-07   | TBD   | Pending |
-| GENMORE-01  | TBD   | Pending |
-| GENMORE-02  | TBD   | Pending |
-| GENMORE-03  | TBD   | Pending |
-| GENMORE-04  | TBD   | Pending |
-| GENMORE-05  | TBD   | Pending |
-| GENMORE-06  | TBD   | Pending |
-| UX-01       | TBD   | Pending |
-| UX-02       | TBD   | Pending |
-| UX-03       | TBD   | Pending |
-| UX-04       | TBD   | Pending |
-| UX-05       | TBD   | Pending |
-| UX-06       | TBD   | Pending |
-| UX-07       | TBD   | Pending |
-| UX-08       | TBD   | Pending |
-| UX-09       | TBD   | Pending |
+| SHELL-01    | 1     | Pending |
+| SHELL-02    | 1     | Pending |
+| SHELL-03    | 1     | Pending |
+| SHELL-04    | 1     | Pending |
+| SHELL-05    | 1     | Pending |
+| ASSET-01    | 2     | Pending |
+| ASSET-02    | 2     | Pending |
+| ASSET-03    | 2     | Pending |
+| ASSET-04    | 2     | Pending |
+| ASSET-05    | 2     | Pending |
+| ASSET-06    | 2     | Pending |
+| ASSET-07    | 2     | Pending |
+| ASSET-08    | 2     | Pending |
+| ASSET-09    | 2     | Pending |
+| ASSET-10    | 2     | Pending |
+| FILTER-01   | 3     | Pending |
+| FILTER-02   | 3     | Pending |
+| FILTER-03   | 3     | Pending |
+| FILTER-04   | 3     | Pending |
+| FILTER-05   | 3     | Pending |
+| FILTER-06   | 3     | Pending |
+| FILTER-07   | 3     | Pending |
+| FILTER-08   | 3     | Pending |
+| FILTER-09   | 3     | Pending |
+| FILTER-10   | 3     | Pending |
+| FILTER-11   | 3     | Pending |
+| SORT-01     | 3     | Pending |
+| SORT-02     | 3     | Pending |
+| SORT-03     | 3     | Pending |
+| SORT-04     | 3     | Pending |
+| SORT-05     | 3     | Pending |
+| NAV-01      | 1     | Pending |
+| NAV-02      | 1     | Pending |
+| NAV-03      | 1     | Pending |
+| NAV-04      | 1     | Pending |
+| NAV-05      | 1     | Pending |
+| COMPARE-01  | 4     | Pending |
+| COMPARE-02  | 4     | Pending |
+| COMPARE-03  | 4     | Pending |
+| COMPARE-04  | 4     | Pending |
+| COMPARE-05  | 4     | Pending |
+| COMPARE-06  | 4     | Pending |
+| COMPARE-07  | 4     | Pending |
+| COMPARE-08  | 4     | Pending |
+| CURATE-01   | 5     | Pending |
+| CURATE-02   | 5     | Pending |
+| CURATE-03   | 5     | Pending |
+| CURATE-04   | 5     | Pending |
+| CURATE-05   | 5     | Pending |
+| CURATE-06   | 5     | Pending |
+| CURATE-07   | 5     | Pending |
+| GENMORE-01  | 6     | Pending |
+| GENMORE-02  | 6     | Pending |
+| GENMORE-03  | 6     | Pending |
+| GENMORE-04  | 6     | Pending |
+| GENMORE-05  | 6     | Pending |
+| GENMORE-06  | 6     | Pending |
+| UX-01       | 7     | Pending |
+| UX-02       | 7     | Pending |
+| UX-03       | 7     | Pending |
+| UX-04       | 7     | Pending |
+| UX-05       | 7     | Pending |
+| UX-06       | 7     | Pending |
+| UX-07       | 7     | Pending |
+| UX-08       | 7     | Pending |
+| UX-09       | 7     | Pending |
 
 **Coverage:**
 
-- v1 requirements: 65 total
-- Mapped to phases: 0 (to be filled during roadmap creation)
-- Unmapped: 65 (will resolve to 0 after roadmap) ⚠️
+- v1 requirements: 66 total (enumerated)
+- Mapped to phases: 66 ✓
+- Unmapped: 0 ✓
+
+_Note: earlier draft header stated "65 total" — the enumerated list contains 66 (9 categories: SHELL 5 + ASSET 10 + FILTER 11 + SORT 5 + NAV 5 + COMPARE 8 + CURATE 7 + GENMORE 6 + UX 9). All 66 are mapped._
 
 ---
 
 _Requirements defined: 2026-04-20_
-_Last updated: 2026-04-20 after initialization_
+_Last updated: 2026-04-20 after roadmap creation — traceability populated_
