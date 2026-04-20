@@ -9,15 +9,14 @@
  *
  * DB version history:
  *   v1 — initial schema: thumbs + assetMeta, no indexes.
- *   v2 — Phase 5 may add by-tag index on assetMeta for FILTER-07.
- *
- * This module is main-thread — the worker posts `thumbReady` messages and the
- * main thread handler calls `putThumb` + `putAssetMeta`. Keeping IDB off the
- * worker avoids having to open two handles into the same DB.
+ *   v2 — Phase 3 Plan 04: assetMeta gains `params: NormalizedParams`.
+ *         Upgrade callback re-parses params for all existing v1 records via
+ *         normalizeParams (cursor-based, O(1) memory). See T-03-04-01 mitigation.
  */
 
 import { type IDBPDatabase, openDB } from 'idb'
 
+import { normalizeParams } from './paramNormalize'
 import type {
   AssetMetaRecord,
   CurationRecord,
@@ -31,12 +30,38 @@ let cachedDB: Promise<IDBPDatabase<MoshpitDB>> | null = null
 export function openMoshpitDB(): Promise<IDBPDatabase<MoshpitDB>> {
   if (cachedDB) return cachedDB
   cachedDB = openDB<MoshpitDB>(MOSHPIT_DB_NAME, MOSHPIT_DB_VERSION, {
-    upgrade(db) {
+    async upgrade(db, oldVersion, _newVersion, tx) {
       if (!db.objectStoreNames.contains('thumbs')) {
         db.createObjectStore('thumbs', { keyPath: 'contentHash' })
       }
       if (!db.objectStoreNames.contains('assetMeta')) {
         db.createObjectStore('assetMeta', { keyPath: 'contentHash' })
+      }
+      // v1 → v2: retroactively populate `params` on existing assetMeta records.
+      // Cursor-based streaming keeps memory O(1) regardless of record count.
+      // T-03-04-01: try/catch per record — a single malformed record is skipped
+      // rather than aborting the entire upgrade transaction.
+      if (oldVersion < 2) {
+        const store = tx.objectStore('assetMeta')
+        let cursor = await store.openCursor()
+        while (cursor) {
+          const rec = cursor.value
+          if (!('params' in rec)) {
+            try {
+              const params = normalizeParams(rec.metadata, Date.now())
+              await cursor.update({ ...rec, params })
+            } catch (err) {
+              // Belt-and-braces: if a single record's metadata is malformed,
+              // skip it — its next write will populate params correctly.
+              console.error(
+                '[moshpit] v1→v2 migration failed for record',
+                rec.contentHash,
+                err
+              )
+            }
+          }
+          cursor = await cursor.continue()
+        }
       }
     },
     blocked() {
