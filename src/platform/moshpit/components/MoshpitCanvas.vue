@@ -5,13 +5,14 @@
 <script setup lang="ts">
 import { Application } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
-import { inject, onBeforeUnmount, onMounted, ref } from 'vue'
+import { inject, onBeforeUnmount, onMounted, provide, ref, shallowRef } from 'vue'
 
 import {
   MOSHPIT_QUEUE_INJECTION_KEY
 } from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
 import { useMoshpitSpacePan } from '@/platform/moshpit/composables/useMoshpitSpacePan'
 import { useMoshpitSpriteLayer } from '@/platform/moshpit/composables/useMoshpitSpriteLayer'
+import { MOSHPIT_VIEWPORT_INJECTION_KEY } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
 import { useMoshpitViewportStore } from '@/platform/moshpit/stores/moshpitViewportStore'
 
 defineOptions({ name: 'MoshpitCanvas' })
@@ -25,6 +26,9 @@ const viewportStore = useMoshpitViewportStore()
 
 const queue = inject(MOSHPIT_QUEUE_INJECTION_KEY)
 if (!queue) throw new Error('MoshpitCanvas requires MOSHPIT_QUEUE_INJECTION_KEY to be provided by MoshpitLayout')
+
+const viewportRef = shallowRef<Viewport | null>(null)
+provide(MOSHPIT_VIEWPORT_INJECTION_KEY, viewportRef)
 
 let app: Application | null = null
 let viewport: Viewport | null = null
@@ -68,6 +72,8 @@ onMounted(async () => {
     .pinch()
     .wheel({ smooth: 3 })
     .decelerate()
+
+  viewportRef.value = viewport // expose to overlay consumers after init
 
   useMoshpitSpacePan(viewport, containerEl)
 
@@ -129,6 +135,7 @@ onBeforeUnmount(() => {
   // Application.destroy with { children: true } cascades through the stage and
   // tears the viewport down with it, so we don't call viewport.destroy() here
   // to avoid double-free / "already destroyed" warnings from pixi-viewport.
+  viewportRef.value = null // consumers unsubscribe cleanly before app teardown
   viewport = null
   if (app) {
     app.destroy(true, { children: true, texture: true })
