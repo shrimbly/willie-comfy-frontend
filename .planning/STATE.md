@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-last_updated: "2026-04-20T23:11:05.489Z"
+last_updated: "2026-04-20T23:24:45.902Z"
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 29
-  completed_plans: 27
-  percent: 93
+  completed_plans: 28
+  percent: 97
 ---
 
 # Project State
@@ -61,6 +61,8 @@ Progress: `[░░░░░░░░░░] 0 / 7 phases`
 - [Phase 03]: role=option on param picker <li> items enables reliable userEvent.click() in happy-dom
 - [Phase 03]: defineExpose selectX/selectY in MoshpitSortControls — Reka PopoverPortal unreliable in happy-dom for this component; tests use direct vm invocation instead
 - [Phase 03]: onSliderChange typed as number[] | undefined to match SliderRootEmits payload type from Reka
+- [Phase 03]: shallowRef required for Viewport injection key — Vue ref() deep-unwraps complex classes causing TS2345; shallowRef preserves class type
+- [Phase 03]: transformTick void pattern for 60fps overlay updates — void transformTick.value in style functions registers reactive dep without lint-triggering unused variable
 
 ### Active Todos
 
@@ -72,7 +74,7 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T23:11:05.485Z
+**Last session:** 2026-04-20T23:24:45.892Z
 
 **Context for next session:**
 
