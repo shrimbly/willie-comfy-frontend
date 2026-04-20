@@ -39,6 +39,7 @@
 import { Container, ImageSource, Sprite, Texture } from 'pixi.js'
 import type { Ticker } from 'pixi.js'
 import type { Viewport } from 'pixi-viewport'
+import type { InjectionKey } from 'vue'
 import { onBeforeUnmount, watch, watchEffect } from 'vue'
 
 import type { ProcessingQueueState } from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
@@ -52,6 +53,17 @@ import {
 
 export const DEFAULT_CELL_SIZE = 560
 export const REPACK_DURATION_MS = 300
+
+/**
+ * Injection key for passing the Phase 3 filtered-assets layout provider from
+ * MoshpitLayout (where useMoshpitFilteredAssets is instantiated) down to
+ * MoshpitCanvas (where useMoshpitSpriteLayer is instantiated). This avoids
+ * prop-drilling through MoshpitView and keeps the layout provider co-located
+ * with the SpriteLayerOptions type it feeds.
+ */
+export const MOSHPIT_LAYOUT_INJECTION_KEY: InjectionKey<
+  () => readonly GridSlot[]
+> = Symbol('moshpit:layoutProvider')
 
 export interface SpriteLayerOptions {
   readonly viewport: Viewport

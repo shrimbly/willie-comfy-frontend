@@ -29,11 +29,19 @@ import {
   MOSHPIT_QUEUE_INJECTION_KEY,
   useMoshpitProcessingQueue
 } from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
+import { useMoshpitFilteredAssets } from '@/platform/moshpit/composables/useMoshpitFilteredAssets'
+import {
+  MOSHPIT_LAYOUT_INJECTION_KEY
+} from '@/platform/moshpit/composables/useMoshpitSpriteLayer'
+import { getDateRangeForPreset } from '@/platform/moshpit/services/filterMath'
+import { useMoshpitFilterStore } from '@/platform/moshpit/stores/moshpitFilterStore'
+import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetadataStore'
 import {
   MOSHPIT_SETTINGS_PANEL_ID,
   useMoshpitSidebarStore
 } from '@/platform/moshpit/stores/moshpitSidebarStore'
 import WorkspaceAuthGate from '@/platform/workspace/auth/WorkspaceAuthGate.vue'
+import { useAssetsStore } from '@/stores/assetsStore'
 import MoshpitView from '@/views/MoshpitView.vue'
 
 defineOptions({ name: 'MoshpitLayout' })
@@ -49,6 +57,18 @@ const queue = useMoshpitProcessingQueue()
 // created. Option B (provide/inject) chosen over prop-drilling because
 // MoshpitView has its own marquee + sidebar logic that makes prop threading awkward.
 provide(MOSHPIT_QUEUE_INJECTION_KEY, queue)
+
+// Phase 3: provide the filtered-assets layout to MoshpitCanvas so the sprite
+// layer tweens to filter/sort positions instead of the Phase 2 jittered grid.
+const filteredAssets = useMoshpitFilteredAssets()
+provide(MOSHPIT_LAYOUT_INJECTION_KEY, () =>
+  filteredAssets.entries.value.map((e) => ({
+    hash: e.contentHash,
+    worldX: e.worldX,
+    worldY: e.worldY
+  }))
+)
+
 const showCompletionPulse = ref(false)
 
 watch(
@@ -56,6 +76,47 @@ watch(
   (complete) => {
     showCompletionPulse.value = complete
   }
+)
+
+// Phase 3: watch workflow + time range and call queue.setFilter so the asset
+// pipeline activates when the user picks a workflow (FILTER-01 / D-06).
+const filterStore = useMoshpitFilterStore()
+const assetsStore = useAssetsStore()
+const metaStore = useMoshpitMetadataStore()
+
+watch(
+  () => [filterStore.workflow, filterStore.timeRange] as const,
+  ([workflow, timeRange]) => {
+    if (!workflow) return
+    const nowMs = Date.now()
+    const range = getDateRangeForPreset(timeRange.preset, nowMs)
+    const fromMs =
+      timeRange.preset === 'custom'
+        ? (timeRange.from ?? -Infinity)
+        : (range?.from ?? -Infinity)
+    const toMs =
+      timeRange.preset === 'custom'
+        ? (timeRange.to ?? Infinity)
+        : (range?.to ?? Infinity)
+
+    // Filter assets by time window and workflow fingerprint.
+    // Un-processed assets (no params yet) are passed optimistically — the
+    // in-memory filter (useMoshpitFilteredAssets) excludes fingerprint
+    // mismatches once params arrive via thumbReady (D-06 best-effort).
+    const candidates = assetsStore.outputJobAssets.filter((a) => {
+      const created = a.created_at ? new Date(a.created_at).getTime() : 0
+      if (!(created >= fromMs && created <= toMs)) return false
+      const hash = a.asset_hash ?? metaStore.getHashForAssetId(a.id)
+      if (!hash) return true
+      const params = metaStore.paramsByHash.get(hash)
+      if (!params) return true
+      return params.workflowFingerprint === workflow
+    })
+
+    const filterKey = `${workflow}:${timeRange.preset}:${timeRange.from ?? ''}-${timeRange.to ?? ''}`
+    void queue.setFilter(filterKey, candidates)
+  },
+  { immediate: false }
 )
 
 function onCancel(): void {

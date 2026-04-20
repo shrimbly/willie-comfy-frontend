@@ -11,7 +11,10 @@ import {
   MOSHPIT_QUEUE_INJECTION_KEY
 } from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
 import { useMoshpitSpacePan } from '@/platform/moshpit/composables/useMoshpitSpacePan'
-import { useMoshpitSpriteLayer } from '@/platform/moshpit/composables/useMoshpitSpriteLayer'
+import {
+  MOSHPIT_LAYOUT_INJECTION_KEY,
+  useMoshpitSpriteLayer
+} from '@/platform/moshpit/composables/useMoshpitSpriteLayer'
 import { MOSHPIT_VIEWPORT_INJECTION_KEY } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
 import { useMoshpitViewportStore } from '@/platform/moshpit/stores/moshpitViewportStore'
 
@@ -26,6 +29,11 @@ const viewportStore = useMoshpitViewportStore()
 
 const queue = inject(MOSHPIT_QUEUE_INJECTION_KEY)
 if (!queue) throw new Error('MoshpitCanvas requires MOSHPIT_QUEUE_INJECTION_KEY to be provided by MoshpitLayout')
+
+// Phase 3: layout provider injected from MoshpitLayout via useMoshpitFilteredAssets.
+// Null when MoshpitLayout hasn't provided it (e.g. test isolation); sprite layer
+// falls back to Phase 2 jittered-grid in that case.
+const injectedLayout = inject(MOSHPIT_LAYOUT_INJECTION_KEY, null)
 
 const viewportRef = shallowRef<Viewport | null>(null)
 provide(MOSHPIT_VIEWPORT_INJECTION_KEY, viewportRef)
@@ -83,7 +91,8 @@ onMounted(async () => {
   spriteLayerRef = useMoshpitSpriteLayer({
     viewport,
     ticker: app.ticker,
-    queue
+    queue,
+    layoutProvider: injectedLayout ?? undefined
   })
 
   viewportStore.setScreenSize(host.clientWidth, host.clientHeight)
