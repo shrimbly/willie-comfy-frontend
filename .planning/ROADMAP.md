@@ -35,7 +35,7 @@
 - [x] 01-03-PLAN.md — Moshpit Pinia stores (viewport/selection/sidebar) + PixiJS Application + pixi-viewport adapter
 - [x] 01-04-PLAN.md — Marquee composable + Moshpit keybindings (F/Z/Cmd+A/Esc) + keyboard-scoped commands
 - [x] 01-05-PLAN.md — MoshpitSideRail + Settings panel + Storybook + `@moshpit` Playwright specs (SHELL-05 proof)
-- [ ] 01-06-PLAN.md — Gap closure: rename `useMoshpitCanvasInput` → `useMoshpitSpacePan`, remove dead `useCanvasInput` wiring, record SC-2 resolution in CONTEXT.md / VERIFICATION.md (SHELL-03)
+- [x] 01-06-PLAN.md — Gap closure: rename `useMoshpitCanvasInput` → `useMoshpitSpacePan`, remove dead `useCanvasInput` wiring, record SC-2 resolution in CONTEXT.md / VERIFICATION.md (SHELL-03)
 
 **UI hint**: yes
 
