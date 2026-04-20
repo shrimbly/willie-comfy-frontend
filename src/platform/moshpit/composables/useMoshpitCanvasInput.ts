@@ -5,19 +5,22 @@ import { onBeforeUnmount, watch } from 'vue'
 import type { CanvasInputNavigator } from '@/composables/canvas/useCanvasInput'
 import { useCanvasInput } from '@/composables/canvas/useCanvasInput'
 
-export function useMoshpitCanvasInput(viewport: Viewport, containerEl: HTMLElement) {
+export function useMoshpitCanvasInput(
+  viewport: Viewport,
+  containerEl: HTMLElement
+) {
   const keys = useMagicKeys()
   const spaceHeld = keys.space
 
+  // TODO(phase-N): once pixi-viewport is replaced with our own navigator-driven
+  // input pipeline, route real wheel/pointer events through these dispatchers.
+  // For now pixi-viewport's drag()/wheel() plugins own input, so the navigator
+  // is a no-op stub kept for API symmetry with the litegraph canvas path.
   const navigator: CanvasInputNavigator = {
     isStandardNavMode: () => true,
-    isReadOnly: () => spaceHeld.value ?? false,
-    dispatchWheel: () => {
-      // pixi-viewport handles wheel directly via its wheel() plugin; nothing to forward.
-    },
-    dispatchPointer: () => {
-      // pixi-viewport handles pointer directly via its drag() plugin; nothing to forward.
-    }
+    isReadOnly: () => spaceHeld.value,
+    dispatchWheel: () => {},
+    dispatchPointer: () => {}
   }
 
   const api = useCanvasInput(navigator)
