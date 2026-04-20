@@ -39,8 +39,8 @@ vi.mock('pixi-viewport', () => {
   return { Viewport: MockViewport }
 })
 
-vi.mock('@/platform/moshpit/composables/useMoshpitCanvasInput', () => ({
-  useMoshpitCanvasInput: vi.fn<() => void>()
+vi.mock('@/platform/moshpit/composables/useMoshpitSpacePan', () => ({
+  useMoshpitSpacePan: vi.fn<() => void>()
 }))
 
 import { mount } from '@vue/test-utils'

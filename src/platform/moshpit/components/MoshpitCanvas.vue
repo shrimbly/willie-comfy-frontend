@@ -7,7 +7,7 @@ import { Application } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
-import { useMoshpitCanvasInput } from '@/platform/moshpit/composables/useMoshpitCanvasInput'
+import { useMoshpitSpacePan } from '@/platform/moshpit/composables/useMoshpitSpacePan'
 import { useMoshpitViewportStore } from '@/platform/moshpit/stores/moshpitViewportStore'
 
 defineOptions({ name: 'MoshpitCanvas' })
@@ -61,7 +61,7 @@ onMounted(async () => {
     .wheel({ smooth: 3 })
     .decelerate()
 
-  useMoshpitCanvasInput(viewport, containerEl)
+  useMoshpitSpacePan(viewport, containerEl)
 
   viewportStore.setScreenSize(host.clientWidth, host.clientHeight)
 
