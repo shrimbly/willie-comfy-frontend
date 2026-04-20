@@ -246,5 +246,25 @@ export const CORE_KEYBINDINGS: Keybinding[] = [
     },
     commandId: 'Comfy.Canvas.DeleteSelectedItems',
     targetElementId: 'graph-canvas-container'
+  },
+  {
+    combo: { key: 'f' },
+    commandId: 'Moshpit.Canvas.FitView',
+    targetElementId: 'moshpit-canvas-container'
+  },
+  {
+    combo: { key: 'z' },
+    commandId: 'Moshpit.Canvas.ZoomToSelection',
+    targetElementId: 'moshpit-canvas-container'
+  },
+  {
+    combo: { ctrl: true, key: 'a' },
+    commandId: 'Moshpit.Canvas.SelectAll',
+    targetElementId: 'moshpit-canvas-container'
+  },
+  {
+    combo: { key: 'Escape' },
+    commandId: 'Moshpit.Canvas.ClearSelection',
+    targetElementId: 'moshpit-canvas-container'
   }
 ]

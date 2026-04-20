@@ -66,6 +66,7 @@ import {
 import { ManagerTab } from '@/workbench/extensions/manager/types/comfyManagerTypes'
 
 import { useWorkflowTemplateSelectorDialog } from './useWorkflowTemplateSelectorDialog'
+import { useMoshpitCommands } from './useMoshpitCommands'
 
 import { useMaskEditorStore } from '@/stores/maskEditorStore'
 import { useDialogStore } from '@/stores/dialogStore'
@@ -1374,5 +1375,8 @@ export function useCoreCommands(): ComfyCommand[] {
     }
   ]
 
-  return commands.map((command) => ({ ...command, source: 'System' }))
+  return [
+    ...commands.map((command) => ({ ...command, source: 'System' })),
+    ...useMoshpitCommands()
+  ]
 }
