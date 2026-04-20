@@ -20,12 +20,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, provide, ref, watch } from 'vue'
 
 import MoshpitProcessingIndicator from '@/platform/moshpit/components/MoshpitProcessingIndicator.vue'
 import MoshpitSettingsPanel from '@/platform/moshpit/components/MoshpitSettingsPanel.vue'
 import MoshpitSideRail from '@/platform/moshpit/components/MoshpitSideRail.vue'
-import { useMoshpitProcessingQueue } from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
+import {
+  MOSHPIT_QUEUE_INJECTION_KEY,
+  useMoshpitProcessingQueue
+} from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
 import {
   MOSHPIT_SETTINGS_PANEL_ID,
   useMoshpitSidebarStore
@@ -41,6 +44,11 @@ const isSettingsOpen = computed(
 )
 
 const queue = useMoshpitProcessingQueue()
+// Provide the single queue instance to MoshpitCanvas (via MoshpitView) so it
+// can pass it to useMoshpitSpriteLayer without a second WorkerBridge being
+// created. Option B (provide/inject) chosen over prop-drilling because
+// MoshpitView has its own marquee + sidebar logic that makes prop threading awkward.
+provide(MOSHPIT_QUEUE_INJECTION_KEY, queue)
 const showCompletionPulse = ref(false)
 
 watch(

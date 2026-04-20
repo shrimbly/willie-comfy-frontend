@@ -5,9 +5,13 @@
 <script setup lang="ts">
 import { Application } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { inject, onBeforeUnmount, onMounted, ref } from 'vue'
 
+import {
+  MOSHPIT_QUEUE_INJECTION_KEY
+} from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
 import { useMoshpitSpacePan } from '@/platform/moshpit/composables/useMoshpitSpacePan'
+import { useMoshpitSpriteLayer } from '@/platform/moshpit/composables/useMoshpitSpriteLayer'
 import { useMoshpitViewportStore } from '@/platform/moshpit/stores/moshpitViewportStore'
 
 defineOptions({ name: 'MoshpitCanvas' })
@@ -19,8 +23,12 @@ const { containerEl } = defineProps<{
 const pixiHostRef = ref<HTMLElement | null>(null)
 const viewportStore = useMoshpitViewportStore()
 
+const queue = inject(MOSHPIT_QUEUE_INJECTION_KEY)
+if (!queue) throw new Error('MoshpitCanvas requires MOSHPIT_QUEUE_INJECTION_KEY to be provided by MoshpitLayout')
+
 let app: Application | null = null
 let viewport: Viewport | null = null
+let spriteLayerRef: { destroy(): void } | null = null
 let rafHandle: number | null = null
 let cancelled = false
 
@@ -63,6 +71,15 @@ onMounted(async () => {
 
   useMoshpitSpacePan(viewport, containerEl)
 
+  // Mount sprite layer after viewport is ready. Sprite container lives under
+  // the viewport so world-space pan/zoom transforms it automatically.
+  // Teardown order: sprite layer first, then app.destroy (see onBeforeUnmount).
+  spriteLayerRef = useMoshpitSpriteLayer({
+    viewport,
+    ticker: app.ticker,
+    queue
+  })
+
   viewportStore.setScreenSize(host.clientWidth, host.clientHeight)
 
   // Sync viewport → store on every 'moved' event
@@ -101,6 +118,13 @@ onBeforeUnmount(() => {
   if (rafHandle !== null) {
     cancelAnimationFrame(rafHandle)
     rafHandle = null
+  }
+  // Destroy sprite layer before app.destroy so we get a clean error channel
+  // (the sprite container lives under the viewport; app.destroy would cascade
+  // to it, but explicit destroy here lets us track errors independently).
+  if (spriteLayerRef) {
+    spriteLayerRef.destroy()
+    spriteLayerRef = null
   }
   // Application.destroy with { children: true } cascades through the stage and
   // tears the viewport down with it, so we don't call viewport.destroy() here

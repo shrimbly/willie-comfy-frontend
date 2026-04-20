@@ -43,8 +43,26 @@ vi.mock('@/platform/moshpit/composables/useMoshpitSpacePan', () => ({
   useMoshpitSpacePan: vi.fn<() => void>()
 }))
 
+vi.mock('@/platform/moshpit/composables/useMoshpitSpriteLayer', () => ({
+  useMoshpitSpriteLayer: vi.fn(() => ({ destroy: vi.fn() })),
+  DEFAULT_CELL_SIZE: 560,
+  REPACK_DURATION_MS: 300
+}))
+
+import { computed, ref } from 'vue'
 import { mount } from '@vue/test-utils'
+import { MOSHPIT_QUEUE_INJECTION_KEY } from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
 import MoshpitCanvas from './MoshpitCanvas.vue'
+
+const fakeQueue = {
+  total: ref(0),
+  done: ref(0),
+  activeFilterId: ref(''),
+  isActive: computed(() => false),
+  setFilter: vi.fn(),
+  cancel: vi.fn(),
+  destroy: vi.fn()
+}
 
 describe('MoshpitCanvas', () => {
   let containerEl: HTMLDivElement
@@ -63,20 +81,23 @@ describe('MoshpitCanvas', () => {
     }
   })
 
-  it('mounts without throwing when given a valid containerEl', async () => {
-    const wrapper = mount(MoshpitCanvas, {
-      props: { containerEl },
-      attachTo: document.body
+  const mountCanvas = (el: HTMLElement) =>
+    mount(MoshpitCanvas, {
+      props: { containerEl: el },
+      attachTo: document.body,
+      global: {
+        provide: { [MOSHPIT_QUEUE_INJECTION_KEY as symbol]: fakeQueue }
+      }
     })
+
+  it('mounts without throwing when given a valid containerEl', async () => {
+    const wrapper = mountCanvas(containerEl)
     await vi.waitFor(() => expect(mocks.init).toHaveBeenCalled())
     wrapper.unmount()
   })
 
   it('calls Application init with correct options on mount', async () => {
-    const wrapper = mount(MoshpitCanvas, {
-      props: { containerEl },
-      attachTo: document.body
-    })
+    const wrapper = mountCanvas(containerEl)
     await vi.waitFor(() => expect(mocks.init).toHaveBeenCalled())
     expect(mocks.init).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -88,10 +109,7 @@ describe('MoshpitCanvas', () => {
   })
 
   it('calls app.destroy on unmount', async () => {
-    const wrapper = mount(MoshpitCanvas, {
-      props: { containerEl },
-      attachTo: document.body
-    })
+    const wrapper = mountCanvas(containerEl)
     await vi.waitFor(() => expect(mocks.init).toHaveBeenCalled())
     wrapper.unmount()
     expect(mocks.destroy).toHaveBeenCalledWith(

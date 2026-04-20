@@ -1,4 +1,4 @@
-import type { ComputedRef, Ref } from 'vue'
+import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import { computed, onBeforeUnmount, ref } from 'vue'
 
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
@@ -35,6 +35,15 @@ export interface ProcessingQueueState {
   cancel(): void
   destroy(): void
 }
+
+/**
+ * Injection key for providing ProcessingQueueState from MoshpitLayout to
+ * MoshpitCanvas without prop-drilling through MoshpitView. MoshpitLayout is
+ * the single owner of useMoshpitProcessingQueue(); all consumers must inject
+ * this key rather than calling the composable a second time.
+ */
+export const MOSHPIT_QUEUE_INJECTION_KEY: InjectionKey<ProcessingQueueState> =
+  Symbol('moshpit:queue')
 
 /**
  * Pure diff: which of `filtered` lack a cached thumb?
