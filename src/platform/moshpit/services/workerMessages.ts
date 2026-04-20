@@ -6,10 +6,14 @@
  * exhaustiveness checking (`switch` with `never` default) catches missing
  * handlers at compile time.
  *
- * NEVER add fields to existing variants without a version bump on
- * `MOSHPIT_DB_VERSION` — the `metadata` field is persisted downstream and a
- * breaking change would orphan IDB rows.
+ * v2 contract bump (Plan 03-05): `ThumbReadyMessage` gains `params:
+ * NormalizedParams` alongside the existing `metadata` field. Both are
+ * structured-cloned from the worker; `params` is persisted to IDB v2 via
+ * `putAssetMeta` in the bridge. `MOSHPIT_DB_VERSION` was already bumped to 2
+ * in Plan 03-04.
  */
+
+import type { NormalizedParams } from './paramNormalize'
 
 export interface EnqueueAssetInput {
   readonly id: string // caller-assigned: `${filterId}:${asset.id}`
@@ -37,6 +41,10 @@ export interface ThumbReadyMessage {
   /** Echoed from EnqueueAssetInput.assetId — bridges OSS-path assets whose
    *  server-side asset_hash is null back to their AssetItem.id. */
   readonly assetId: string
+  /** Normalized params extracted by the worker via normalizeParams (Plan 03-05).
+   *  Includes workflowFilename derived from the source filename at processing time.
+   *  Persisted to IDB v2 via putAssetMeta in the bridge. */
+  readonly params: NormalizedParams
 }
 
 export interface ExcludedMessage {

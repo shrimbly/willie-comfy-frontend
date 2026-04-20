@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { emptyParams } from '@/platform/moshpit/services/paramNormalize'
 import type { ExcludedMessage, ThumbReadyMessage } from '@/platform/moshpit/services/workerMessages'
 import type { WorkerBridge } from '@/platform/moshpit/services/workerBridge'
 
@@ -120,7 +121,8 @@ describe('useMoshpitProcessingQueue (Wave 3)', () => {
       width: 512,
       height: 512,
       metadata: { workflow: '{}' },
-      assetId: 'asset-1'
+      assetId: 'asset-1',
+      params: emptyParams(Date.now())
     })
 
     // Assert: metaStore records the asset.id → contentHash bridge

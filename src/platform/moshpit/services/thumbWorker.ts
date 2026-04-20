@@ -24,6 +24,8 @@
 /// <reference lib="webworker" />
 
 import { sha256Hex } from '@/platform/moshpit/services/contentHash'
+import type { NormalizedParams } from '@/platform/moshpit/services/paramNormalize'
+import { normalizeParams } from '@/platform/moshpit/services/paramNormalize'
 import type {
   EnqueueAssetInput,
   WorkerInMessage,
@@ -46,6 +48,35 @@ export interface ProcessCtx {
   ) => Promise<{ blob: Blob; width: number; height: number }>
   parseMetadata: (bytes: ArrayBuffer) => Promise<Record<string, string>>
   hash: (bytes: ArrayBuffer) => Promise<string>
+  /** Accepts optional source filename for the workflowFilename heuristic. */
+  normalize: (
+    raw: Record<string, string>,
+    createdAtMs: number,
+    sourceFilename?: string | null
+  ) => NormalizedParams
+  /** Returns current epoch ms — injectable for tests. */
+  now: () => number
+}
+
+/**
+ * Extract the final path segment (filename) from a URL string or null if the
+ * URL has no meaningful filename component. Used to supply `workflowFilename`
+ * to `normalizeParams` so the workflow picker can display a human-readable name.
+ */
+export function deriveFilenameFromAssetInput(
+  input: EnqueueAssetInput
+): string | null {
+  try {
+    const url = new URL(input.fetchUrl)
+    const segments = url.pathname.split('/')
+    const last = segments[segments.length - 1]
+    return last && last.length > 0 ? last : null
+  } catch {
+    // fetchUrl is not a valid URL (e.g. relative path)
+    const segments = input.fetchUrl.split('/')
+    const last = segments[segments.length - 1]
+    return last && last.length > 0 ? last : null
+  }
 }
 
 export async function processAsset(
@@ -95,6 +126,10 @@ export async function processAsset(
     assetHash && assetHash.length > 0 ? assetHash : await ctx.hash(buffer)
   if (signal.aborted) return
 
+  const createdAtMs = ctx.now()
+  const sourceFilename = deriveFilenameFromAssetInput(input)
+  const params = ctx.normalize(metadata, createdAtMs, sourceFilename)
+
   ctx.postMessage(
     {
       type: 'thumbReady',
@@ -107,7 +142,8 @@ export async function processAsset(
       metadata,
       // Echo assetId back so the main-thread bridge can record the
       // asset.id → contentHash mapping for OSS-path assets (no asset_hash).
-      assetId
+      assetId,
+      params
     }
     // Blob is structured-cloneable; no transferable list needed. Keeping the
     // signature open for future Transferable-based optimisation.
@@ -162,7 +198,9 @@ function schedule(): void {
       postMessage: (msg) => self.postMessage(msg),
       encodeThumb: encodeThumbReal,
       parseMetadata: (buf) => getFromPngBuffer(buf),
-      hash: sha256Hex
+      hash: sha256Hex,
+      normalize: normalizeParams,
+      now: () => Date.now()
     }).finally(() => {
       inFlight.delete(input.id)
       active--

@@ -20,7 +20,6 @@ import { runWhenGlobalIdle } from '@/base/common/async'
 
 // Vite `?worker` import — resolved at bundle time as a separate ES-module chunk.
 import ThumbWorker from './thumbWorker?worker'
-import { emptyParams } from './paramNormalize'
 import { defaultCuration, putAssetMeta, putThumb } from './thumbRepository'
 import type {
   EnqueueAssetInput,
@@ -101,14 +100,11 @@ export function createWorkerBridge(options?: CreateBridgeOptions): WorkerBridge 
         height: msg.height,
         generatedAt: Date.now()
       })
-      // params is populated by Plan 03-05 (worker extension). Until then,
-      // emptyParams is written here and overwritten on the next v1→v2 migration
-      // or when the worker posts a full ThumbReadyMessage with params.
       await putAssetMeta({
         contentHash: msg.contentHash,
         metadata: msg.metadata,
         curation: defaultCuration(),
-        params: emptyParams(Date.now())
+        params: msg.params
       })
     } catch (err) {
       // IDB write failure: log but do not fire callback — UI stays in

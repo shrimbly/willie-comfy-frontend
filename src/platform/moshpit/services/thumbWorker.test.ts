@@ -1,7 +1,18 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import type { NormalizedParams } from './paramNormalize'
+import { emptyParams } from './paramNormalize'
 import { processAsset } from './thumbWorker'
 import type { WorkerOutMessage } from './workerMessages'
+
+function makeDefaultParams(): NormalizedParams {
+  return {
+    ...emptyParams(0),
+    cfg: 7,
+    steps: 20,
+    sampler: 'euler'
+  }
+}
 
 function makeCtx(
   overrides: {
@@ -9,6 +20,8 @@ function makeCtx(
     parseResult?: Record<string, string>
     hashResult?: string
     thumb?: { blob: Blob; width: number; height: number }
+    normalizeResult?: NormalizedParams
+    nowResult?: number
   } = {}
 ) {
   const posted: WorkerOutMessage[] = []
@@ -32,7 +45,11 @@ function makeCtx(
       parseMetadata: vi.fn(
         async () => overrides.parseResult ?? { workflow: '{}' }
       ),
-      hash: vi.fn(async () => overrides.hashResult ?? 'CLIENT_HASH')
+      hash: vi.fn(async () => overrides.hashResult ?? 'CLIENT_HASH'),
+      normalize: vi.fn(
+        () => overrides.normalizeResult ?? makeDefaultParams()
+      ),
+      now: vi.fn(() => overrides.nowResult ?? 1234567890)
     }
   }
 }
@@ -98,5 +115,53 @@ describe('processAsset', () => {
     ac.abort()
     await processAsset(baseInput, ac.signal, ctx)
     expect(posted).toHaveLength(0)
+  })
+
+  it('posted thumbReady includes params from ctx.normalize', async () => {
+    const expectedParams = makeDefaultParams()
+    const { posted, ctx } = makeCtx({ normalizeResult: expectedParams })
+    await processAsset(baseInput, new AbortController().signal, ctx)
+    expect(posted).toHaveLength(1)
+    if (posted[0].type === 'thumbReady') {
+      expect(posted[0].params).toEqual(expectedParams)
+    }
+  })
+
+  it('ctx.now() is called once and its result is passed to ctx.normalize', async () => {
+    const { posted, ctx } = makeCtx({ nowResult: 9999999 })
+    await processAsset(baseInput, new AbortController().signal, ctx)
+    expect(ctx.now).toHaveBeenCalledTimes(1)
+    expect(ctx.normalize).toHaveBeenCalledWith(
+      expect.any(Object),
+      9999999,
+      expect.anything()
+    )
+    expect(posted).toHaveLength(1)
+  })
+
+  it('ctx.normalize receives derived source filename from fetchUrl', async () => {
+    const { ctx } = makeCtx()
+    const inputWithFilename = {
+      ...baseInput,
+      fetchUrl: 'https://example.test/outputs/my_sweep_00042_.png'
+    }
+    await processAsset(inputWithFilename, new AbortController().signal, ctx)
+    expect(ctx.normalize).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Number),
+      'my_sweep_00042_.png'
+    )
+  })
+
+  it('ctx.normalize is NOT called when metadata parse returns empty (excluded)', async () => {
+    const { ctx } = makeCtx({ parseResult: {} })
+    await processAsset(baseInput, new AbortController().signal, ctx)
+    expect(ctx.normalize).not.toHaveBeenCalled()
+  })
+
+  it('ctx.normalize is NOT called on fetch failure (excluded)', async () => {
+    const { ctx } = makeCtx({ fetchOk: false })
+    await processAsset(baseInput, new AbortController().signal, ctx)
+    expect(ctx.normalize).not.toHaveBeenCalled()
   })
 })

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { deleteMoshpitDB, getThumb } from './thumbRepository'
+import { emptyParams } from './paramNormalize'
+import { deleteMoshpitDB, getAssetMeta, getThumb } from './thumbRepository'
 import { createWorkerBridge } from './workerBridge'
 import type { WorkerInMessage, WorkerOutMessage } from './workerMessages'
 
@@ -70,7 +71,8 @@ describe('workerBridge', () => {
       width: 512,
       height: 512,
       metadata: { workflow: '{}' },
-      assetId: 'a1'
+      assetId: 'a1',
+      params: emptyParams(Date.now())
     })
 
     await new Promise((r) => setTimeout(r, 20))
@@ -95,7 +97,8 @@ describe('workerBridge', () => {
       width: 512,
       height: 512,
       metadata: { workflow: '{}' },
-      assetId: 'a1'
+      assetId: 'a1',
+      params: emptyParams(Date.now())
     })
 
     await new Promise((r) => setTimeout(r, 20))
@@ -109,6 +112,37 @@ describe('workerBridge', () => {
     bridge.setActiveFilterId('f1')
     bridge.cancelAll()
     expect(fake.posted.some((m) => m.type === 'abortAll')).toBe(true)
+    bridge.destroy()
+  })
+
+  it('putAssetMeta is called with params from msg.params (not emptyParams)', async () => {
+    const bridge = createWorkerBridge({ workerFactory: () => fake })
+    bridge.setActiveFilterId('f1')
+
+    const workerParams = {
+      ...emptyParams(1000),
+      cfg: 7.5,
+      steps: 30,
+      model: 'v1-5.safetensors',
+      workflowFilename: 'my_sweep'
+    }
+
+    fake.emit({
+      type: 'thumbReady',
+      id: 'f1:a1',
+      filterId: 'f1',
+      contentHash: 'PHASH',
+      blob: new Blob(['x'], { type: 'image/webp' }),
+      width: 512,
+      height: 512,
+      metadata: { workflow: '{}' },
+      assetId: 'a1',
+      params: workerParams
+    })
+
+    await new Promise((r) => setTimeout(r, 20))
+    const record = await getAssetMeta('PHASH')
+    expect(record?.params).toEqual(workerParams)
     bridge.destroy()
   })
 })
