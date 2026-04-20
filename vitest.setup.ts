@@ -1,3 +1,7 @@
+// Phase 2: IDB repository tests (src/platform/moshpit/services/thumbRepository.test.ts)
+// run in happy-dom which has no indexedDB. fake-indexeddb/auto registers the
+// required globals so vitest unit tests can exercise idb.openDB without a browser.
+import 'fake-indexeddb/auto'
 import '@testing-library/jest-dom/vitest'
 import { vi } from 'vitest'
 import 'vue'
