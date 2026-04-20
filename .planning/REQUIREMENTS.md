@@ -38,14 +38,14 @@
 - [ ] **FILTER-08**: Filtering is subtractive — non-matching assets are hidden entirely, not dimmed
 - [ ] **FILTER-09**: Assets lacking the filtered parameter are hidden
 - [x] **FILTER-10**: Filter chips render in the Settings panel; clicking removes the chip
-- [ ] **FILTER-11**: Default filter set hides soft-deleted (hidden) assets; a "show hidden" toggle reveals them
+- [x] **FILTER-11**: Default filter set hides soft-deleted (hidden) assets; a "show hidden" toggle reveals them
 
 ### Sorting
 
-- [ ] **SORT-01**: User can apply 1D sort with vertical packing (parameter → X-axis columns, Y-axis packs to fit)
-- [ ] **SORT-02**: User can apply 2D parameter scatter (parameter → X-axis, parameter → Y-axis)
+- [x] **SORT-01**: User can apply 1D sort with vertical packing (parameter → X-axis columns, Y-axis packs to fit)
+- [x] **SORT-02**: User can apply 2D parameter scatter (parameter → X-axis, parameter → Y-axis)
 - [ ] **SORT-03**: Assets lacking the sorted parameter are hidden
-- [ ] **SORT-04**: User can configure grid spacing between assets
+- [x] **SORT-04**: User can configure grid spacing between assets
 - [ ] **SORT-05**: All asset positioning is grid-snapped
 
 ### Canvas Navigation
@@ -168,11 +168,11 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | FILTER-08   | 3     | Pending |
 | FILTER-09   | 3     | Pending |
 | FILTER-10   | 3     | Complete |
-| FILTER-11   | 3     | Pending |
-| SORT-01     | 3     | Pending |
-| SORT-02     | 3     | Pending |
+| FILTER-11   | 3     | Complete |
+| SORT-01     | 3     | Complete |
+| SORT-02     | 3     | Complete |
 | SORT-03     | 3     | Pending |
-| SORT-04     | 3     | Pending |
+| SORT-04     | 3     | Complete |
 | SORT-05     | 3     | Pending |
 | NAV-01      | 1     | Pending |
 | NAV-02      | 1     | Pending |
