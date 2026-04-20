@@ -1,6 +1,6 @@
 import { useKeyModifier } from '@vueuse/core'
 import type { CSSProperties, Ref } from 'vue'
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 
 import { useClickDragGuard } from '@/composables/useClickDragGuard'
 import { useMoshpitSelectionStore } from '@/platform/moshpit/stores/moshpitSelectionStore'
@@ -49,7 +49,14 @@ export function useMoshpitMarquee(options: UseMoshpitMarqueeOptions) {
   function onPointerDown(e: PointerEvent) {
     if (e.button !== 0) return
     // Ignore clicks on interactive children (assets, later phases)
-    if (e.target instanceof HTMLElement && e.target.closest('[data-moshpit-asset]')) return
+    if (
+      e.target instanceof HTMLElement &&
+      e.target.closest('[data-moshpit-asset]')
+    )
+      return
+    // Safety reset: if a prior drag never received its pointerup (pointercancel,
+    // synthesized events, capture hand-off), discard in-flight state before starting fresh.
+    if (isDragging.value || rect.value) cancel()
 
     const el = containerEl.value
     if (!el) return
@@ -121,6 +128,10 @@ export function useMoshpitMarquee(options: UseMoshpitMarqueeOptions) {
     rect.value = null
     reset()
   }
+
+  onBeforeUnmount(() => {
+    cancel()
+  })
 
   return { isDragging, rect, overlayStyle, onPointerDown, cancel }
 }
