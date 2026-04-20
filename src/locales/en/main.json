@@ -1052,6 +1052,14 @@
       "openMoshpit": "Open Moshpit",
       "backToWorkflow": "Back to Workflow"
     },
+    "assets": {
+      "processing": "Processing {done} / {total}",
+      "cancel": "Cancel processing",
+      "excludedCount": "{count} asset excluded: no metadata | {count} assets excluded: no metadata",
+      "excludedTooltip": "Assets are excluded because they don't contain parseable ComfyUI metadata. Moshpit only renders generated images with embedded workflow data.",
+      "excludedTooltipLabel": "Why are assets excluded?",
+      "processingComplete": "Processing complete"
+    },
     "canvas": {
       "emptyState": "No assets — add a workflow and run some generations"
     },
