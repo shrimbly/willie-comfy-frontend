@@ -1349,6 +1349,28 @@ export function useCoreCommands(): ComfyCommand[] {
         if (newMode) useTelemetry()?.trackEnterLinear({ source })
         canvasStore.linearMode = newMode
       }
+    },
+    {
+      id: 'Moshpit.Workspace.Open',
+      label: t('moshpit.workspace.openMoshpit'),
+      icon: 'pi pi-th-large',
+      versionAdded: '1.31.0',
+      category: 'view-controls' as const,
+      function: async () => {
+        const router = (await import('@/router')).default
+        await router.push('/moshpit')
+      }
+    },
+    {
+      id: 'Moshpit.Workspace.BackToWorkflow',
+      label: t('moshpit.workspace.backToWorkflow'),
+      icon: 'pi pi-arrow-left',
+      versionAdded: '1.31.0',
+      category: 'view-controls' as const,
+      function: async () => {
+        const router = (await import('@/router')).default
+        await router.push('/')
+      }
     }
   ]
 

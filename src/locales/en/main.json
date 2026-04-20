@@ -1046,6 +1046,26 @@
     "queue": "Queue Panel",
     "fullscreen": "Fullscreen"
   },
+  "moshpit": {
+    "workspace": {
+      "title": "Moshpit",
+      "openMoshpit": "Open Moshpit",
+      "backToWorkflow": "Back to Workflow"
+    },
+    "canvas": {
+      "emptyState": "No assets — add a workflow and run some generations"
+    },
+    "commands": {
+      "fitView": "Fit canvas to view",
+      "zoomToSelection": "Zoom to selection",
+      "selectAll": "Select all assets",
+      "clearSelection": "Clear selection"
+    },
+    "sidebar": {
+      "settings": "Settings",
+      "toggleSettings": "Toggle Settings Panel"
+    }
+  },
   "tabMenu": {
     "duplicateTab": "Duplicate Tab",
     "closeTab": "Close Tab",

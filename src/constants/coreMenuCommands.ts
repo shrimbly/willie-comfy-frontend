@@ -37,6 +37,7 @@ export const CORE_MENU_COMMANDS = [
     ]
   ],
   [['View'], []],
+  [['View'], ['Moshpit.Workspace.Open', 'Moshpit.Workspace.BackToWorkflow']],
   [
     ['Help'],
     [
