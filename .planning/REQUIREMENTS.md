@@ -29,15 +29,15 @@
 ### Filtering
 
 - [ ] **FILTER-01**: Initial filter gate requires workflow selector + time range (today / week / month / all / custom) before canvas populates
-- [ ] **FILTER-02**: User can filter by model (checkpoint)
-- [ ] **FILTER-03**: User can filter by LoRA (name + weight)
-- [ ] **FILTER-04**: User can filter by CFG, steps, sampler, scheduler, seed, resolution (width × height)
-- [ ] **FILTER-05**: User can filter by prompt and negative prompt via substring / keyword match
+- [x] **FILTER-02**: User can filter by model (checkpoint)
+- [x] **FILTER-03**: User can filter by LoRA (name + weight)
+- [x] **FILTER-04**: User can filter by CFG, steps, sampler, scheduler, seed, resolution (width × height)
+- [x] **FILTER-05**: User can filter by prompt and negative prompt via substring / keyword match
 - [ ] **FILTER-06**: User can filter by generation time
-- [ ] **FILTER-07**: User can filter by user-applied tags and favourite status
+- [x] **FILTER-07**: User can filter by user-applied tags and favourite status
 - [ ] **FILTER-08**: Filtering is subtractive — non-matching assets are hidden entirely, not dimmed
 - [ ] **FILTER-09**: Assets lacking the filtered parameter are hidden
-- [ ] **FILTER-10**: Filter chips render in the Settings panel; clicking removes the chip
+- [x] **FILTER-10**: Filter chips render in the Settings panel; clicking removes the chip
 - [ ] **FILTER-11**: Default filter set hides soft-deleted (hidden) assets; a "show hidden" toggle reveals them
 
 ### Sorting
@@ -159,15 +159,15 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | ASSET-09    | 2     | Pending |
 | ASSET-10    | 2     | Pending |
 | FILTER-01   | 3     | Pending |
-| FILTER-02   | 3     | Pending |
-| FILTER-03   | 3     | Pending |
-| FILTER-04   | 3     | Pending |
-| FILTER-05   | 3     | Pending |
+| FILTER-02   | 3     | Complete |
+| FILTER-03   | 3     | Complete |
+| FILTER-04   | 3     | Complete |
+| FILTER-05   | 3     | Complete |
 | FILTER-06   | 3     | Pending |
-| FILTER-07   | 3     | Pending |
+| FILTER-07   | 3     | Complete |
 | FILTER-08   | 3     | Pending |
 | FILTER-09   | 3     | Pending |
-| FILTER-10   | 3     | Pending |
+| FILTER-10   | 3     | Complete |
 | FILTER-11   | 3     | Pending |
 | SORT-01     | 3     | Pending |
 | SORT-02     | 3     | Pending |

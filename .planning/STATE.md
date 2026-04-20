@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-last_updated: "2026-04-20T18:36:55.512Z"
+last_updated: "2026-04-20T22:34:49.811Z"
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 18
-  completed_plans: 18
-  percent: 100
+  total_plans: 29
+  completed_plans: 26
+  percent: 90
 ---
 
 # Project State
@@ -56,6 +56,9 @@ Progress: `[░░░░░░░░░░] 0 / 7 phases`
 - Toast-based undo with ~8s window for bulk curation actions.
 - LoRA diff is name-based, order-insensitive set diff.
 - No telemetry in v1; validation via qualitative dogfooding.
+- [Phase 03]: emitted<unknown[]>() typing pattern required to satisfy vue-tsc on @testing-library/vue emitted() return type
+- [Phase 03]: Module-level pinia instance pattern for tests that seed store state before component mount
+- [Phase 03]: role=option on param picker <li> items enables reliable userEvent.click() in happy-dom
 
 ### Active Todos
 
@@ -67,7 +70,7 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T18:36:55.507Z
+**Last session:** 2026-04-20T22:34:49.804Z
 
 **Context for next session:**
 
