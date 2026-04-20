@@ -20,8 +20,16 @@
             <i class="icon-[lucide--copy] text-sm"></i>
           </button>
         </div>
-        <div>
+        <div class="flex items-center gap-2">
           <span>{{ formattedExecutionTime }}</span>
+          <Button
+            variant="secondary"
+            size="sm"
+            :title="$t('moshpit.workspace.openMoshpit')"
+            @click="openMoshpit"
+          >
+            <i class="icon-[lucide--layout-grid] size-4" />
+          </Button>
         </div>
       </div>
       <!-- Advanced view title -->
@@ -35,6 +43,25 @@
         >
           {{ $t('sideToolbar.mediaAssets.title') }}
         </span>
+        <Button
+          variant="secondary"
+          size="sm"
+          :title="$t('moshpit.workspace.openMoshpit')"
+          @click="openMoshpit"
+        >
+          <i class="icon-[lucide--layout-grid] size-4" />
+        </Button>
+      </div>
+      <!-- Default view: title is rendered by the <span> in SidebarTabTemplate -->
+      <div v-else class="ml-auto">
+        <Button
+          variant="secondary"
+          size="sm"
+          :title="$t('moshpit.workspace.openMoshpit')"
+          @click="openMoshpit"
+        >
+          <i class="icon-[lucide--layout-grid] size-4" />
+        </Button>
       </div>
     </template>
     <template #header>
@@ -1244,6 +1271,11 @@ const handleEmptySpaceClick = () => {
   if (hasSelection) {
     clearSelection()
   }
+}
+
+const openMoshpit = async () => {
+  const router = (await import('@/router')).default
+  await router.push('/moshpit')
 }
 
 const copyJobId = async () => {
