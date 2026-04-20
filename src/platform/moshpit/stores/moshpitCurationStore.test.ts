@@ -1,7 +1,25 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import type { NormalizedParams } from '../services/paramNormalize'
 import { useMoshpitCurationStore } from './moshpitCurationStore'
+
+const stubParams: NormalizedParams = {
+  model: undefined,
+  loras: [],
+  cfg: undefined,
+  steps: undefined,
+  sampler: undefined,
+  scheduler: undefined,
+  seed: undefined,
+  positivePrompt: undefined,
+  negativePrompt: undefined,
+  width: undefined,
+  height: undefined,
+  timestamp: 0,
+  workflowFingerprint: '',
+  workflowFilename: null
+}
 
 describe('moshpitCurationStore', () => {
   beforeEach(() => setActivePinia(createPinia()))
@@ -11,7 +29,8 @@ describe('moshpitCurationStore', () => {
     store.load({
       contentHash: 'h1',
       metadata: {},
-      curation: { favourite: true, tags: ['a'], folders: [], hidden: false }
+      curation: { favourite: true, tags: ['a'], folders: [], hidden: false },
+      params: stubParams
     })
     expect(store.get('h1')?.favourite).toBe(true)
     expect(store.get('h1')?.tags).toEqual(['a'])
@@ -27,7 +46,8 @@ describe('moshpitCurationStore', () => {
     store.load({
       contentHash: 'h1',
       metadata: {},
-      curation: { favourite: false, tags: [], folders: [], hidden: false }
+      curation: { favourite: false, tags: [], folders: [], hidden: false },
+      params: stubParams
     })
     store.reset()
     expect(store.get('h1')).toBeUndefined()
