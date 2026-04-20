@@ -1078,7 +1078,7 @@
       "workflowPickerLabel": "Select workflow",
       "workflowPickerPlaceholder": "Select a workflow\u2026",
       "workflowPickerSearch": "Search workflows\u2026",
-      "workflowOptionCount": "{name} ({count, number} asset) | {name} ({count, number} assets)",
+      "workflowOptionCount": "{name} ({count} asset) | {name} ({count} assets)",
       "timeRangeLabel": "Time range",
       "timeRangeToday": "Today",
       "timeRangeThisWeek": "This week",
