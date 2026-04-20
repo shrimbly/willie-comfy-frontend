@@ -82,6 +82,11 @@ const router = createRouter({
           component: () => import('@/views/UserSelectView.vue')
         }
       ]
+    },
+    {
+      path: '/moshpit',
+      name: 'MoshpitView',
+      component: () => import('@/views/layouts/MoshpitLayout.vue')
     }
   ],
 

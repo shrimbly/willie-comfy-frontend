@@ -32,6 +32,8 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: 'GraphView' })
+
 import { useEventListener, useIntervalFn } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import type { ToastMessageOptions } from 'primevue/toast'

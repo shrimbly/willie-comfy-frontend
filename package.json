@@ -104,6 +104,8 @@
     "loglevel": "^1.9.2",
     "marked": "^15.0.11",
     "pinia": "catalog:",
+    "pixi-viewport": "catalog:",
+    "pixi.js": "catalog:",
     "posthog-js": "catalog:",
     "primeicons": "catalog:",
     "primevue": "catalog:",

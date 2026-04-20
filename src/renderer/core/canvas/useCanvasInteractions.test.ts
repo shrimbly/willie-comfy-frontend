@@ -350,7 +350,7 @@ describe('useCanvasInteractions', () => {
 
       expect(app.canvas.canvas.dispatchEvent).toHaveBeenCalledTimes(1)
       const dispatched = vi.mocked(app.canvas.canvas.dispatchEvent).mock
-        .calls[0][0]
+        .calls[0][0] as Event
       // The production code reconstructs via `new WheelEvent(...)` — verify the constructor name
       expect(dispatched.constructor.name).toBe('WheelEvent')
     })

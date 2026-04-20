@@ -1,5 +1,9 @@
 <template>
-  <router-view />
+  <router-view v-slot="{ Component }">
+    <keep-alive :include="['GraphView']">
+      <component :is="Component" />
+    </keep-alive>
+  </router-view>
   <GlobalDialog />
   <BlockUI full-screen :blocked="isLoading" />
 </template>
