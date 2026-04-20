@@ -29,7 +29,8 @@ function params(overrides: Partial<NormalizedParams>): NormalizedParams {
     width: undefined,
     height: undefined,
     timestamp: NOW_MS,
-    workflowFingerprint: undefined,
+    workflowFingerprint: '',
+    workflowFilename: null,
     ...overrides
   }
 }
@@ -728,7 +729,7 @@ describe('applyFilterChips — integration', () => {
     const { hashToParams, hashToCuration } = buildMaps([
       { hash: 'a', p: params({}) },
       { hash: 'b', p: params({}) },
-      { hash: 'c', p: params({ hidden: undefined }) }
+      { hash: 'c', p: params({}) }
     ])
     const result = applyFilterChips(
       hashToParams,
