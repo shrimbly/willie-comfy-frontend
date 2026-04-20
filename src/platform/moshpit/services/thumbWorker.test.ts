@@ -42,7 +42,8 @@ describe('processAsset', () => {
     id: 'f1:a1',
     filterId: 'f1',
     fetchUrl: 'https://example.test/a.png',
-    assetHash: 'CLOUD_HASH'
+    assetHash: 'CLOUD_HASH',
+    assetId: 'a1'
   }
 
   it('posts thumbReady with cloud asset_hash on happy path', async () => {

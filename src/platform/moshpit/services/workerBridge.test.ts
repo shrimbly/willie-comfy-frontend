@@ -46,7 +46,8 @@ describe('workerBridge', () => {
       id: 'f1:a1',
       filterId: 'f1',
       fetchUrl: 'https://example.test/a.png',
-      assetHash: 'H'
+      assetHash: 'H',
+      assetId: 'a1'
     })
     // Flush the idle callback (falls back to setTimeout in test env)
     await new Promise((r) => setTimeout(r, 0))
@@ -68,7 +69,8 @@ describe('workerBridge', () => {
       blob: new Blob(['x'], { type: 'image/webp' }),
       width: 512,
       height: 512,
-      metadata: { workflow: '{}' }
+      metadata: { workflow: '{}' },
+      assetId: 'a1'
     })
 
     await new Promise((r) => setTimeout(r, 20))
@@ -92,7 +94,8 @@ describe('workerBridge', () => {
       blob: new Blob(['x']),
       width: 512,
       height: 512,
-      metadata: { workflow: '{}' }
+      metadata: { workflow: '{}' },
+      assetId: 'a1'
     })
 
     await new Promise((r) => setTimeout(r, 20))

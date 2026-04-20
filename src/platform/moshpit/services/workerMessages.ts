@@ -16,6 +16,8 @@ export interface EnqueueAssetInput {
   readonly filterId: string // stale-response guard (RESEARCH §6)
   readonly fetchUrl: string // main thread resolved via getAssetUrl
   readonly assetHash: string | null // cloud fast-path; null → client hash
+  /** AssetItem.id — echoed back in thumbReady for OSS-path hash bridging. */
+  readonly assetId: string
 }
 
 export type WorkerInMessage =
@@ -32,6 +34,9 @@ export interface ThumbReadyMessage {
   readonly width: number
   readonly height: number
   readonly metadata: Record<string, string>
+  /** Echoed from EnqueueAssetInput.assetId — bridges OSS-path assets whose
+   *  server-side asset_hash is null back to their AssetItem.id. */
+  readonly assetId: string
 }
 
 export interface ExcludedMessage {

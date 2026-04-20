@@ -54,7 +54,7 @@ export async function processAsset(
   ctx: ProcessCtx
 ): Promise<void> {
   if (signal.aborted) return
-  const { id, filterId, fetchUrl, assetHash } = input
+  const { id, filterId, fetchUrl, assetHash, assetId } = input
 
   let buffer: ArrayBuffer
   try {
@@ -104,7 +104,10 @@ export async function processAsset(
       blob: thumb.blob,
       width: thumb.width,
       height: thumb.height,
-      metadata
+      metadata,
+      // Echo assetId back so the main-thread bridge can record the
+      // asset.id → contentHash mapping for OSS-path assets (no asset_hash).
+      assetId
     }
     // Blob is structured-cloneable; no transferable list needed. Keeping the
     // signature open for future Transferable-based optimisation.
