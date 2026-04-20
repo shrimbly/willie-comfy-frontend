@@ -22,6 +22,7 @@ const viewportStore = useMoshpitViewportStore()
 let app: Application | null = null
 let viewport: Viewport | null = null
 let rafHandle: number | null = null
+let cancelled = false
 
 const WORLD_SIZE = 10_000
 
@@ -29,14 +30,21 @@ onMounted(async () => {
   const host = pixiHostRef.value
   if (!host) return
 
-  app = new Application()
-  await app.init({
+  const pending = new Application()
+  await pending.init({
     resizeTo: host,
     background: 0x111111,
     antialias: false,
     autoDensity: true,
     resolution: window.devicePixelRatio || 1
   })
+  // Component unmounted while awaiting init — discard and bail out so we don't
+  // leak the Application, the canvas DOM node, or the RAF loop.
+  if (cancelled) {
+    pending.destroy(true, { children: true, texture: true })
+    return
+  }
+  app = pending
   host.appendChild(app.canvas)
 
   viewport = new Viewport({
@@ -66,7 +74,7 @@ onMounted(async () => {
 
   // Frame loop: consume pending imperatives from store (fit/zoomToSelection commands)
   const tick = () => {
-    if (!viewport) return
+    if (cancelled || !viewport) return
     if (viewportStore.consumeFitView()) {
       viewport.fitWorld()
     }
@@ -89,11 +97,15 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  if (rafHandle !== null) cancelAnimationFrame(rafHandle)
-  if (viewport) {
-    viewport.destroy({ children: true })
-    viewport = null
+  cancelled = true
+  if (rafHandle !== null) {
+    cancelAnimationFrame(rafHandle)
+    rafHandle = null
   }
+  // Application.destroy with { children: true } cascades through the stage and
+  // tears the viewport down with it, so we don't call viewport.destroy() here
+  // to avoid double-free / "already destroyed" warnings from pixi-viewport.
+  viewport = null
   if (app) {
     app.destroy(true, { children: true, texture: true })
     app = null
