@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { render, screen, waitFor } from '@testing-library/vue'
 import userEvent from '@testing-library/user-event'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -82,9 +82,12 @@ async function openPopover(user: ReturnType<typeof userEvent.setup>) {
   await screen.findByPlaceholderText(enMessages.moshpit.filters.searchParams)
 }
 
-async function clickParamOption(label: string) {
+async function clickParamOption(
+  user: ReturnType<typeof userEvent.setup>,
+  label: string
+) {
   const option = await screen.findByRole('option', { name: label })
-  fireEvent.click(option)
+  await user.click(option)
 }
 
 describe('MoshpitAddFilterPopover', () => {
@@ -150,7 +153,7 @@ describe('MoshpitAddFilterPopover', () => {
     mountPopover()
 
     await openPopover(user)
-    await clickParamOption(enMessages.moshpit.filters.paramCfg)
+    await clickParamOption(user, enMessages.moshpit.filters.paramCfg)
 
     // The dynamic editor wrapper has data-testid="moshpit-add-filter-editor"
     // and the stub renders "numeric-editor" text to identify which editor is mounted
@@ -163,7 +166,7 @@ describe('MoshpitAddFilterPopover', () => {
     mountPopover()
 
     await openPopover(user)
-    await clickParamOption(enMessages.moshpit.filters.paramCfg)
+    await clickParamOption(user, enMessages.moshpit.filters.paramCfg)
 
     // We should be in step 2
     await screen.findByTestId('moshpit-add-filter-editor')
@@ -184,7 +187,7 @@ describe('MoshpitAddFilterPopover', () => {
     mountPopover()
 
     await openPopover(user)
-    await clickParamOption(enMessages.moshpit.filters.paramCfg)
+    await clickParamOption(user, enMessages.moshpit.filters.paramCfg)
 
     const applyBtn = await screen.findByTestId('moshpit-add-filter-apply')
     expect(applyBtn).toBeDisabled()
@@ -199,11 +202,11 @@ describe('MoshpitAddFilterPopover', () => {
     await openPopover(user)
 
     // Select numeric param (cfg)
-    await clickParamOption(enMessages.moshpit.filters.paramCfg)
+    await clickParamOption(user, enMessages.moshpit.filters.paramCfg)
 
     // Editor stub emits a value when its root div is clicked
     const editorWrapper = await screen.findByTestId('moshpit-add-filter-editor')
-    fireEvent.click(editorWrapper)
+    await user.click(editorWrapper)
 
     // Apply button should be enabled now
     const applyBtn = await screen.findByTestId('moshpit-add-filter-apply')
@@ -226,7 +229,7 @@ describe('MoshpitAddFilterPopover', () => {
     mountPopover()
 
     await openPopover(user)
-    await clickParamOption(enMessages.moshpit.filters.paramFavourite)
+    await clickParamOption(user, enMessages.moshpit.filters.paramFavourite)
 
     await screen.findByTestId('moshpit-add-filter-editor')
     expect(screen.getByText('boolean-editor')).toBeInTheDocument()
