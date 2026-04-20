@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/vue'
-import { computed, defineComponent, ref, shallowRef } from 'vue'
+import { computed, ref, shallowRef } from 'vue'
 
 import {
   MOSHPIT_VIEWPORT_INJECTION_KEY
@@ -61,16 +61,6 @@ beforeEach(() => {
 /** Mount overlay with a provided fake viewport (or null to simulate pre-init). */
 function renderWithViewport(viewport: ReturnType<typeof makeFakeViewport> | null = null) {
   const viewportRef = shallowRef(viewport)
-
-  // Wrapper component provides the injection key so overlay can inject it.
-  const Wrapper = defineComponent({
-    setup() {
-      const { default: provide } = { default: (k: symbol, v: unknown) => k && v }
-      void provide
-      return {}
-    },
-    template: '<slot />'
-  })
 
   return render(MoshpitAxisOverlay, {
     global: {
