@@ -81,8 +81,22 @@
 3. User can sort by a parameter on X (with vertical packing) or by two parameters as a 2D scatter; assets lacking the sorted parameter are hidden, all positioning is grid-snapped, grid spacing is user-configurable
 4. Filter chips are click-to-remove in the Settings panel; default view hides soft-deleted assets and can reveal them via a "show hidden" toggle
 5. Running a parameter sweep (e.g. CFG on X) on a real workflow produces a visibly legible spatial arrangement of the filtered set
-   **Plans**: TBD
-   **UI hint**: yes
+
+**Plans:** 10 plans (4 waves)
+
+Plans:
+- [ ] 03-01-PLAN.md — Pure paramNormalize + NormalizedParamsSchema (FILTER-02/03/04/05/06/09 foundation)
+- [ ] 03-02-PLAN.md — Pure filterMath predicates + filterTypes domain (FILTER-02/03/04/05/06/07/08/09/11)
+- [ ] 03-03-PLAN.md — Pure sortMath 1D/2D layout (SORT-01/02/03/04/05)
+- [ ] 03-04-PLAN.md — Worker/IDB v2 migration + metadata store wiring for params (FILTER-02..09)
+- [ ] 03-05-PLAN.md — moshpitFilterStore + useMoshpitFilteredAssets + sprite layer layoutProvider (FILTER-01/08/10/11, SORT-01..05)
+- [ ] 03-06-PLAN.md — i18n + MoshpitWorkflowPicker + MoshpitTimeRangePicker initial gate (FILTER-01, FILTER-06)
+- [ ] 03-07-PLAN.md — MoshpitFilterChipRow + MoshpitAddFilterPopover (FILTER-02/03/04/05/07/10)
+- [ ] 03-08-PLAN.md — MoshpitSortControls + grid spacing + show-hidden toggle (SORT-01/02/04, FILTER-11)
+- [ ] 03-09-PLAN.md — MoshpitAxisOverlay + viewport injection key (SORT-01/02)
+- [ ] 03-10-PLAN.md — Settings panel composition + Playwright + HUMAN-UAT + VALIDATION map [human checkpoint]
+
+**UI hint**: yes
 
 ### Phase 4: Comparison Mode
 
@@ -147,7 +161,7 @@
 | -------------------------------------- | -------------- | ----------- | ---------- |
 | 1. Workspace Shell & Canvas Navigation | 6/6            | Complete    | 2026-04-20 |
 | 2. Asset Pipeline                      | 0/12           | Planned     | -          |
-| 3. Filter & Sort (Core Validation)     | 0/?            | Not started | -          |
+| 3. Filter & Sort (Core Validation)     | 0/10           | Planned     | -          |
 | 4. Comparison Mode                     | 0/?            | Not started | -          |
 | 5. Curation                            | 0/?            | Not started | -          |
 | 6. Generate More Like This (Mocked)    | 0/?            | Not started | -          |
