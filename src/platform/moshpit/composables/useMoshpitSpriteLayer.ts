@@ -120,7 +120,10 @@ export function useMoshpitSpriteLayer(
     // Upgrade texture source options after Texture.from creates it. In Pixi v8
     // mipmaps default on for image resources; the explicit sets keep the
     // contract visible for future maintainers.
-    if (texture.source instanceof ImageSource) {
+    // source is undefined when the blob URL has been revoked or the asset
+    // is not yet in the Pixi Assets cache — skip the upgrade in that case
+    // rather than crashing the sprite layer.
+    if (texture.source && texture.source instanceof ImageSource) {
       texture.source.autoGenerateMipmaps = true
       texture.source.autoGarbageCollect = true
     }

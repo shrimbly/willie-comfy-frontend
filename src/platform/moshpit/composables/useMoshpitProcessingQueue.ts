@@ -120,6 +120,10 @@ export function useMoshpitProcessingQueue(options?: {
 
   const offError = bridge.onError((msg) => {
     console.error('[moshpit] worker error', msg.message)
+    // Failed items never emit thumbReady, so done.value would never catch up
+    // to total.value — the processing indicator would stick at N-1/N forever.
+    // Shrink total so (done === total) eventually holds for the surviving items.
+    total.value = Math.max(0, total.value - 1)
   })
 
   async function setFilter(
