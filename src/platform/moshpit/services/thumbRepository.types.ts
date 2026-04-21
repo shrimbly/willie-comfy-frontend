@@ -45,9 +45,13 @@ export interface MoshpitDB extends DBSchema {
 
 export const MOSHPIT_DB_NAME = 'moshpit-v1'
 /**
- * Bumped to 2 in Phase 3 Plan 04: assetMeta records gain a `params: NormalizedParams` field.
- * The upgrade callback re-parses params for all existing v1 records.
+ * v1: initial stores (no params field).
+ * v2 (Phase 3 Plan 04): assetMeta gains `params: NormalizedParams`.
+ * v3 (Phase 4 Plan 02): `params.saveNodeIdentity` added — re-derived from
+ *   rec.metadata by a cursor-based upgrade (D-11). Per-record try/catch with
+ *   aggregate skip counter; upgrade transaction never aborts (Pitfall 4).
+ *
  * Increment again if Phase 5 adds indexes (e.g. by-tag on assetMeta);
  * always provide an `upgrade` branch for the new version number.
  */
-export const MOSHPIT_DB_VERSION = 2
+export const MOSHPIT_DB_VERSION = 3

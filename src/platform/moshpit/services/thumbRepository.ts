@@ -12,10 +12,16 @@
  *   v2 — Phase 3 Plan 04: assetMeta gains `params: NormalizedParams`.
  *         Upgrade callback re-parses params for all existing v1 records via
  *         normalizeParams (cursor-based, O(1) memory). See T-03-04-01 mitigation.
+ *   v3 — Phase 4 Plan 02: params.saveNodeIdentity added (D-08 / D-11).
+ *         Upgrade callback re-derives saveNodeIdentity from rec.metadata for
+ *         every existing record; per-record try/catch + aggregate skip log
+ *         (T-04-02-01 mitigation; Pitfall 4 — never throw from upgrade).
  */
 
-import { type IDBPDatabase, openDB } from 'idb'
+import type { IDBPDatabase } from 'idb'
+import { openDB } from 'idb'
 
+import type { NormalizedParams } from './paramNormalize'
 import { normalizeParams } from './paramNormalize'
 import type {
   AssetMetaRecord,
@@ -45,11 +51,19 @@ export function openMoshpitDB(): Promise<IDBPDatabase<MoshpitDB>> {
         const store = tx.objectStore('assetMeta')
         let cursor = await store.openCursor()
         while (cursor) {
-          const rec = cursor.value
-          if (!('params' in rec)) {
+          // Cursor value at v1 is a legacy shape (no `params`), not AssetMetaRecord.
+          // Read as `unknown` then narrow the shape we actually touch.
+          const rec = cursor.value as unknown as {
+            readonly contentHash: string
+            readonly metadata: Readonly<Record<string, string>>
+          }
+          if (!('params' in (rec as object))) {
             try {
               const params = normalizeParams(rec.metadata, Date.now())
-              await cursor.update({ ...rec, params })
+              await cursor.update({
+                ...(rec as object),
+                params
+              } as AssetMetaRecord)
             } catch (err) {
               // Belt-and-braces: if a single record's metadata is malformed,
               // skip it — its next write will populate params correctly.
@@ -61,6 +75,39 @@ export function openMoshpitDB(): Promise<IDBPDatabase<MoshpitDB>> {
             }
           }
           cursor = await cursor.continue()
+        }
+      }
+      // v2 → v3: re-derive saveNodeIdentity on every assetMeta record from its
+      // already-stored rec.metadata. Cursor-based streaming; per-record
+      // try/catch with an aggregate skip counter surfaced via console.warn
+      // at the end (T-04-02-01; Pitfall 4 — never throw from upgrade).
+      if (oldVersion < 3) {
+        const store = tx.objectStore('assetMeta')
+        let cursor = await store.openCursor()
+        let skipped = 0
+        while (cursor) {
+          const rec = cursor.value
+          try {
+            const fresh = normalizeParams(
+              rec.metadata,
+              rec.params?.timestamp ?? Date.now()
+            )
+            const nextParams: NormalizedParams = rec.params
+              ? { ...rec.params, saveNodeIdentity: fresh.saveNodeIdentity }
+              : fresh
+            await cursor.update({ ...rec, params: nextParams })
+          } catch (err) {
+            skipped += 1
+            console.error(
+              '[moshpit] v2→v3 migration failed for record',
+              rec.contentHash,
+              err
+            )
+          }
+          cursor = await cursor.continue()
+        }
+        if (skipped > 0) {
+          console.warn(`[moshpit] v2→v3 migration skipped ${skipped} records`)
         }
       }
     },

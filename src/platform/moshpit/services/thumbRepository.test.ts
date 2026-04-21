@@ -515,8 +515,12 @@ describe('thumbRepository v2→v3 migration (D-11)', () => {
     // At least one error logged for the skipped record
     expect(errorSpy).toHaveBeenCalled()
     // Aggregate warn emitted with v2→v3 skip count
-    const warnCalls = warnSpy.mock.calls.map((c) => String(c[0]))
-    expect(warnCalls.some((msg) => /v2.*v3.*skipped/i.test(msg))).toBe(true)
+    const warnCalls: string[] = warnSpy.mock.calls.map((c: unknown[]) =>
+      String(c[0])
+    )
+    expect(warnCalls.some((msg: string) => /v2.*v3.*skipped/i.test(msg))).toBe(
+      true
+    )
   })
 
   it('v2→v3 migration is idempotent across re-opens (cached DB returned)', async () => {
