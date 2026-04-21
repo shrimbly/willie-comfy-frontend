@@ -261,7 +261,7 @@ describe('MoshpitFilterChipRow', () => {
       ).toBeInTheDocument()
     })
 
-    it('tier="advanced" renders advanced chips (cfg, sampler) and does NOT render the popover', () => {
+    it('tier="advanced" renders advanced chips (cfg, sampler) and exposes the Add filter popover', () => {
       seedMixedChips()
       mountChipRow({ tier: 'advanced' })
       const chips = screen.getAllByTestId('moshpit-filter-chip')
@@ -269,9 +269,11 @@ describe('MoshpitFilterChipRow', () => {
       const text = chips.map((c) => c.textContent ?? '').join(' ')
       expect(text).toContain('6')
       expect(text).toContain('euler')
+      // Users expand the advanced disclosure specifically to add advanced
+      // filters — the add-filter trigger must be reachable from there too.
       expect(
-        screen.queryByTestId('moshpit-add-filter-trigger')
-      ).not.toBeInTheDocument()
+        screen.getByTestId('moshpit-add-filter-trigger')
+      ).toBeInTheDocument()
     })
 
     it('chipCount live-region reflects only the tier chip count for tier="primary"', () => {

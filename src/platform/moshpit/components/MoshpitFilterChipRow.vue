@@ -36,7 +36,7 @@
           <i class="icon-[lucide--x] size-3" aria-hidden="true" />
         </button>
       </div>
-      <MoshpitAddFilterPopover v-if="tier === 'primary'" />
+      <MoshpitAddFilterPopover />
     </div>
     <span class="sr-only" role="status" aria-live="polite">
       {{
