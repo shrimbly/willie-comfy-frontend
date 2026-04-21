@@ -9,7 +9,7 @@
       <div
         v-for="chip in chips"
         :key="chip.id"
-        class="flex items-start gap-1 rounded-md bg-secondary-background px-2 py-1 text-xs"
+        class="flex items-center gap-1 rounded-md bg-secondary-background px-2 py-1 text-xs"
         data-testid="moshpit-filter-chip"
       >
         <div class="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -24,7 +24,7 @@
           type="button"
           :class="
             cn(
-              'inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground',
+              'inline-flex size-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground',
               'hover:bg-secondary-background-hover hover:text-base-foreground',
               'focus-visible:ring-1 focus-visible:ring-primary-background'
             )
@@ -34,7 +34,7 @@
           "
           @click="filterStore.removeChip(chip.id)"
         >
-          <i class="icon-[lucide--x] size-3" aria-hidden="true" />
+          <i class="icon-[lucide--x] size-4" aria-hidden="true" />
         </button>
       </div>
     </div>
