@@ -31,9 +31,9 @@ function renderComponent() {
 }
 
 describe('MoshpitGridSpacingControl', () => {
-  it('renders the grid spacing label', () => {
+  it('renders the cluster spacing label from the grouping namespace', () => {
     renderComponent()
-    expect(screen.getByText('Grid spacing')).toBeTruthy()
+    expect(screen.getByText('Cluster spacing')).toBeTruthy()
   })
 
   it('displays the current gridSpacing value in px', () => {

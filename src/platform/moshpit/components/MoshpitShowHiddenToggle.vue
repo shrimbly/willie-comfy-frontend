@@ -7,11 +7,11 @@
       type="button"
       role="switch"
       :aria-checked="filterStore.showHidden"
-      :aria-label="t('moshpit.sort.showHiddenLabel')"
+      :aria-label="t('moshpit.filters.showHiddenLabel')"
       :class="
         cn(
           'relative inline-flex h-4 w-7 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-background focus-visible:ring-offset-1',
+          'focus-visible:ring-2 focus-visible:ring-primary-background focus-visible:ring-offset-1 focus-visible:outline-none',
           filterStore.showHidden
             ? 'bg-primary-background'
             : 'bg-secondary-background'
@@ -30,7 +30,7 @@
         aria-hidden="true"
       />
     </button>
-    <span>{{ t('moshpit.sort.showHiddenLabel') }}</span>
+    <span>{{ t('moshpit.filters.showHiddenLabel') }}</span>
   </label>
 </template>
 

@@ -1118,20 +1118,7 @@
       "editorSearchValues": "Search values\u2026",
       "editorFavouriteLabel": "Only favourited assets",
       "emptyStateHeading": "Pick a workflow to start",
-      "emptyStateBody": "Select a workflow and time range in the Settings panel to populate the canvas."
-    },
-    "sort": {
-      "sectionLabel": "Sort",
-      "xAxisLabel": "X",
-      "yAxisLabel": "Y",
-      "xAxisPlaceholder": "Sort by\u2026",
-      "yAxisPlaceholder": "+ Add Y axis",
-      "clearAxis": "Clear {axis} axis",
-      "axisSetAnnouncement": "Sorting by {param} on {axis} axis.",
-      "axisClearedAnnouncement": "Sort cleared.",
-      "gridSpacingLabel": "Grid spacing",
-      "gridSpacingValue": "{value}px",
-      "gridSpacingDisabledTooltip": "Set a sort axis to enable grid spacing",
+      "emptyStateBody": "Select a workflow and time range in the Settings panel to populate the canvas.",
       "showHiddenLabel": "Show hidden"
     },
     "grouping": {
@@ -1150,7 +1137,8 @@
         "alphabetical": "Alphabetical"
       },
       "otherLabel": "(other)",
-      "spacingLabel": "Cluster spacing"
+      "spacingLabel": "Cluster spacing",
+      "spacingValue": "{value}px"
     }
   },
   "tabMenu": {
