@@ -41,7 +41,7 @@ export function useMoshpitAssetRegistry(): {
   const { assetIdToHash } = storeToRefs(metaStore)
 
   const entries = computed<readonly AssetEntry[]>(() => {
-    const source = assetsStore.outputJobAssets
+    const source = assetsStore.historyAssets
     // Touch the asset-id map ref so the computed tracks it reactively.
     // .value access captures the dependency; any recordAssetHash mutation
     // triggers re-evaluation.

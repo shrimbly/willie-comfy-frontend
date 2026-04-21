@@ -87,7 +87,7 @@ watch(
     [
       filterStore.workflow,
       filterStore.timeRange,
-      assetsStore.outputJobAssets.length
+      assetsStore.historyAssets.length
     ] as const,
   ([workflow, timeRange]) => {
     // Gate: need a workflow OR a non-'all' time range (OR semantics — D-22).
@@ -108,7 +108,7 @@ watch(
     // Un-processed assets (no params yet) are passed optimistically — the
     // in-memory filter (useMoshpitFilteredAssets) excludes fingerprint
     // mismatches once params arrive via thumbReady (D-06 best-effort).
-    const candidates = assetsStore.outputJobAssets.filter((a) => {
+    const candidates = assetsStore.historyAssets.filter((a) => {
       const created = a.created_at ? new Date(a.created_at).getTime() : 0
       if (!(created >= fromMs && created <= toMs)) return false
       if (!workflow) return true
@@ -122,7 +122,7 @@ watch(
     console.warn('[moshpit] setFilter', {
       workflow,
       preset: timeRange.preset,
-      outputJobAssets: assetsStore.outputJobAssets.length,
+      historyAssets: assetsStore.historyAssets.length,
       candidates: candidates.length
     })
 
@@ -148,9 +148,9 @@ function onIndicatorDone(): void {
 onMounted(() => {
   document.getElementById('splash-loader')?.remove()
   // Moshpit is a peer of the Assets sidebar — users may land here directly
-  // without ever opening the sidebar that normally populates outputJobAssets.
+  // without ever opening the sidebar that normally populates historyAssets.
   // Trigger the fetch so the processing queue has candidates once a workflow
   // or time range is selected.
-  void assetsStore.updateOutputJobs()
+  void assetsStore.updateHistory()
 })
 </script>

@@ -101,7 +101,7 @@ describe('useMoshpitProcessingQueue (Wave 3)', () => {
 
     // Seed assetsStore with an OSS-path asset (asset_hash is null)
     const assetsStore = useAssetsStore()
-    assetsStore.outputJobAssets.push({
+    assetsStore.historyAssets.push({
       id: 'asset-1',
       name: 'output-001.png',
       asset_hash: null,
@@ -110,7 +110,7 @@ describe('useMoshpitProcessingQueue (Wave 3)', () => {
     })
 
     // setFilter triggers enqueue for the null-hash asset
-    await queue.setFilter('F1', assetsStore.outputJobAssets)
+    await queue.setFilter('F1', assetsStore.historyAssets)
     expect(bridge.enqueue).toHaveBeenCalledOnce()
 
     // Simulate the worker posting thumbReady back
@@ -153,7 +153,7 @@ describe('useMoshpitProcessingQueue (Wave 3)', () => {
     const expectedEpoch = new Date('2024-03-15T12:00:00Z').getTime()
 
     const assetsStore = useAssetsStore()
-    assetsStore.outputJobAssets.push({
+    assetsStore.historyAssets.push({
       id: 'asset-ts',
       name: 'sweep.png',
       asset_hash: null,
@@ -161,7 +161,7 @@ describe('useMoshpitProcessingQueue (Wave 3)', () => {
       created_at: createdAt
     })
 
-    await queue.setFilter('F1', assetsStore.outputJobAssets)
+    await queue.setFilter('F1', assetsStore.historyAssets)
 
     // Worker posts params with its own timestamp (Date.now() fallback)
     const workerTimestamp = 9999
@@ -233,7 +233,7 @@ describe('useMoshpitProcessingQueue (Wave 3)', () => {
 
     const queue = useMoshpitProcessingQueue({ bridge })
     const assetsStore = useAssetsStore()
-    assetsStore.outputJobAssets.push({
+    assetsStore.historyAssets.push({
       id: 'asset-warm',
       name: 'sweep.png',
       asset_hash: cachedHash,
@@ -241,7 +241,7 @@ describe('useMoshpitProcessingQueue (Wave 3)', () => {
       created_at: new Date().toISOString()
     })
 
-    await queue.setFilter('F1', assetsStore.outputJobAssets)
+    await queue.setFilter('F1', assetsStore.historyAssets)
 
     // No worker message should be posted (all cached)
     expect(bridge.enqueue).not.toHaveBeenCalled()
