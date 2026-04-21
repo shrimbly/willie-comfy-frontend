@@ -24,7 +24,7 @@ vi.mock('./MoshpitNumericFilterEditor.vue', () => ({
     props: ['modelValue', 'param'],
     emits: ['update:modelValue'],
     template:
-      '<div @click="$emit(\'update:modelValue\', { kind: \'numeric\', min: 6, max: 8, exact: null })"><span>numeric-editor</span></div>'
+      "<div @click=\"$emit('update:modelValue', { kind: 'numeric', min: 6, max: 8, exact: null })\"><span>numeric-editor</span></div>"
   }
 }))
 
@@ -34,7 +34,7 @@ vi.mock('./MoshpitCategoricalFilterEditor.vue', () => ({
     props: ['modelValue', 'param'],
     emits: ['update:modelValue'],
     template:
-      '<div @click="$emit(\'update:modelValue\', { kind: \'categorical\', values: [\'euler\'] })"><span>categorical-editor</span></div>'
+      "<div @click=\"$emit('update:modelValue', { kind: 'categorical', values: ['euler'] })\"><span>categorical-editor</span></div>"
   }
 }))
 
@@ -44,7 +44,7 @@ vi.mock('./MoshpitTextFilterEditor.vue', () => ({
     props: ['modelValue', 'param'],
     emits: ['update:modelValue'],
     template:
-      '<div @click="$emit(\'update:modelValue\', { kind: \'text\', substring: \'cat\' })"><span>text-editor</span></div>'
+      "<div @click=\"$emit('update:modelValue', { kind: 'text', substring: 'cat' })\"><span>text-editor</span></div>"
   }
 }))
 
@@ -54,7 +54,7 @@ vi.mock('./MoshpitResolutionFilterEditor.vue', () => ({
     props: ['modelValue', 'param'],
     emits: ['update:modelValue'],
     template:
-      '<div @click="$emit(\'update:modelValue\', { kind: \'resolution\', pairs: [[512, 512]] })"><span>resolution-editor</span></div>'
+      "<div @click=\"$emit('update:modelValue', { kind: 'resolution', pairs: [[512, 512]] })\"><span>resolution-editor</span></div>"
   }
 }))
 
@@ -64,7 +64,7 @@ vi.mock('./MoshpitBooleanFilterEditor.vue', () => ({
     props: ['modelValue', 'param'],
     emits: ['update:modelValue'],
     template:
-      '<div @click="$emit(\'update:modelValue\', { kind: \'boolean\', value: true })"><span>boolean-editor</span></div>'
+      "<div @click=\"$emit('update:modelValue', { kind: 'boolean', value: true })\"><span>boolean-editor</span></div>"
   }
 }))
 
@@ -99,7 +99,9 @@ describe('MoshpitAddFilterPopover', () => {
   it('renders trigger button with i18n Add filter label', () => {
     mountPopover()
     expect(screen.getByTestId('moshpit-add-filter-trigger')).toBeInTheDocument()
-    expect(screen.getByText(enMessages.moshpit.filters.addFilter)).toBeInTheDocument()
+    expect(
+      screen.getByText(enMessages.moshpit.filters.addFilter)
+    ).toBeInTheDocument()
   })
 
   it('clicking trigger opens popover and renders all 12 params in the param list', async () => {
@@ -108,11 +110,21 @@ describe('MoshpitAddFilterPopover', () => {
 
     await openPopover(user)
 
-    expect(screen.getByText(enMessages.moshpit.filters.paramModel)).toBeInTheDocument()
-    expect(screen.getByText(enMessages.moshpit.filters.paramLoras)).toBeInTheDocument()
-    expect(screen.getByText(enMessages.moshpit.filters.paramCfg)).toBeInTheDocument()
-    expect(screen.getByText(enMessages.moshpit.filters.paramSampler)).toBeInTheDocument()
-    expect(screen.getByText(enMessages.moshpit.filters.paramFavourite)).toBeInTheDocument()
+    expect(
+      screen.getByText(enMessages.moshpit.filters.paramModel)
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(enMessages.moshpit.filters.paramLoras)
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(enMessages.moshpit.filters.paramCfg)
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(enMessages.moshpit.filters.paramSampler)
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(enMessages.moshpit.filters.paramFavourite)
+    ).toBeInTheDocument()
   })
 
   it('typing "CFG" in param search filters the list to show paramCfg', async () => {
@@ -121,12 +133,18 @@ describe('MoshpitAddFilterPopover', () => {
 
     await openPopover(user)
 
-    const searchInput = screen.getByPlaceholderText(enMessages.moshpit.filters.searchParams)
+    const searchInput = screen.getByPlaceholderText(
+      enMessages.moshpit.filters.searchParams
+    )
     await user.type(searchInput, 'CFG')
 
     await waitFor(() => {
-      expect(screen.getByText(enMessages.moshpit.filters.paramCfg)).toBeInTheDocument()
-      expect(screen.queryByText(enMessages.moshpit.filters.paramFavourite)).not.toBeInTheDocument()
+      expect(
+        screen.getByText(enMessages.moshpit.filters.paramCfg)
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByText(enMessages.moshpit.filters.paramFavourite)
+      ).not.toBeInTheDocument()
     })
   })
 
@@ -157,7 +175,9 @@ describe('MoshpitAddFilterPopover', () => {
 
     // The dynamic editor wrapper has data-testid="moshpit-add-filter-editor"
     // and the stub renders "numeric-editor" text to identify which editor is mounted
-    expect(await screen.findByTestId('moshpit-add-filter-editor')).toBeInTheDocument()
+    expect(
+      await screen.findByTestId('moshpit-add-filter-editor')
+    ).toBeInTheDocument()
     expect(screen.getByText('numeric-editor')).toBeInTheDocument()
   })
 
@@ -172,14 +192,20 @@ describe('MoshpitAddFilterPopover', () => {
     await screen.findByTestId('moshpit-add-filter-editor')
 
     // Click back button
-    const backBtn = screen.getByRole('button', { name: enMessages.moshpit.filters.editorBack })
+    const backBtn = screen.getByRole('button', {
+      name: enMessages.moshpit.filters.editorBack
+    })
     await user.click(backBtn)
 
     // Should be back in step 1 — param list visible, no editor
     await waitFor(() => {
-      expect(screen.queryByTestId('moshpit-add-filter-editor')).not.toBeInTheDocument()
+      expect(
+        screen.queryByTestId('moshpit-add-filter-editor')
+      ).not.toBeInTheDocument()
     })
-    expect(screen.getByText(enMessages.moshpit.filters.paramCfg)).toBeInTheDocument()
+    expect(
+      screen.getByText(enMessages.moshpit.filters.paramCfg)
+    ).toBeInTheDocument()
   })
 
   it('Apply button is disabled when no draftValue (canApply is false)', async () => {
@@ -233,5 +259,75 @@ describe('MoshpitAddFilterPopover', () => {
 
     await screen.findByTestId('moshpit-add-filter-editor')
     expect(screen.getByText('boolean-editor')).toBeInTheDocument()
+  })
+
+  it('renders a Primary section header and an Advanced section header', async () => {
+    const user = userEvent.setup()
+    mountPopover()
+
+    await openPopover(user)
+
+    expect(
+      screen.getByTestId('moshpit-add-filter-primary-header')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByTestId('moshpit-add-filter-advanced-header')
+    ).toBeInTheDocument()
+
+    expect(
+      screen.getByText(enMessages.moshpit.filters.primaryLabel)
+    ).toBeInTheDocument()
+    expect(
+      screen.getAllByText(enMessages.moshpit.filters.advancedLabel).length
+    ).toBeGreaterThanOrEqual(1)
+  })
+
+  it('includes a saveNode entry in the Primary section with the paramSaveNode label', async () => {
+    const user = userEvent.setup()
+    mountPopover()
+
+    await openPopover(user)
+
+    const saveNodeOption = await screen.findByRole('option', {
+      name: enMessages.moshpit.filters.paramSaveNode
+    })
+    expect(saveNodeOption).toBeInTheDocument()
+  })
+
+  it('clicking saveNode navigates to the value editor with the categorical editor', async () => {
+    const user = userEvent.setup()
+    mountPopover()
+
+    await openPopover(user)
+    await clickParamOption(user, enMessages.moshpit.filters.paramSaveNode)
+
+    expect(
+      await screen.findByTestId('moshpit-add-filter-editor')
+    ).toBeInTheDocument()
+    expect(screen.getByText('categorical-editor')).toBeInTheDocument()
+  })
+
+  it('applying a saveNode value adds a chip with param="saveNode"', async () => {
+    const user = userEvent.setup()
+    const filterStore = useMoshpitFilterStore()
+    const addChipSpy = vi.spyOn(filterStore, 'addChip')
+
+    mountPopover()
+    await openPopover(user)
+    await clickParamOption(user, enMessages.moshpit.filters.paramSaveNode)
+
+    const editorWrapper = await screen.findByTestId('moshpit-add-filter-editor')
+    await user.click(editorWrapper)
+
+    const applyBtn = await screen.findByTestId('moshpit-add-filter-apply')
+    await waitFor(() => expect(applyBtn).not.toBeDisabled())
+    await user.click(applyBtn)
+
+    expect(addChipSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        param: 'saveNode',
+        value: { kind: 'categorical', values: ['euler'] }
+      })
+    )
   })
 })

@@ -8,7 +8,9 @@ import type { NormalizedParams } from '../services/paramNormalize'
 import type { ParamKey } from '../services/filterTypes'
 import { useMoshpitParamValueOptions } from './useMoshpitParamValueOptions'
 
-function makeParams(overrides: Partial<NormalizedParams> = {}): NormalizedParams {
+function makeParams(
+  overrides: Partial<NormalizedParams> = {}
+): NormalizedParams {
   return {
     model: undefined,
     loras: [],
@@ -123,7 +125,8 @@ describe('useMoshpitParamValueOptions', () => {
     metaStore.setParams('hash2', makeParams({ width: 512, height: 512 }))
     metaStore.setParams('hash3', makeParams({ width: 768, height: 768 }))
 
-    const { options, resolutionPairs } = useMoshpitParamValueOptions('resolution')
+    const { options, resolutionPairs } =
+      useMoshpitParamValueOptions('resolution')
     // options is empty for resolution (not categorical)
     expect(options.value).toEqual([])
     // 2 unique pairs
@@ -131,6 +134,31 @@ describe('useMoshpitParamValueOptions', () => {
     const pairs = resolutionPairs.value.map(([w, h]) => `${w}x${h}`)
     expect(pairs).toContain('512x512')
     expect(pairs).toContain('768x768')
+  })
+
+  it('derives saveNode options from params.saveNodeIdentity with per-value counts', () => {
+    const metaStore = useMoshpitMetadataStore()
+    metaStore.setParams(
+      'hash1',
+      makeParams({ saveNodeIdentity: 'Final Output' })
+    )
+    metaStore.setParams(
+      'hash2',
+      makeParams({ saveNodeIdentity: 'Final Output' })
+    )
+    metaStore.setParams('hash3', makeParams({ saveNodeIdentity: 'Preview' }))
+    metaStore.setParams('hash4', makeParams({ saveNodeIdentity: null }))
+
+    const { options } = useMoshpitParamValueOptions('saveNode')
+    expect(options.value).toHaveLength(2)
+    const finalOpt = options.value.find((o) => o.value === 'Final Output')
+    const previewOpt = options.value.find((o) => o.value === 'Preview')
+    expect(finalOpt?.count).toBe(2)
+    expect(previewOpt?.count).toBe(1)
+    // null identity is excluded
+    expect(options.value.some((o) => o.value === '')).toBe(false)
+    // descending count order — Final Output first
+    expect(options.value[0].value).toBe('Final Output')
   })
 
   it('returns empty options for numeric param "cfg"', () => {
@@ -144,7 +172,10 @@ describe('useMoshpitParamValueOptions', () => {
 
   it('reactively re-derives when the param source changes', () => {
     const metaStore = useMoshpitMetadataStore()
-    metaStore.setParams('hash1', makeParams({ sampler: 'euler', model: 'sd15.ckpt' }))
+    metaStore.setParams(
+      'hash1',
+      makeParams({ sampler: 'euler', model: 'sd15.ckpt' })
+    )
 
     const param = ref<ParamKey | null>('sampler')
     const { options } = useMoshpitParamValueOptions(param)

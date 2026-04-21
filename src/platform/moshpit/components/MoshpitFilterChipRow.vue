@@ -6,7 +6,7 @@
   >
     <div class="flex flex-wrap gap-1">
       <div
-        v-for="chip in filterStore.chips"
+        v-for="chip in tierChips"
         :key="chip.id"
         :class="
           cn(
@@ -28,20 +28,22 @@
               'focus-visible:ring-1 focus-visible:ring-primary-background'
             )
           "
-          :aria-label="t('moshpit.filters.removeChip', { param: chipLabel(chip) })"
+          :aria-label="
+            t('moshpit.filters.removeChip', { param: chipLabel(chip) })
+          "
           @click="filterStore.removeChip(chip.id)"
         >
           <i class="icon-[lucide--x] size-3" aria-hidden="true" />
         </button>
       </div>
-      <MoshpitAddFilterPopover />
+      <MoshpitAddFilterPopover v-if="tier === 'primary'" />
     </div>
     <span class="sr-only" role="status" aria-live="polite">
       {{
         t(
           'moshpit.filters.chipCount',
-          { count: filterStore.chips.length },
-          filterStore.chips.length
+          { count: tierChips.length },
+          tierChips.length
         )
       }}
     </span>
@@ -49,17 +51,37 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { cn } from '@/utils/tailwindUtil'
 import { useMoshpitFilterStore } from '@/platform/moshpit/stores/moshpitFilterStore'
-import type { FilterChip } from '@/platform/moshpit/services/filterTypes'
+import type {
+  FilterChip,
+  ParamKey
+} from '@/platform/moshpit/services/filterTypes'
+import {
+  ADVANCED_FILTER_PARAMS,
+  PRIMARY_FILTER_PARAMS
+} from '@/platform/moshpit/services/filterTypes'
 import MoshpitAddFilterPopover from './MoshpitAddFilterPopover.vue'
 
 defineOptions({ name: 'MoshpitFilterChipRow' })
 
+const { tier = 'primary' } = defineProps<{
+  tier?: 'primary' | 'advanced'
+}>()
+
 const { t } = useI18n()
 const filterStore = useMoshpitFilterStore()
+
+const tierParams = computed<readonly ParamKey[]>(() =>
+  tier === 'advanced' ? ADVANCED_FILTER_PARAMS : PRIMARY_FILTER_PARAMS
+)
+
+const tierChips = computed(() =>
+  filterStore.chips.filter((c) => tierParams.value.includes(c.param))
+)
 
 function chipLabel(chip: FilterChip): string {
   switch (chip.param) {
@@ -98,7 +120,9 @@ function chipValueSummary(chip: FilterChip): string {
     case 'resolution': {
       if (chip.value.pairs.length === 0) return ''
       const first = `${chip.value.pairs[0][0]}\u00d7${chip.value.pairs[0][1]}`
-      return chip.value.pairs.length === 1 ? first : `${first} +${chip.value.pairs.length - 1}`
+      return chip.value.pairs.length === 1
+        ? first
+        : `${first} +${chip.value.pairs.length - 1}`
     }
     case 'boolean':
       return chip.value.value ? t('moshpit.filters.paramFavourite') : ''
