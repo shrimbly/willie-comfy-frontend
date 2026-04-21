@@ -1,33 +1,33 @@
 /**
- * Filter + sort pipeline (Phase 3). Sits between the registry (Phase 2) and
- * the sprite layer:
+ * Filter + cluster-layout pipeline (Phase 4). Sits between the registry
+ * (Phase 2) and the sprite layer:
  *
  *   useMoshpitAssetRegistry     (all assets with thumbs)
  *              │
  *              ▼
- *   useMoshpitFilteredAssets    ← applyFilterChips → then sortMath (or jittered)
+ *   useMoshpitFilteredAssets    ← applyFilterChips → computeClusterLayout
  *              │
  *              ▼
  *   useMoshpitSpriteLayer       (tween to target positions)
  *
- * Performance contract: the core filter+sort computation is a single O(N)
- * pass per reactive change. Params / curation maps are already in memory
+ * Performance contract: the core filter+layout computation is a single
+ * reactive pass per change. Params / curation maps are already in memory
  * (moshpitMetadataStore / moshpitCurationStore), so no IDB reads occur on
- * filter or sort mutations.
+ * filter or grouping mutations. `computeClusterLayout` memoises bucket keys
+ * internally (<100ms at 5k × 3 axes per Plan 01 perf marker).
  */
 
 import type { ComputedRef } from 'vue'
 import { computed } from 'vue'
 
 import { applyFilterChips } from '../services/filterMath'
-import type { GridSlot } from '../services/layoutMath'
-import { computeJitteredGrid } from '../services/layoutMath'
-import { layoutSeedHash } from '../services/contentHash'
-import type { ColumnDescriptor, RowDescriptor } from '../services/sortMath'
+import type { ClusterNode } from '../services/clusterLayout'
 import {
-  computeSortedLayout1D,
-  computeSortedLayout2D
-} from '../services/sortMath'
+  computeClusterLayout,
+  computeNestingOrder
+} from '../services/clusterLayout'
+import type { GroupingAxis } from '../services/groupAxes'
+import type { GridSlot } from '../services/layoutMath'
 import { useMoshpitCurationStore } from '../stores/moshpitCurationStore'
 import { useMoshpitFilterStore } from '../stores/moshpitFilterStore'
 import { useMoshpitMetadataStore } from '../stores/moshpitMetadataStore'
@@ -42,37 +42,27 @@ export interface FilteredAssetEntry {
 }
 
 interface LayoutResult {
-  readonly visible: readonly string[]
   readonly slotByHash: ReadonlyMap<string, GridSlot>
-  readonly columns: readonly ColumnDescriptor[]
-  readonly rows: readonly RowDescriptor[]
+  readonly clusterTree: ClusterNode | null
+  readonly nestingOrder: readonly GroupingAxis[]
 }
 
 const EMPTY_LAYOUT: LayoutResult = {
-  visible: [],
   slotByHash: new Map(),
-  columns: [],
-  rows: []
+  clusterTree: null,
+  nestingOrder: []
 }
 
 export function useMoshpitFilteredAssets(): {
   readonly entries: ComputedRef<readonly FilteredAssetEntry[]>
-  readonly columns: ComputedRef<readonly ColumnDescriptor[]>
-  readonly rows: ComputedRef<readonly RowDescriptor[]>
-  readonly axisMode: ComputedRef<'chaos' | '1d' | '2d'>
+  readonly clusterTree: ComputedRef<ClusterNode | null>
+  readonly activeGroupingOrder: ComputedRef<readonly GroupingAxis[]>
 } {
   const registry = useMoshpitAssetRegistry()
   const metaStore = useMoshpitMetadataStore()
   const curationStore = useMoshpitCurationStore()
   const filterStore = useMoshpitFilterStore()
 
-  const axisMode = computed<'chaos' | '1d' | '2d'>(() => {
-    if (filterStore.sortX === null) return 'chaos'
-    if (filterStore.sortY === null) return '1d'
-    return '2d'
-  })
-
-  // The core computation: post-filter visible hash list + layout target map.
   const layout = computed<LayoutResult>(() => {
     if (!filterStore.isGated) return EMPTY_LAYOUT
 
@@ -80,7 +70,6 @@ export function useMoshpitFilteredAssets(): {
     const hashToParams = metaStore.paramsByHash
     const visibleHashes = allEntries.map((e) => e.contentHash)
 
-    // Build curation map scoped to registry hashes
     const hashToCuration = new Map(
       visibleHashes.flatMap((h) => {
         const rec = curationStore.get(h)
@@ -88,7 +77,6 @@ export function useMoshpitFilteredAssets(): {
       })
     )
 
-    // Filter: applyFilterChips returns only hashes that pass all predicates
     const filtered = applyFilterChips(
       hashToParams,
       hashToCuration,
@@ -98,52 +86,36 @@ export function useMoshpitFilteredAssets(): {
       Date.now()
     )
 
-    // Intersect with registry (applyFilterChips walks paramsByHash which may
-    // include hashes not yet in the registry — keep only what's visible)
     const registrySet = new Set(visibleHashes)
     const visible = filtered.filter((h) => registrySet.has(h))
 
-    // Sort layout
-    if (filterStore.sortX !== null && filterStore.sortY !== null) {
-      const { slots, columns, rows } = computeSortedLayout2D(
-        visible,
-        hashToParams,
-        filterStore.sortX,
-        filterStore.sortY,
-        filterStore.gridSpacing
-      )
-      return {
-        visible: slots.map((s) => s.hash),
-        slotByHash: new Map(slots.map((s) => [s.hash, s])),
-        columns,
-        rows
-      }
-    }
+    // Build filename map from registry entries. AssetEntry doesn't currently
+    // carry a filename field — leave null-valued and rely on Plan 01's
+    // contentHash tie-breaker inside compareAssetsForWithinCluster.
+    const filenameByHash = new Map<string, string | null>(
+      allEntries.map((e) => [e.contentHash, null])
+    )
 
-    if (filterStore.sortX !== null) {
-      const { slots, columns } = computeSortedLayout1D(
-        visible,
-        hashToParams,
-        filterStore.sortX,
-        filterStore.gridSpacing
-      )
-      return {
-        visible: slots.map((s) => s.hash),
-        slotByHash: new Map(slots.map((s) => [s.hash, s])),
-        columns,
-        rows: []
-      }
-    }
+    const nestingOrder = computeNestingOrder(
+      visible,
+      hashToParams,
+      filenameByHash,
+      filterStore.activeGroupings
+    )
 
-    // Chaos: jittered grid (D-01/D-02/D-19)
-    const sortedHashes = [...visible].sort()
-    const seed = layoutSeedHash('filtered', sortedHashes)
-    const chaos = computeJitteredGrid(sortedHashes, seed, filterStore.gridSpacing)
+    const { root, slots } = computeClusterLayout(
+      visible,
+      hashToParams,
+      filenameByHash,
+      nestingOrder,
+      filterStore.withinClusterSort,
+      filterStore.gridSpacing
+    )
+
     return {
-      visible: sortedHashes,
-      slotByHash: new Map(chaos.map((s) => [s.hash, s])),
-      columns: [],
-      rows: []
+      slotByHash: new Map(slots.map((s) => [s.hash, s])),
+      clusterTree: root,
+      nestingOrder
     }
   })
 
@@ -165,8 +137,13 @@ export function useMoshpitFilteredAssets(): {
     return out
   })
 
-  const columns = computed(() => layout.value.columns)
-  const rows = computed(() => layout.value.rows)
+  const clusterTree = computed<ClusterNode | null>(
+    () => layout.value.clusterTree
+  )
 
-  return { entries, columns, rows, axisMode }
+  const activeGroupingOrder = computed<readonly GroupingAxis[]>(
+    () => layout.value.nestingOrder
+  )
+
+  return { entries, clusterTree, activeGroupingOrder }
 }

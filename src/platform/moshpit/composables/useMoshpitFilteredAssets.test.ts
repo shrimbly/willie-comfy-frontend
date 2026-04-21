@@ -4,7 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { emptyParams } from '../services/paramNormalize'
 import type { NormalizedParams } from '../services/paramNormalize'
-import type { AssetMetaRecord, CurationRecord } from '../services/thumbRepository.types'
+import type {
+  AssetMetaRecord,
+  CurationRecord
+} from '../services/thumbRepository.types'
 import { useMoshpitFilteredAssets } from './useMoshpitFilteredAssets'
 import { useMoshpitFilterStore } from '../stores/moshpitFilterStore'
 import { useMoshpitMetadataStore } from '../stores/moshpitMetadataStore'
@@ -34,7 +37,9 @@ function makeEntry(hash: string, thumbUrl?: string): RegistryEntry {
   }
 }
 
-function makeParams(overrides: Partial<NormalizedParams> = {}): NormalizedParams {
+function makeParams(
+  overrides: Partial<NormalizedParams> = {}
+): NormalizedParams {
   return {
     ...emptyParams(1000),
     workflowFingerprint: 'test-fp',
@@ -65,7 +70,6 @@ function seedCuration(
     hidden: false,
     ...overrides
   }
-  // Use the public load() API with a minimal AssetMetaRecord
   const record: AssetMetaRecord = {
     contentHash: hash,
     metadata: {},
@@ -81,45 +85,23 @@ describe('useMoshpitFilteredAssets', () => {
     vi.clearAllMocks()
   })
 
-  describe('axisMode', () => {
-    it('returns "chaos" when sortX is null', () => {
-      mockRegistry.mockReturnValue({ entries: computed(() => []) })
-      const { axisMode } = useMoshpitFilteredAssets()
-      expect(axisMode.value).toBe('chaos')
-    })
-
-    it('returns "1d" when sortX is set and sortY is null', () => {
-      mockRegistry.mockReturnValue({ entries: computed(() => []) })
-      const filterStore = useMoshpitFilterStore()
-      filterStore.setSortX('cfg')
-      const { axisMode } = useMoshpitFilteredAssets()
-      expect(axisMode.value).toBe('1d')
-    })
-
-    it('returns "2d" when both sortX and sortY are set', () => {
-      mockRegistry.mockReturnValue({ entries: computed(() => []) })
-      const filterStore = useMoshpitFilterStore()
-      filterStore.setSortX('cfg')
-      filterStore.setSortY('steps')
-      const { axisMode } = useMoshpitFilteredAssets()
-      expect(axisMode.value).toBe('2d')
-    })
-  })
-
   describe('FILTER-01 gate', () => {
-    it('entries is empty when workflow is null (not gated)', () => {
+    it('entries is empty and clusterTree is null when not gated', () => {
       const entries = ref([makeEntry('hash-A')])
       mockRegistry.mockReturnValue({ entries: computed(() => entries.value) })
       const metaStore = useMoshpitMetadataStore()
       seedRegistry(metaStore, ['hash-A'])
       // workflow is null by default — isGated = false
-      const { entries: filtered } = useMoshpitFilteredAssets()
+      const { entries: filtered, clusterTree } = useMoshpitFilteredAssets()
       expect(filtered.value).toHaveLength(0)
+      expect(clusterTree.value).toBeNull()
     })
 
     it('entries is non-empty once workflow is set', () => {
       const registryEntries = ref([makeEntry('hash-A')])
-      mockRegistry.mockReturnValue({ entries: computed(() => registryEntries.value) })
+      mockRegistry.mockReturnValue({
+        entries: computed(() => registryEntries.value)
+      })
       const metaStore = useMoshpitMetadataStore()
       const filterStore = useMoshpitFilterStore()
       seedRegistry(metaStore, ['hash-A'])
@@ -132,8 +114,13 @@ describe('useMoshpitFilteredAssets', () => {
 
   describe('FILTER-11: showHidden', () => {
     it('hidden assets are excluded by default (showHidden=false)', () => {
-      const registryEntries = ref([makeEntry('hash-hidden'), makeEntry('hash-visible')])
-      mockRegistry.mockReturnValue({ entries: computed(() => registryEntries.value) })
+      const registryEntries = ref([
+        makeEntry('hash-hidden'),
+        makeEntry('hash-visible')
+      ])
+      mockRegistry.mockReturnValue({
+        entries: computed(() => registryEntries.value)
+      })
       const metaStore = useMoshpitMetadataStore()
       const curationStore = useMoshpitCurationStore()
       const filterStore = useMoshpitFilterStore()
@@ -149,7 +136,9 @@ describe('useMoshpitFilteredAssets', () => {
 
     it('showHidden=true admits hidden assets', () => {
       const registryEntries = ref([makeEntry('hash-hidden')])
-      mockRegistry.mockReturnValue({ entries: computed(() => registryEntries.value) })
+      mockRegistry.mockReturnValue({
+        entries: computed(() => registryEntries.value)
+      })
       const metaStore = useMoshpitMetadataStore()
       const curationStore = useMoshpitCurationStore()
       const filterStore = useMoshpitFilterStore()
@@ -169,7 +158,9 @@ describe('useMoshpitFilteredAssets', () => {
         makeEntry('hash-euler'),
         makeEntry('hash-dpm')
       ])
-      mockRegistry.mockReturnValue({ entries: computed(() => registryEntries.value) })
+      mockRegistry.mockReturnValue({
+        entries: computed(() => registryEntries.value)
+      })
       const metaStore = useMoshpitMetadataStore()
       const filterStore = useMoshpitFilterStore()
       metaStore.setParams('hash-euler', makeParams({ sampler: 'euler' }))
@@ -177,10 +168,8 @@ describe('useMoshpitFilteredAssets', () => {
       filterStore.setWorkflow('fp-abc')
 
       const { entries: filtered } = useMoshpitFilteredAssets()
-      // Before chip: both visible
       expect(filtered.value).toHaveLength(2)
 
-      // Add chip: only euler
       filterStore.addChip({
         id: 'chip-sampler',
         param: 'sampler',
@@ -189,18 +178,53 @@ describe('useMoshpitFilteredAssets', () => {
       expect(filtered.value).toHaveLength(1)
       expect(filtered.value[0].contentHash).toBe('hash-euler')
     })
+
+    it('adding a filter chip does not change cluster structure (GROUP-09 — filters cull, groups organise)', () => {
+      const registryEntries = ref([
+        makeEntry('hash-a'),
+        makeEntry('hash-b'),
+        makeEntry('hash-c')
+      ])
+      mockRegistry.mockReturnValue({
+        entries: computed(() => registryEntries.value)
+      })
+      const metaStore = useMoshpitMetadataStore()
+      const filterStore = useMoshpitFilterStore()
+      metaStore.setParams('hash-a', makeParams({ model: 'sd_xl' }))
+      metaStore.setParams('hash-b', makeParams({ model: 'sd_xl' }))
+      metaStore.setParams('hash-c', makeParams({ model: 'sd_15' }))
+      filterStore.setWorkflow('fp-abc')
+      filterStore.toggleGrouping('model')
+
+      const { clusterTree } = useMoshpitFilteredAssets()
+      const bucketsBefore = clusterTree.value?.children.length ?? 0
+      expect(bucketsBefore).toBe(2)
+
+      filterStore.addChip({
+        id: 'chip-model',
+        param: 'model',
+        value: { kind: 'categorical', values: ['sd_xl'] }
+      })
+      // The filter culls hash-c → only one bucket remains, but the grouping
+      // STRUCTURE (grouping by model) is preserved. The cluster tree still
+      // reports a single model bucket child with two leaves.
+      const bucketsAfter = clusterTree.value?.children.length ?? 0
+      expect(bucketsAfter).toBe(1)
+    })
   })
 
-  describe('chaos layout', () => {
-    it('entries have worldX and worldY defined (jittered-grid positions)', () => {
+  describe('GROUP-09: empty activeGroupings → flat grid (single leaf cluster)', () => {
+    it('entries populate worldX/worldY via clusterLayout empty-groupings path', () => {
       const registryEntries = ref([makeEntry('hash-A'), makeEntry('hash-B')])
-      mockRegistry.mockReturnValue({ entries: computed(() => registryEntries.value) })
+      mockRegistry.mockReturnValue({
+        entries: computed(() => registryEntries.value)
+      })
       const metaStore = useMoshpitMetadataStore()
       const filterStore = useMoshpitFilterStore()
       seedRegistry(metaStore, ['hash-A', 'hash-B'])
       filterStore.setWorkflow('fp-abc')
 
-      const { entries: filtered } = useMoshpitFilteredAssets()
+      const { entries: filtered, clusterTree } = useMoshpitFilteredAssets()
       expect(filtered.value).toHaveLength(2)
       for (const e of filtered.value) {
         expect(typeof e.worldX).toBe('number')
@@ -208,91 +232,123 @@ describe('useMoshpitFilteredAssets', () => {
         expect(Number.isFinite(e.worldX)).toBe(true)
         expect(Number.isFinite(e.worldY)).toBe(true)
       }
-    })
-
-    it('columns is empty in chaos mode', () => {
-      mockRegistry.mockReturnValue({ entries: computed(() => []) })
-      const filterStore = useMoshpitFilterStore()
-      filterStore.setWorkflow('fp-abc')
-      const { columns } = useMoshpitFilteredAssets()
-      expect(columns.value).toHaveLength(0)
+      // Single-leaf root when no active groupings
+      expect(clusterTree.value).not.toBeNull()
+      expect(clusterTree.value!.children).toHaveLength(0)
+      expect(clusterTree.value!.leafHashes).toHaveLength(2)
     })
   })
 
-  describe('SORT-01: 1D sort layout', () => {
-    it('setting sortX changes entries to sorted positions', () => {
+  describe('GROUP-01 single grouping axis', () => {
+    it('one grouping axis produces children count = unique bucket count; leaves sum to filtered count', () => {
       const registryEntries = ref([
-        makeEntry('hash-cfg7'),
-        makeEntry('hash-cfg3')
+        makeEntry('hash-a'),
+        makeEntry('hash-b'),
+        makeEntry('hash-c'),
+        makeEntry('hash-d')
       ])
-      mockRegistry.mockReturnValue({ entries: computed(() => registryEntries.value) })
+      mockRegistry.mockReturnValue({
+        entries: computed(() => registryEntries.value)
+      })
       const metaStore = useMoshpitMetadataStore()
       const filterStore = useMoshpitFilterStore()
-      metaStore.setParams('hash-cfg7', makeParams({ cfg: 7 }))
-      metaStore.setParams('hash-cfg3', makeParams({ cfg: 3 }))
+      metaStore.setParams('hash-a', makeParams({ model: 'sd_xl' }))
+      metaStore.setParams('hash-b', makeParams({ model: 'sd_xl' }))
+      metaStore.setParams('hash-c', makeParams({ model: 'sd_15' }))
+      metaStore.setParams('hash-d', makeParams({ model: 'flux' }))
       filterStore.setWorkflow('fp-abc')
-      filterStore.setSortX('cfg')
+      filterStore.toggleGrouping('model')
 
-      const { entries: filtered, columns } = useMoshpitFilteredAssets()
-      // Both assets should appear
-      expect(filtered.value).toHaveLength(2)
-      // columns should have 2 entries (one per unique cfg value)
-      expect(columns.value).toHaveLength(2)
-      // cfg=3 column comes before cfg=7 (numeric sort)
-      expect(columns.value[0].paramValue).toBe('3')
-      expect(columns.value[1].paramValue).toBe('7')
-    })
-
-    it('SORT-03: assets lacking sortX param are absent from entries', () => {
-      const registryEntries = ref([
-        makeEntry('hash-with-cfg'),
-        makeEntry('hash-no-cfg')
-      ])
-      mockRegistry.mockReturnValue({ entries: computed(() => registryEntries.value) })
-      const metaStore = useMoshpitMetadataStore()
-      const filterStore = useMoshpitFilterStore()
-      metaStore.setParams('hash-with-cfg', makeParams({ cfg: 7 }))
-      // hash-no-cfg has no cfg value (emptyParams has cfg: undefined)
-      metaStore.setParams('hash-no-cfg', makeParams({ cfg: undefined }))
-      filterStore.setWorkflow('fp-abc')
-      filterStore.setSortX('cfg')
-
-      const { entries: filtered } = useMoshpitFilteredAssets()
-      expect(filtered.value).toHaveLength(1)
-      expect(filtered.value[0].contentHash).toBe('hash-with-cfg')
+      const { entries: filtered, clusterTree } = useMoshpitFilteredAssets()
+      expect(filtered.value).toHaveLength(4)
+      expect(clusterTree.value).not.toBeNull()
+      expect(clusterTree.value!.children).toHaveLength(3)
+      const totalLeaves = clusterTree.value!.children.reduce(
+        (sum, child) => sum + child.leafHashes.length,
+        0
+      )
+      expect(totalLeaves).toBe(4)
     })
   })
 
-  describe('SORT-02: 2D sort layout', () => {
-    it('setting sortX + sortY produces 2D layout with rows and columns', () => {
+  describe('GROUP-03 auto-nesting with two axes', () => {
+    it('outer axis is the one with larger average bucket size (computeNestingOrder heuristic)', () => {
+      const registryEntries = ref([
+        makeEntry('h1'),
+        makeEntry('h2'),
+        makeEntry('h3'),
+        makeEntry('h4'),
+        makeEntry('h5'),
+        makeEntry('h6')
+      ])
+      mockRegistry.mockReturnValue({
+        entries: computed(() => registryEntries.value)
+      })
+      const metaStore = useMoshpitMetadataStore()
+      const filterStore = useMoshpitFilterStore()
+      // 2 models × 3 prompts → model has larger avg bucket (6/2=3) than prompt
+      // (6/3=2), so 'model' nests outermost.
+      metaStore.setParams('h1', makeParams({ model: 'A', positivePrompt: 'p1' }))
+      metaStore.setParams('h2', makeParams({ model: 'A', positivePrompt: 'p2' }))
+      metaStore.setParams('h3', makeParams({ model: 'A', positivePrompt: 'p3' }))
+      metaStore.setParams('h4', makeParams({ model: 'B', positivePrompt: 'p1' }))
+      metaStore.setParams('h5', makeParams({ model: 'B', positivePrompt: 'p2' }))
+      metaStore.setParams('h6', makeParams({ model: 'B', positivePrompt: 'p3' }))
+      filterStore.setWorkflow('fp-abc')
+      filterStore.toggleGrouping('prompt')
+      filterStore.toggleGrouping('model')
+
+      const { activeGroupingOrder, clusterTree } = useMoshpitFilteredAssets()
+      expect(activeGroupingOrder.value[0]).toBe('model')
+      expect(activeGroupingOrder.value[1]).toBe('prompt')
+      // 2 model buckets at outer level
+      expect(clusterTree.value?.children).toHaveLength(2)
+    })
+  })
+
+  describe('CSORT-01 within-cluster sort', () => {
+    it('changing withinClusterSort reorders leaf hashes without changing cluster structure', () => {
       const registryEntries = ref([
         makeEntry('hash-a'),
         makeEntry('hash-b'),
         makeEntry('hash-c')
       ])
-      mockRegistry.mockReturnValue({ entries: computed(() => registryEntries.value) })
+      mockRegistry.mockReturnValue({
+        entries: computed(() => registryEntries.value)
+      })
       const metaStore = useMoshpitMetadataStore()
       const filterStore = useMoshpitFilterStore()
-      metaStore.setParams('hash-a', makeParams({ cfg: 7, steps: 20 }))
-      metaStore.setParams('hash-b', makeParams({ cfg: 7, steps: 30 }))
-      metaStore.setParams('hash-c', makeParams({ cfg: 3, steps: 20 }))
+      // Same model for all → single cluster, but different timestamps so
+      // within-cluster sort has something to reorder.
+      metaStore.setParams(
+        'hash-a',
+        makeParams({ model: 'sd_xl', timestamp: 3000 })
+      )
+      metaStore.setParams(
+        'hash-b',
+        makeParams({ model: 'sd_xl', timestamp: 1000 })
+      )
+      metaStore.setParams(
+        'hash-c',
+        makeParams({ model: 'sd_xl', timestamp: 2000 })
+      )
       filterStore.setWorkflow('fp-abc')
-      filterStore.setSortX('cfg')
-      filterStore.setSortY('steps')
+      filterStore.toggleGrouping('model')
 
-      const { entries: filtered, columns, rows } = useMoshpitFilteredAssets()
-      expect(filtered.value).toHaveLength(3)
-      expect(columns.value).toHaveLength(2) // cfg: 3, 7
-      expect(rows.value).toHaveLength(2)    // steps: 20, 30
-    })
+      const { clusterTree } = useMoshpitFilteredAssets()
+      const structureBefore = clusterTree.value?.children.length
+      const leavesNewest = clusterTree.value?.children[0]?.leafHashes ?? []
 
-    it('rows is empty in 1D mode', () => {
-      mockRegistry.mockReturnValue({ entries: computed(() => []) })
-      const filterStore = useMoshpitFilterStore()
-      filterStore.setWorkflow('fp-abc')
-      filterStore.setSortX('cfg')
-      const { rows } = useMoshpitFilteredAssets()
-      expect(rows.value).toHaveLength(0)
+      filterStore.setWithinClusterSort('oldestFirst')
+      const leavesOldest = clusterTree.value?.children[0]?.leafHashes ?? []
+
+      // Structure (number of clusters) unchanged
+      expect(clusterTree.value?.children.length).toBe(structureBefore)
+      // Order flipped: newest-first's first hash should differ from
+      // oldest-first's first hash in a population with distinct timestamps
+      expect(leavesNewest[0]).not.toBe(leavesOldest[0])
+      // Leaf membership preserved
+      expect([...leavesNewest].sort()).toEqual([...leavesOldest].sort())
     })
   })
 })
