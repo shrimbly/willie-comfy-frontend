@@ -132,11 +132,19 @@ onMounted(async () => {
     }
     const zoomTarget = viewportStore.consumeZoomToSelection()
     if (zoomTarget && zoomTarget.width > 0 && zoomTarget.height > 0) {
-      viewport.snapZoom({
-        width: zoomTarget.width,
-        height: zoomTarget.height,
-        removeOnComplete: true
-      })
+      // pixi-viewport's `snapZoom({ width, height })` with both dimensions
+      // scales x and y independently — that stretches the sprite layer.
+      // Pick the limiting axis so the animation stays uniform and the
+      // entire target bbox fits inside the screen.
+      const screenW = viewport.screenWidth
+      const screenH = viewport.screenHeight
+      const limitByWidth =
+        zoomTarget.width / screenW >= zoomTarget.height / screenH
+      viewport.snapZoom(
+        limitByWidth
+          ? { width: zoomTarget.width, removeOnComplete: true }
+          : { height: zoomTarget.height, removeOnComplete: true }
+      )
       viewport.snap(
         zoomTarget.x + zoomTarget.width / 2,
         zoomTarget.y + zoomTarget.height / 2,
