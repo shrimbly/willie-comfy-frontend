@@ -36,7 +36,8 @@ export const NormalizedParamsSchema = z.object({
   height: z.number().optional(),
   timestamp: z.number(),
   workflowFingerprint: z.string(),
-  workflowFilename: z.string().nullable()
+  workflowFilename: z.string().nullable(),
+  saveNodeIdentity: z.string().nullable()
 })
 
 export type NormalizedParams = z.infer<typeof NormalizedParamsSchema>
@@ -110,7 +111,8 @@ export function emptyParams(createdAtMs: number): NormalizedParams {
     height: undefined,
     timestamp: createdAtMs,
     workflowFingerprint: '',
-    workflowFilename: null
+    workflowFilename: null,
+    saveNodeIdentity: null
   }
 }
 
@@ -155,6 +157,19 @@ const LATENT_CLASS_TYPES = new Set([
   'EmptyHunyuanLatentVideo'
 ])
 
+/**
+ * ComfyUI output-node class types used for save-node identity extraction (D-08).
+ * Extensible — custom save nodes not in this set produce saveNodeIdentity=null
+ * and fall into the "(other)" bucket at the saveNode grouping axis.
+ */
+export const SAVE_NODE_CLASS_TYPES: ReadonlySet<string> = new Set([
+  'SaveImage',
+  'PreviewImage',
+  'SaveImageWebsocket',
+  'SaveAnimatedWEBP',
+  'SaveImageExtended'
+])
+
 function findNodeByClassTypes(
   graph: PromptGraph,
   classTypes: Set<string>
@@ -174,6 +189,29 @@ function findAllNodesByClassTypes(
     if (classTypes.has(node.class_type)) result.push(node)
   }
   return result
+}
+
+/**
+ * Derive `saveNodeIdentity` from a prompt graph (D-08).
+ *
+ * Walks the graph for nodes whose `class_type` is in `SAVE_NODE_CLASS_TYPES`
+ * and returns the first match's `_meta.title` when non-empty, else its
+ * `class_type`. Returns `null` when no output-class node exists — that asset
+ * falls into the "(other)" bucket at the saveNode grouping axis.
+ *
+ * Multi-output-node workflows use first-iteration-order as v1 behaviour
+ * (D-08 accepts this limitation; single-output workflows are the common case).
+ */
+function extractSaveNodeIdentity(graph: PromptGraph): string | null {
+  const outputNodes = findAllNodesByClassTypes(
+    graph,
+    SAVE_NODE_CLASS_TYPES as Set<string>
+  )
+  if (outputNodes.length === 0) return null
+  const first = outputNodes[0]
+  const title = first._meta?.title
+  if (typeof title === 'string' && title.length > 0) return title
+  return first.class_type
 }
 
 /**
@@ -345,6 +383,7 @@ export function normalizeParams(
     height,
     timestamp: createdAtMs,
     workflowFingerprint,
-    workflowFilename
+    workflowFilename,
+    saveNodeIdentity: extractSaveNodeIdentity(graph)
   }
 }
