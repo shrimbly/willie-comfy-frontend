@@ -7,9 +7,7 @@ import { Application } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
 import { inject, onBeforeUnmount, onMounted, ref } from 'vue'
 
-import {
-  MOSHPIT_QUEUE_INJECTION_KEY
-} from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
+import { MOSHPIT_QUEUE_INJECTION_KEY } from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
 import { useMoshpitSpacePan } from '@/platform/moshpit/composables/useMoshpitSpacePan'
 import {
   MOSHPIT_LAYOUT_INJECTION_KEY,
@@ -28,7 +26,10 @@ const pixiHostRef = ref<HTMLElement | null>(null)
 const viewportStore = useMoshpitViewportStore()
 
 const queue = inject(MOSHPIT_QUEUE_INJECTION_KEY)
-if (!queue) throw new Error('MoshpitCanvas requires MOSHPIT_QUEUE_INJECTION_KEY to be provided by MoshpitLayout')
+if (!queue)
+  throw new Error(
+    'MoshpitCanvas requires MOSHPIT_QUEUE_INJECTION_KEY to be provided by MoshpitLayout'
+  )
 
 // Phase 3: layout provider injected from MoshpitLayout via useMoshpitFilteredAssets.
 // Null when MoshpitLayout hasn't provided it (e.g. test isolation); sprite layer
@@ -36,13 +37,17 @@ if (!queue) throw new Error('MoshpitCanvas requires MOSHPIT_QUEUE_INJECTION_KEY 
 const injectedLayout = inject(MOSHPIT_LAYOUT_INJECTION_KEY, null)
 
 const viewportRef = inject(MOSHPIT_VIEWPORT_INJECTION_KEY)
-if (!viewportRef) throw new Error('MoshpitCanvas requires MOSHPIT_VIEWPORT_INJECTION_KEY to be provided by MoshpitView')
+if (!viewportRef)
+  throw new Error(
+    'MoshpitCanvas requires MOSHPIT_VIEWPORT_INJECTION_KEY to be provided by MoshpitView'
+  )
 
 let app: Application | null = null
 let viewport: Viewport | null = null
 let spriteLayerRef: { destroy(): void } | null = null
 let rafHandle: number | null = null
 let cancelled = false
+let resizeObs: ResizeObserver | null = null
 
 const WORLD_SIZE = 10_000
 
@@ -76,7 +81,7 @@ onMounted(async () => {
   })
   app.stage.addChild(viewport)
   viewport
-    .drag({ mouseButtons: 'middle' })
+    .drag({ mouseButtons: 'all' })
     .pinch()
     .wheel({ smooth: 3 })
     .decelerate()
@@ -104,6 +109,21 @@ onMounted(async () => {
     viewportStore.setZoom(viewport.scale.x)
   })
 
+  // Pixi's resizeTo only listens to `window` resize, so toggling the Settings
+  // panel (which reflows the flex-1 host without resizing the window) leaves
+  // the renderer at its initial size. Observe the host element directly and
+  // propagate size changes to the app + viewport.
+  resizeObs = new ResizeObserver(() => {
+    if (!app || !viewport) return
+    const w = host.clientWidth
+    const h = host.clientHeight
+    if (w === 0 || h === 0) return
+    app.renderer.resize(w, h)
+    viewport.resize(w, h)
+    viewportStore.setScreenSize(w, h)
+  })
+  resizeObs.observe(host)
+
   // Frame loop: consume pending imperatives from store (fit/zoomToSelection commands)
   const tick = () => {
     if (cancelled || !viewport) return
@@ -130,6 +150,10 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   cancelled = true
+  if (resizeObs) {
+    resizeObs.disconnect()
+    resizeObs = null
+  }
   if (rafHandle !== null) {
     cancelAnimationFrame(rafHandle)
     rafHandle = null
