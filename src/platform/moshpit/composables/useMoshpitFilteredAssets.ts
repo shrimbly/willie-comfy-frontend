@@ -87,7 +87,15 @@ export function useMoshpitFilteredAssets(): {
     )
 
     const registrySet = new Set(visibleHashes)
-    const visible = filtered.filter((h) => registrySet.has(h))
+    const workflowGate = filterStore.workflow
+    const visible = filtered.filter((h) => {
+      if (!registrySet.has(h)) return false
+      if (workflowGate !== null) {
+        const params = hashToParams.get(h)
+        if (!params || params.workflowFingerprint !== workflowGate) return false
+      }
+      return true
+    })
 
     // Build filename map from registry entries. AssetEntry doesn't currently
     // carry a filename field — leave null-valued and rely on Plan 01's

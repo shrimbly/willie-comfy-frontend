@@ -42,7 +42,7 @@ function makeParams(
 ): NormalizedParams {
   return {
     ...emptyParams(1000),
-    workflowFingerprint: 'test-fp',
+    workflowFingerprint: 'fp-abc',
     workflowFilename: 'test',
     ...overrides
   }
@@ -109,6 +109,69 @@ describe('useMoshpitFilteredAssets', () => {
       const { entries: filtered } = useMoshpitFilteredAssets()
       expect(filtered.value).toHaveLength(1)
       expect(filtered.value[0].contentHash).toBe('hash-A')
+    })
+
+    it('workflow gate filters out assets with non-matching fingerprint', () => {
+      const registryEntries = ref([
+        makeEntry('hash-abc-1'),
+        makeEntry('hash-abc-2'),
+        makeEntry('hash-xyz-1')
+      ])
+      mockRegistry.mockReturnValue({
+        entries: computed(() => registryEntries.value)
+      })
+      const metaStore = useMoshpitMetadataStore()
+      const filterStore = useMoshpitFilterStore()
+      metaStore.setParams(
+        'hash-abc-1',
+        makeParams({ workflowFingerprint: 'fp-abc' })
+      )
+      metaStore.setParams(
+        'hash-abc-2',
+        makeParams({ workflowFingerprint: 'fp-abc' })
+      )
+      metaStore.setParams(
+        'hash-xyz-1',
+        makeParams({ workflowFingerprint: 'fp-xyz' })
+      )
+      filterStore.setWorkflow('fp-abc')
+
+      const { entries: filtered } = useMoshpitFilteredAssets()
+      const hashes = filtered.value.map((e) => e.contentHash).sort()
+      expect(hashes).toEqual(['hash-abc-1', 'hash-abc-2'])
+    })
+
+    it('clusterTree buckets only include assets from the gated workflow', () => {
+      const registryEntries = ref([
+        makeEntry('hash-a'),
+        makeEntry('hash-b'),
+        makeEntry('hash-c')
+      ])
+      mockRegistry.mockReturnValue({
+        entries: computed(() => registryEntries.value)
+      })
+      const metaStore = useMoshpitMetadataStore()
+      const filterStore = useMoshpitFilterStore()
+      metaStore.setParams(
+        'hash-a',
+        makeParams({ workflowFingerprint: 'fp-abc', model: 'alpha' })
+      )
+      metaStore.setParams(
+        'hash-b',
+        makeParams({ workflowFingerprint: 'fp-abc', model: 'beta' })
+      )
+      metaStore.setParams(
+        'hash-c',
+        makeParams({ workflowFingerprint: 'fp-other', model: 'gamma' })
+      )
+      filterStore.setWorkflow('fp-abc')
+      filterStore.toggleGrouping('model')
+
+      const { clusterTree } = useMoshpitFilteredAssets()
+      const allLeafHashes = (clusterTree.value?.children ?? []).flatMap(
+        (c) => c.leafHashes
+      )
+      expect(new Set(allLeafHashes)).toEqual(new Set(['hash-a', 'hash-b']))
     })
   })
 
@@ -288,12 +351,30 @@ describe('useMoshpitFilteredAssets', () => {
       const filterStore = useMoshpitFilterStore()
       // 2 models × 3 prompts → model has larger avg bucket (6/2=3) than prompt
       // (6/3=2), so 'model' nests outermost.
-      metaStore.setParams('h1', makeParams({ model: 'A', positivePrompt: 'p1' }))
-      metaStore.setParams('h2', makeParams({ model: 'A', positivePrompt: 'p2' }))
-      metaStore.setParams('h3', makeParams({ model: 'A', positivePrompt: 'p3' }))
-      metaStore.setParams('h4', makeParams({ model: 'B', positivePrompt: 'p1' }))
-      metaStore.setParams('h5', makeParams({ model: 'B', positivePrompt: 'p2' }))
-      metaStore.setParams('h6', makeParams({ model: 'B', positivePrompt: 'p3' }))
+      metaStore.setParams(
+        'h1',
+        makeParams({ model: 'A', positivePrompt: 'p1' })
+      )
+      metaStore.setParams(
+        'h2',
+        makeParams({ model: 'A', positivePrompt: 'p2' })
+      )
+      metaStore.setParams(
+        'h3',
+        makeParams({ model: 'A', positivePrompt: 'p3' })
+      )
+      metaStore.setParams(
+        'h4',
+        makeParams({ model: 'B', positivePrompt: 'p1' })
+      )
+      metaStore.setParams(
+        'h5',
+        makeParams({ model: 'B', positivePrompt: 'p2' })
+      )
+      metaStore.setParams(
+        'h6',
+        makeParams({ model: 'B', positivePrompt: 'p3' })
+      )
       filterStore.setWorkflow('fp-abc')
       filterStore.toggleGrouping('prompt')
       filterStore.toggleGrouping('model')
