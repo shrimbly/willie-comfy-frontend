@@ -36,7 +36,7 @@
  * pan/zoom transforms the sprites automatically). `cellSize` is logical pixels.
  */
 
-import { Assets, Container, ImageSource, Sprite, Texture } from 'pixi.js'
+import { Container, ImageSource, Sprite, Texture } from 'pixi.js'
 import type { Ticker } from 'pixi.js'
 import type { Viewport } from 'pixi-viewport'
 import type { InjectionKey } from 'vue'
@@ -116,13 +116,15 @@ export function useMoshpitSpriteLayer(
     return computeJitteredGrid(sorted, seed, cellSize)
   }
 
-  // In Pixi v8 Texture.from() requires the resource to already live in the
-  // Assets cache. Our blob URLs are fresh out of the worker, so we load
-  // them through Assets first and build the sprite once the texture lands.
+  // Blob URLs have no file extension, so Pixi's Assets.load can't pick a
+  // parser for them. Decode via HTMLImageElement + Texture.from(element) —
+  // that path skips Pixi's extension sniffer entirely.
   async function loadTexture(thumbUrl: string): Promise<Texture | null> {
     try {
-      const texture = await Assets.load<Texture>(thumbUrl)
-      if (!texture) return null
+      const img = new Image()
+      img.src = thumbUrl
+      await img.decode()
+      const texture = Texture.from(img)
       if (texture.source && texture.source instanceof ImageSource) {
         texture.source.autoGenerateMipmaps = true
         texture.source.autoGarbageCollect = true
