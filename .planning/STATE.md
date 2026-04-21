@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-last_updated: "2026-04-20T23:53:00.371Z"
+last_updated: "2026-04-21T07:10:17.049Z"
 progress:
   total_phases: 7
   completed_phases: 3
@@ -14,35 +14,37 @@ progress:
 
 # Project State
 
-**Last updated:** 2026-04-20
+**Last updated:** 2026-04-21
 
 ## Project Reference
 
 **Project:** Moshpit (ComfyUI Autocanvas)
-**Core Value:** Prove that spatial-sort-by-parameter is a valuable interaction for reasoning about generation output.
-**Current Focus:** Phase 01 — workspace-shell-canvas-navigation
+**Core Value:** Prove that a lineage-grouped spatial canvas with shortlist-then-tournament curation is a faster, more intuitive way to pick the best generations from a large set.
+**Current Focus:** Phase 04 — lineage-groupings-and-within-cluster-sort (new milestone after v3 pivot)
 
 ## Current Position
 
-Phase: 01 (workspace-shell-canvas-navigation) — EXECUTING
-Plan: 1 of 6
+Phase: 04 (lineage-groupings-and-within-cluster-sort) — READY TO PLAN
+Plan: not yet created
 
 - **Milestone:** v1
-- **Phase:** 3
+- **Phase:** 4
 - **Plan:** Not started
 - **Status:** Ready to plan
 
-Progress: `[░░░░░░░░░░] 0 / 7 phases`
+Progress: `[████░░░░░░] 3 / 7 phases`
 
 ## Performance Metrics
 
-- Phases complete: 0 / 7
-- Plans complete: 0 / ?
-- Requirements mapped: 66 / 66
+- Phases complete: 3 / 7
+- Plans complete: 29 / 29 (across shipped phases 1–3)
+- Requirements mapped: 74 / 74 (v1 total post-pivot)
 
 ## Accumulated Context
 
 ### Decisions
+
+**Foundational (shipped in Phases 1–3):**
 
 - PixiJS chosen for the canvas (2D sprite scale; litegraph renderer is node-graph coupled and ADR-sensitive).
 - Share the input composable only, not the renderer (preserves pan/zoom muscle memory without coupling the two canvases).
@@ -52,23 +54,35 @@ Progress: `[░░░░░░░░░░] 0 / 7 phases`
 - One 512px WebP thumbnail per asset + Pixi mipmap for LOD; full-res lazy on compare/detail.
 - Exclude assets without parseable ComfyUI metadata entirely (count surfaced in Settings).
 - Soft-delete only (hide flag) — no real deletion in v1.
-- Live-parsed Generate More, non-executing Queue (validates interaction, not execution).
-- Toast-based undo with ~8s window for bulk curation actions.
-- LoRA diff is name-based, order-insensitive set diff.
-- No telemetry in v1; validation via qualitative dogfooding.
-- [Phase 03]: emitted<unknown[]>() typing pattern required to satisfy vue-tsc on @testing-library/vue emitted() return type
-- [Phase 03]: Module-level pinia instance pattern for tests that seed store state before component mount
-- [Phase 03]: role=option on param picker <li> items enables reliable userEvent.click() in happy-dom
-- [Phase 03]: defineExpose selectX/selectY in MoshpitSortControls — Reka PopoverPortal unreliable in happy-dom for this component; tests use direct vm invocation instead
-- [Phase 03]: onSliderChange typed as number[] | undefined to match SliderRootEmits payload type from Reka
-- [Phase 03]: shallowRef required for Viewport injection key — Vue ref() deep-unwraps complex classes causing TS2345; shallowRef preserves class type
-- [Phase 03]: transformTick void pattern for 60fps overlay updates — void transformTick.value in style functions registers reactive dep without lint-triggering unused variable
-- [Phase 03-filter-sort-core-validation]: MOSHPIT_LAYOUT_INJECTION_KEY co-located in useMoshpitSpriteLayer.ts (option A) — avoids new module, keeps key adjacent to SpriteLayerOptions type
-- [Phase 03-filter-sort-core-validation]: Phase 3 integration complete — HUMAN-UAT checkpoint returned; Phase 4 go/no-go pending user sign-off on 03-HUMAN-UAT.md
+
+**v3 pivot (2026-04-21):**
+
+- Core Value reframed from "spatial-sort-by-parameter is valuable" to "lineage-grouped canvas + shortlist/tournament curation is valuable". Params are means; quality is the end.
+- Lineage groupings (workflow, save node, prompt, model, type) replace parameter-axis sort as the primary spatial organiser. Non-exclusive, stackable, auto-nested by bucket density (bigger buckets outermost).
+- Filters and groups are independent concerns — filters cull the set, groups organise what remains.
+- Tournament mode replaces old Comparison Mode framing. Pairwise winner selection, three display modes preserved, ephemeral scoring (no persisted elo).
+- Tournament input = current canvas selection. Folders are the way to persist a shortlist for repeat tournamenting.
+- Metadata peek collapsed to on-demand (`M` key) — tournament is pure pixels by default.
+- "Generate more like this" cut from v1; reinstated as v2-GEN-01/02.
+- Parameter filters (CFG, steps, seed, sampler, scheduler, resolution, LoRA, negative prompt) demoted behind an "Advanced" disclosure in the Settings panel.
+- Within-cluster sort is a single dropdown: newest first (default), oldest first, alphabetical.
+
+**Phase 3 engineering notes (retained for Phase 4 reuse):**
+
+- `emitted<unknown[]>()` typing pattern required to satisfy vue-tsc on @testing-library/vue `emitted()` return type
+- Module-level pinia instance pattern for tests that seed store state before component mount
+- `role=option` on param picker `<li>` items enables reliable `userEvent.click()` in happy-dom
+- `defineExpose selectX/selectY` in MoshpitSortControls — Reka `PopoverPortal` unreliable in happy-dom; tests use direct vm invocation
+- `onSliderChange` typed as `number[] | undefined` to match Reka `SliderRootEmits` payload type
+- `shallowRef` required for Viewport injection key — Vue `ref()` deep-unwraps complex classes causing TS2345
+- `transformTick` void pattern for 60fps overlay updates — `void transformTick.value` registers reactive dep without lint-triggering unused variable
+- `MOSHPIT_LAYOUT_INJECTION_KEY` co-located in `useMoshpitSpriteLayer.ts` — avoids new module, keeps key adjacent to `SpriteLayerOptions` type
+- `sortMath` primitives remain available in the codebase for Phase 4 cluster layout reuse (pure functions, no UI coupling)
 
 ### Active Todos
 
-- Create Phase 1 plan via `/gsd-plan-phase 1`.
+- Plan Phase 4 (Lineage Groupings & Within-Cluster Sort) via `/gsd-plan-phase 4`.
+- Before planning, consider running `/gsd-discuss-phase 4` to surface open design questions (cluster layout algorithm, "(other)" cluster placement, grouping-toggle animation strategy, Advanced-filter disclosure UX).
 
 ### Blockers
 
@@ -76,23 +90,28 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-20T23:53:00.367Z
+**Last session:** 2026-04-21T07:10:17.044Z
 
 **Context for next session:**
 
-- Read `.planning/PROJECT.md` for scope and constraints.
-- Read `.planning/REQUIREMENTS.md` for the 66 v1 requirements and their phase mappings.
-- Read `.planning/ROADMAP.md` for phase structure and success criteria.
-- Read `temp/plans/moshpit_prd.md` for product-level reasoning.
-- Next step: `/gsd-plan-phase 1` to decompose Workspace Shell & Canvas Navigation into executable plans.
+- Read `.planning/PROJECT.md` for scope and constraints (v3-pivot-aware).
+- Read `.planning/REQUIREMENTS.md` for the 74 v1 requirements and their phase mappings; note SORT-01/02/03 are deprecated post-ship.
+- Read `.planning/ROADMAP.md` for the reorganised phase structure (Phase 4 = Lineage Groupings, Phase 5 = Tournament Mode, Phase 6 = Curation, Phase 7 = UX).
+- Read `temp/plans/moshpit_prd.md` v3 for the curation pivot reasoning and full product spec.
+- Next step: `/gsd-plan-phase 4` (or `/gsd-discuss-phase 4` first if design questions want surfacing).
 
-**Open questions carried forward** (from PRD §9):
+**Open questions carried forward** (from PRD v3 §9):
 
-- Chaos-state visual treatment (pure random vs. jittered grid vs. physics settle) — design discretion.
-- Workflow grouping drift (same filename, different era) — v1 accepts filename-based grouping.
-- Diff visual treatment in compare metadata panel — deferred to design.
-- IndexedDB eviction — v1 accepts unbounded; LRU / size cap is v2.
+- **Tournament bracket shape**: single-elimination vs short round-robin vs swiss — open for Phase 5; round-robin default for small sets (<8), single-elim for larger.
+- **Prompt normalisation for grouping**: trim + lowercase + collapse-whitespace minimum; semantic similarity is v2.
+- **Cluster visual treatment**: bounding boxes, labels, padding, collapse/expand — deferred to design.
+- **"(other)" cluster handling**: exact placement and labelling — design detail for Phase 4.
+- **Workflow grouping drift**: filename-based grouping accepted for v1; graph-hash heuristics are v2.
+- **Diff visual treatment** in metadata peek overlay — deferred to design.
+- **Thumbnail cache eviction**: v1 accepts unbounded; LRU / size cap is v2.
+- **Additional grouping axes**: v1 ships with workflow/save-node/prompt/model/type; sampler, resolution bucket, seed-modulo-N are candidates for later.
 
 ---
 
 _State initialized: 2026-04-20_
+_Pivoted: 2026-04-21 — PRD v3 (curation pivot). Phases 1–3 marked complete; Phase 4 reframed as Lineage Groupings; Phase 5 as Tournament; Phase 6 as Curation; old Phase 6 Generate More cut._
