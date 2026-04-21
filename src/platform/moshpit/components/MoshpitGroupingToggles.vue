@@ -12,6 +12,7 @@
       <button
         v-for="axis in GROUPING_AXES"
         :key="axis"
+        v-tooltip.top="t(`moshpit.grouping.axisDescription.${axis}`)"
         type="button"
         :aria-pressed="
           filterStore.activeGroupings.includes(axis) ? 'true' : 'false'

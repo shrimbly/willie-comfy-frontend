@@ -1131,6 +1131,13 @@
         "model": "Model",
         "type": "Type"
       },
+      "axisDescription": {
+        "workflow": "Group by source workflow (filename or fingerprint)",
+        "saveNode": "Group by which Save node produced the asset",
+        "prompt": "Group by positive prompt text",
+        "model": "Group by checkpoint / model name",
+        "type": "Group by aspect ratio — landscape, portrait, or square"
+      },
       "withinSort": {
         "label": "Within cluster",
         "newestFirst": "Newest first",

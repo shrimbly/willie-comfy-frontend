@@ -5,26 +5,26 @@
     :aria-label="t('moshpit.filters.sectionLabel')"
   >
     <MoshpitAddFilterPopover variant="block" />
-    <div v-if="chips.length > 0" class="flex flex-wrap gap-1">
+    <div v-if="chips.length > 0" class="flex flex-col gap-1">
       <div
         v-for="chip in chips"
         :key="chip.id"
-        :class="
-          cn(
-            'inline-flex h-6 items-center gap-1 rounded-md bg-secondary-background pr-0.5 pl-2 text-xs'
-          )
-        "
+        class="flex items-start gap-1 rounded-md bg-secondary-background px-2 py-1 text-xs"
         data-testid="moshpit-filter-chip"
       >
-        <span class="max-w-[120px] truncate text-base-foreground">
-          {{ chipLabel(chip) }}
-        </span>
-        <span class="text-muted-foreground">{{ chipValueSummary(chip) }}</span>
+        <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span class="text-2xs tracking-wide text-muted-foreground uppercase">
+            {{ chipLabel(chip) }}
+          </span>
+          <span class="min-w-0 truncate text-xs text-base-foreground">
+            {{ chipValueSummary(chip) }}
+          </span>
+        </div>
         <button
           type="button"
           :class="
             cn(
-              'inline-flex size-5 items-center justify-center rounded-sm text-muted-foreground',
+              'inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground',
               'hover:bg-secondary-background-hover hover:text-base-foreground',
               'focus-visible:ring-1 focus-visible:ring-primary-background'
             )
