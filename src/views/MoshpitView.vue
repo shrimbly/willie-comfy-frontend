@@ -7,7 +7,6 @@
     @pointerdown="onContainerPointerDown"
   >
     <MoshpitCanvas v-if="containerEl" :container-el="containerEl" />
-    <MoshpitAxisOverlay />
     <MoshpitEmptyGateOverlay />
     <MoshpitMarqueeOverlay
       :is-dragging="marquee.isDragging.value"
@@ -20,7 +19,6 @@
 import type { Viewport } from 'pixi-viewport'
 import { provide, ref, shallowRef } from 'vue'
 
-import MoshpitAxisOverlay from '@/platform/moshpit/components/MoshpitAxisOverlay.vue'
 import MoshpitCanvas from '@/platform/moshpit/components/MoshpitCanvas.vue'
 import MoshpitEmptyGateOverlay from '@/platform/moshpit/components/MoshpitEmptyGateOverlay.vue'
 import MoshpitMarqueeOverlay from '@/platform/moshpit/components/MoshpitMarqueeOverlay.vue'

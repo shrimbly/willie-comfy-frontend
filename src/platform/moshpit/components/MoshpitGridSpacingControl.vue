@@ -1,14 +1,16 @@
 <template>
   <div class="flex flex-col gap-1.5 px-3 py-2">
     <div class="flex items-center justify-between">
-      <span class="text-2xs uppercase tracking-wide text-muted-foreground">
+      <span class="text-2xs tracking-wide text-muted-foreground uppercase">
         {{ t('moshpit.sort.gridSpacingLabel') }}
       </span>
       <span
-        class="text-2xs tabular-nums text-muted-foreground"
+        class="text-2xs text-muted-foreground tabular-nums"
         data-testid="moshpit-grid-spacing-value"
       >
-        {{ t('moshpit.sort.gridSpacingValue', { value: filterStore.gridSpacing }) }}
+        {{
+          t('moshpit.sort.gridSpacingValue', { value: filterStore.gridSpacing })
+        }}
       </span>
     </div>
     <Slider
@@ -41,7 +43,11 @@ defineOptions({ name: 'MoshpitGridSpacingControl' })
 const { t } = useI18n()
 const filterStore = useMoshpitFilterStore()
 
-const isDisabled = computed(() => filterStore.sortX === null)
+// Disabled until the user has passed the filter gate (workflow / time range).
+// Grid spacing only meaningfully affects the clustered layout once the canvas
+// has assets to lay out — before the gate the viewport is empty and the
+// control has no visible effect.
+const isDisabled = computed(() => !filterStore.isGated)
 
 function onSliderChange(values: number[] | undefined): void {
   if (values !== undefined && values[0] !== undefined) {

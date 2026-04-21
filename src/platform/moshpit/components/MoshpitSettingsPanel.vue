@@ -8,7 +8,10 @@
     </header>
     <div class="flex-1 overflow-y-auto px-3 py-2 text-xs">
       <!-- Filter section (Phase 3 — FILTER-01, FILTER-08, FILTER-10) -->
-      <section class="flex flex-col gap-2" :aria-label="t('moshpit.filters.sectionLabel')">
+      <section
+        class="flex flex-col gap-2"
+        :aria-label="t('moshpit.filters.sectionLabel')"
+      >
         <span class="text-2xs tracking-wide text-muted-foreground uppercase">
           {{ t('moshpit.filters.sectionLabel') }}
         </span>
@@ -16,9 +19,6 @@
         <MoshpitTimeRangePicker />
         <MoshpitFilterChipRow v-if="filterStore.isGated" />
       </section>
-
-      <!-- Sort section (gated — SORT-01, SORT-02, SORT-04) -->
-      <MoshpitSortControls v-if="filterStore.isGated" class="mt-4" />
 
       <!-- Footer controls (SORT-04, FILTER-11) -->
       <div class="mt-4 flex flex-col gap-0">
@@ -54,7 +54,6 @@ import { useI18n } from 'vue-i18n'
 import MoshpitFilterChipRow from '@/platform/moshpit/components/MoshpitFilterChipRow.vue'
 import MoshpitGridSpacingControl from '@/platform/moshpit/components/MoshpitGridSpacingControl.vue'
 import MoshpitShowHiddenToggle from '@/platform/moshpit/components/MoshpitShowHiddenToggle.vue'
-import MoshpitSortControls from '@/platform/moshpit/components/MoshpitSortControls.vue'
 import MoshpitTimeRangePicker from '@/platform/moshpit/components/MoshpitTimeRangePicker.vue'
 import MoshpitWorkflowPicker from '@/platform/moshpit/components/MoshpitWorkflowPicker.vue'
 import { useMoshpitFilterStore } from '@/platform/moshpit/stores/moshpitFilterStore'

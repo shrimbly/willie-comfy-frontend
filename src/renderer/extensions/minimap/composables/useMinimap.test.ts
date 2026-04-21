@@ -851,7 +851,7 @@ describe('useMinimap', () => {
 
       const resizeHandler = vi
         .mocked(window.addEventListener)
-        .mock.calls.find((call) => call[0] === 'resize')?.[1] as
+        .mock.calls.find((call) => (call[0] as string) === 'resize')?.[1] as
         | EventListener
         | undefined
 

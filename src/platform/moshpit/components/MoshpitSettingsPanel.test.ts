@@ -20,7 +20,8 @@ const i18n = createI18n({
           workflowPickerLabel: 'Select workflow',
           workflowPickerPlaceholder: 'Select a workflow…',
           workflowPickerSearch: 'Search workflows…',
-          workflowOptionCount: '{name} ({count} asset) | {name} ({count} assets)',
+          workflowOptionCount:
+            '{name} ({count} asset) | {name} ({count} assets)',
           timeRangeLabel: 'Time range',
           timeRangeToday: 'Today',
           timeRangeThisWeek: 'This week',
@@ -88,14 +89,15 @@ const i18n = createI18n({
 // Stub all Phase 3 child components so the test is not coupled to their
 // internals. We verify composition (presence / v-if gating) not child behaviour.
 const stubs = {
-  MoshpitWorkflowPicker: { template: '<div data-testid="stub-workflow-picker" />' },
+  MoshpitWorkflowPicker: {
+    template: '<div data-testid="stub-workflow-picker" />'
+  },
   MoshpitTimeRangePicker: {
     template: '<div data-testid="stub-time-range-picker" />'
   },
   MoshpitFilterChipRow: {
     template: '<div data-testid="stub-filter-chip-row" />'
   },
-  MoshpitSortControls: { template: '<div data-testid="stub-sort-controls" />' },
   MoshpitGridSpacingControl: {
     template: '<div data-testid="stub-grid-spacing-control" />'
   },
@@ -182,24 +184,11 @@ describe('MoshpitSettingsPanel Phase 3 composition', () => {
     expect(screen.queryByTestId('stub-filter-chip-row')).toBeNull()
   })
 
-  it('hides MoshpitSortControls when filterStore.workflow is null', () => {
-    mountPanel()
-    expect(screen.queryByTestId('stub-sort-controls')).toBeNull()
-  })
-
   it('shows MoshpitFilterChipRow when filterStore.workflow is set', async () => {
     mountPanel()
     const filterStore = useMoshpitFilterStore()
     filterStore.workflow = 'abc123fingerprint'
     await new Promise((r) => setTimeout(r, 0))
     expect(screen.getByTestId('stub-filter-chip-row')).toBeInTheDocument()
-  })
-
-  it('shows MoshpitSortControls when filterStore.workflow is set', async () => {
-    mountPanel()
-    const filterStore = useMoshpitFilterStore()
-    filterStore.workflow = 'abc123fingerprint'
-    await new Promise((r) => setTimeout(r, 0))
-    expect(screen.getByTestId('stub-sort-controls')).toBeInTheDocument()
   })
 })

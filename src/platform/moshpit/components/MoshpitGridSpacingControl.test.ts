@@ -40,18 +40,20 @@ describe('MoshpitGridSpacingControl', () => {
     const filterStore = useMoshpitFilterStore()
     filterStore.setGridSpacing(600)
     renderComponent()
-    expect(screen.getByTestId('moshpit-grid-spacing-value').textContent?.trim()).toBe('600px')
+    expect(
+      screen.getByTestId('moshpit-grid-spacing-value').textContent?.trim()
+    ).toBe('600px')
   })
 
-  it('slider has aria-disabled="true" when sortX is null', () => {
+  it('slider is disabled when filter gate is closed (no workflow, no time range)', () => {
     renderComponent()
     const slider = screen.getByTestId('moshpit-grid-spacing-slider')
     expect(slider.getAttribute('aria-disabled')).toBe('true')
   })
 
-  it('slider has aria-disabled="false" when sortX is set', () => {
+  it('slider is enabled once the filter gate is open (workflow set)', () => {
     const filterStore = useMoshpitFilterStore()
-    filterStore.setSortX('cfg')
+    filterStore.setWorkflow('fp-abc')
     renderComponent()
     const slider = screen.getByTestId('moshpit-grid-spacing-slider')
     expect(slider.getAttribute('aria-disabled')).toBe('false')
@@ -71,6 +73,8 @@ describe('MoshpitGridSpacingControl', () => {
     const filterStore = useMoshpitFilterStore()
     filterStore.setGridSpacing(800)
     renderComponent()
-    expect(screen.getByTestId('moshpit-grid-spacing-value').textContent?.trim()).toBe('800px')
+    expect(
+      screen.getByTestId('moshpit-grid-spacing-value').textContent?.trim()
+    ).toBe('800px')
   })
 })
