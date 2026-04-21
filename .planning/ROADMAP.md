@@ -114,7 +114,7 @@
 - [x] 04-01-PLAN.md — Pure math: groupAxes + clusterLayout + sortMath Phase 4 reuse note (GROUP-02/03/05/06/07/08/10, CSORT-01 math)
 - [x] 04-02-PLAN.md — paramNormalize.saveNodeIdentity + IDB v2→v3 migration (GROUP-04, D-08, D-11)
 - [x] 04-03-PLAN.md — filterTypes saveNode + moshpitFilterStore refactor + useMoshpitFilteredAssets cluster wiring (GROUP-01/09, CSORT-01, FILTER-12)
-- [ ] 04-04-PLAN.md — Settings-panel UI: MoshpitGroupingToggles + MoshpitWithinClusterSort + MoshpitAdvancedFilters + chip-row tier prop + popover split + i18n (GROUP-01, CSORT-01, FILTER-12)
+- [x] 04-04-PLAN.md — Settings-panel UI: MoshpitGroupingToggles + MoshpitWithinClusterSort + MoshpitAdvancedFilters + chip-row tier prop + popover split + i18n (GROUP-01, CSORT-01, FILTER-12)
 - [ ] 04-05-PLAN.md — MoshpitClusterOverlay HTML-over-Pixi bounding boxes + labels (GROUP-01/02)
 - [ ] 04-06-PLAN.md — Settings panel composition + canvas overlay swap + sort-UI deletions + i18n cleanup + HUMAN-UAT + VALIDATION + @moshpit spec [human checkpoint]
 

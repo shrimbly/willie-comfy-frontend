@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-03-PLAN.md
-last_updated: '2026-04-21T17:27:00.502Z'
+stopped_at: Completed 04-04-PLAN.md
+last_updated: '2026-04-21T18:02:21.014Z'
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 35
-  completed_plans: 32
-  percent: 91
+  completed_plans: 33
+  percent: 94
 ---
 
 # Project State
@@ -26,11 +26,11 @@ progress:
 ## Current Position
 
 Phase: 04 (lineage-groupings-within-cluster-sort) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 
 - **Milestone:** v1
 - **Phase:** 4
-- **Plan:** 04-03 complete; 04-04 next
+- **Plan:** 04-04 complete; 04-05 next
 - **Status:** Executing Phase 04
 
 Progress: `[█████████░] 3 / 7 phases`
@@ -46,6 +46,7 @@ Progress: `[█████████░] 3 / 7 phases`
 | 04-01        | ~10 min  | 2       | 4 created + 1 modified |
 | Phase 04 P02 | ~7 min   | 2 tasks | 5 modified files       |
 | Phase 04 P03 | 75 min   | 4 tasks | 13 files               |
+| Phase 04 P04 | ~29 min  | 4 tasks | 16 files               |
 
 ## Accumulated Context
 
@@ -97,6 +98,7 @@ Progress: `[█████████░] 3 / 7 phases`
 - `sortMath` primitives remain available in the codebase for Phase 4 cluster layout reuse (pure functions, no UI coupling)
 - [Phase 04]: Plan 04-02 — saveNodeIdentity materialised in NormalizedParamsSchema + IDB v2→v3 cursor migration. GROUP-04 data layer complete. Plan 04-03 can now read real saveNodeIdentity buckets via Plan 01's clusterLayout
 - [Phase 04]: Plan 04-03: moshpitFilterStore + useMoshpitFilteredAssets flipped onto computeClusterLayout. ParamKey widened with saveNode; PRIMARY/ADVANCED tier constants exported; exhaustive never-guards added to filterMath switches (Pitfall 1). Legacy MoshpitSortControls + MoshpitAxisOverlay deleted. Full-project typecheck now green (pre-existing useMinimap.test.ts TS2367 resolved inline as Rule 3 blocker).
+- [Phase 04]: Plan 04-04: Settings-panel UI building blocks shipped — MoshpitGroupingToggles (5 pills), MoshpitWithinClusterSort (native select), MoshpitAdvancedFilters (Reka Collapsible). MoshpitFilterChipRow gained tier prop; MoshpitAddFilterPopover split into Primary/Advanced sections with saveNode entry. useMoshpitParamValueOptions.saveNode case derives from params.saveNodeIdentity. 59 tests across 6 files green.
 
 ### Active Todos
 
@@ -110,8 +112,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T17:26:36.551Z
-**Stopped at:** Completed 04-03-PLAN.md
+**Last session:** 2026-04-21T18:02:20.926Z
+**Stopped at:** Completed 04-04-PLAN.md
 
 **Context for next session:**
 
