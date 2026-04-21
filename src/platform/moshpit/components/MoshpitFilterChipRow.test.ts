@@ -26,9 +26,8 @@ vi.mock('./MoshpitAddFilterPopover.vue', () => ({
 
 let pinia = createPinia()
 
-function mountChipRow(props: { tier?: 'primary' | 'advanced' } = {}) {
+function mountChipRow() {
   return render(MoshpitFilterChipRow, {
-    props,
     global: { plugins: [pinia, i18n] }
   })
 }
@@ -53,9 +52,8 @@ describe('MoshpitFilterChipRow', () => {
     expect(screen.getByTestId('moshpit-add-filter-trigger')).toBeInTheDocument()
   })
 
-  it('renders one chip per entry in filterStore.chips (primary + advanced tiers combined)', () => {
+  it('renders every chip in filterStore.chips regardless of primary/advanced tier', () => {
     const filterStore = useMoshpitFilterStore()
-    // positivePrompt is primary; cfg and sampler are advanced
     filterStore.addChip(
       makeChip('a', 'cfg', { kind: 'numeric', min: 6, max: 8, exact: null })
     )
@@ -66,9 +64,8 @@ describe('MoshpitFilterChipRow', () => {
       makeChip('c', 'positivePrompt', { kind: 'text', substring: 'cat' })
     )
 
-    // Default tier='primary' should show only the positivePrompt chip
     mountChipRow()
-    expect(screen.getAllByTestId('moshpit-filter-chip')).toHaveLength(1)
+    expect(screen.getAllByTestId('moshpit-filter-chip')).toHaveLength(3)
   })
 
   it('clicking the × button calls filterStore.removeChip with the chip id', async () => {
@@ -78,7 +75,7 @@ describe('MoshpitFilterChipRow', () => {
       makeChip('chip1', 'cfg', { kind: 'numeric', min: 7, max: 8, exact: null })
     )
 
-    mountChipRow({ tier: 'advanced' })
+    mountChipRow()
     const removeBtn = screen.getByRole('button', { name: /remove CFG filter/i })
     const removeSpy = vi.spyOn(filterStore, 'removeChip')
 
@@ -93,7 +90,7 @@ describe('MoshpitFilterChipRow', () => {
       makeChip('s1', 'sampler', { kind: 'categorical', values: ['euler'] })
     )
 
-    mountChipRow({ tier: 'advanced' })
+    mountChipRow()
     expect(
       screen.getByRole('button', { name: /remove Sampler filter/i })
     ).toBeInTheDocument()
@@ -105,7 +102,7 @@ describe('MoshpitFilterChipRow', () => {
       makeChip('x', 'cfg', { kind: 'numeric', min: null, max: null, exact: 7 })
     )
 
-    mountChipRow({ tier: 'advanced' })
+    mountChipRow()
     const status = screen.getByRole('status')
     expect(status).toBeInTheDocument()
     expect(status.textContent).toContain('1')
@@ -116,7 +113,7 @@ describe('MoshpitFilterChipRow', () => {
     filterStore.addChip(
       makeChip('n', 'cfg', { kind: 'numeric', min: 6, max: 8, exact: null })
     )
-    mountChipRow({ tier: 'advanced' })
+    mountChipRow()
     const chip = screen.getByTestId('moshpit-filter-chip')
     expect(chip.textContent).toContain('6')
     expect(chip.textContent).toContain('8')
@@ -132,7 +129,7 @@ describe('MoshpitFilterChipRow', () => {
         exact: 20
       })
     )
-    mountChipRow({ tier: 'advanced' })
+    mountChipRow()
     const chip = screen.getByTestId('moshpit-filter-chip')
     expect(chip.textContent).toContain('= 20')
   })
@@ -142,7 +139,7 @@ describe('MoshpitFilterChipRow', () => {
     filterStore.addChip(
       makeChip('c1', 'sampler', { kind: 'categorical', values: ['euler'] })
     )
-    mountChipRow({ tier: 'advanced' })
+    mountChipRow()
     expect(screen.getByTestId('moshpit-filter-chip').textContent).toContain(
       'euler'
     )
@@ -156,7 +153,7 @@ describe('MoshpitFilterChipRow', () => {
         values: ['euler', 'dpmpp_2m']
       })
     )
-    mountChipRow({ tier: 'advanced' })
+    mountChipRow()
     expect(screen.getByTestId('moshpit-filter-chip').textContent).toContain(
       '+1'
     )
@@ -181,7 +178,7 @@ describe('MoshpitFilterChipRow', () => {
     filterStore.addChip(
       makeChip('r1', 'resolution', { kind: 'resolution', pairs: [[512, 512]] })
     )
-    mountChipRow({ tier: 'advanced' })
+    mountChipRow()
     expect(screen.getByTestId('moshpit-filter-chip').textContent).toContain(
       '512'
     )
@@ -198,7 +195,7 @@ describe('MoshpitFilterChipRow', () => {
         ]
       })
     )
-    mountChipRow({ tier: 'advanced' })
+    mountChipRow()
     expect(screen.getByTestId('moshpit-filter-chip').textContent).toContain(
       '+1'
     )
@@ -215,79 +212,52 @@ describe('MoshpitFilterChipRow', () => {
     )
   })
 
-  describe('tier prop', () => {
+  describe('unified chip area', () => {
     function seedMixedChips() {
       const filterStore = useMoshpitFilterStore()
-      // Primary chips: positivePrompt, model
       filterStore.addChip(
         makeChip('p1', 'positivePrompt', { kind: 'text', substring: 'cat' })
       )
       filterStore.addChip(
         makeChip('p2', 'model', { kind: 'categorical', values: ['sd15.ckpt'] })
       )
-      // Advanced chips: cfg, sampler
       filterStore.addChip(
         makeChip('a1', 'cfg', { kind: 'numeric', min: 6, max: 8, exact: null })
       )
       filterStore.addChip(
         makeChip('a2', 'sampler', { kind: 'categorical', values: ['euler'] })
       )
-      // Primary chip: favourite
       filterStore.addChip(
         makeChip('p3', 'favourite', { kind: 'boolean', value: true })
       )
     }
 
-    it('defaults to primary tier — renders primary chips and the Add filter popover', () => {
+    it('renders every active chip regardless of primary/advanced tier', () => {
       seedMixedChips()
       mountChipRow()
-      expect(screen.getAllByTestId('moshpit-filter-chip')).toHaveLength(3)
-      expect(
-        screen.getByTestId('moshpit-add-filter-trigger')
-      ).toBeInTheDocument()
-    })
-
-    it('tier="primary" renders primary chips (positivePrompt, model, favourite) and the popover', () => {
-      seedMixedChips()
-      mountChipRow({ tier: 'primary' })
       const chips = screen.getAllByTestId('moshpit-filter-chip')
-      expect(chips).toHaveLength(3)
+      expect(chips).toHaveLength(5)
       const text = chips.map((c) => c.textContent ?? '').join(' ')
       expect(text).toContain('cat')
       expect(text).toContain('sd15.ckpt')
       expect(text).toContain('Favourite')
-      expect(
-        screen.getByTestId('moshpit-add-filter-trigger')
-      ).toBeInTheDocument()
-    })
-
-    it('tier="advanced" renders advanced chips (cfg, sampler) and exposes the Add filter popover', () => {
-      seedMixedChips()
-      mountChipRow({ tier: 'advanced' })
-      const chips = screen.getAllByTestId('moshpit-filter-chip')
-      expect(chips).toHaveLength(2)
-      const text = chips.map((c) => c.textContent ?? '').join(' ')
       expect(text).toContain('6')
       expect(text).toContain('euler')
-      // Users expand the advanced disclosure specifically to add advanced
-      // filters — the add-filter trigger must be reachable from there too.
+    })
+
+    it('renders the Add filter trigger above the chip list', () => {
+      seedMixedChips()
+      mountChipRow()
       expect(
         screen.getByTestId('moshpit-add-filter-trigger')
       ).toBeInTheDocument()
     })
 
-    it('chipCount live-region reflects only the tier chip count for tier="primary"', () => {
+    it('chipCount live-region reflects the total chip count across tiers', () => {
       seedMixedChips()
-      mountChipRow({ tier: 'primary' })
+      mountChipRow()
       const status = screen.getByRole('status')
-      expect(status.textContent).toContain('3 filters active')
-    })
-
-    it('chipCount live-region reflects only the tier chip count for tier="advanced"', () => {
-      seedMixedChips()
-      mountChipRow({ tier: 'advanced' })
-      const status = screen.getByRole('status')
-      expect(status.textContent).toContain('2 filters active')
+      expect(status.textContent).toContain('5 filters active')
     })
   })
 })

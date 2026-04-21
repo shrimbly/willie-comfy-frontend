@@ -22,16 +22,13 @@
       <!-- Grouping toggles (D-18, GROUP-01) — appears once gated -->
       <MoshpitGroupingToggles v-if="filterStore.isGated" class="mt-4" />
 
-      <!-- Primary chip row (FILTER-12) -->
+      <!-- Filters: full-width Add filter trigger + active chips (FILTER-12) -->
       <div v-if="filterStore.isGated" class="mt-4">
-        <MoshpitFilterChipRow tier="primary" />
+        <MoshpitFilterChipRow />
       </div>
 
       <!-- Within-cluster sort dropdown (CSORT-01) -->
       <MoshpitWithinClusterSort v-if="filterStore.isGated" class="mt-4" />
-
-      <!-- Advanced filter disclosure (FILTER-12) -->
-      <MoshpitAdvancedFilters v-if="filterStore.isGated" class="mt-4" />
 
       <!-- Footer controls (SORT-04 cluster spacing + FILTER-11 show-hidden) -->
       <div class="mt-4 flex flex-col gap-0">
@@ -64,7 +61,6 @@
 import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import MoshpitAdvancedFilters from '@/platform/moshpit/components/MoshpitAdvancedFilters.vue'
 import MoshpitFilterChipRow from '@/platform/moshpit/components/MoshpitFilterChipRow.vue'
 import MoshpitGridSpacingControl from '@/platform/moshpit/components/MoshpitGridSpacingControl.vue'
 import MoshpitGroupingToggles from '@/platform/moshpit/components/MoshpitGroupingToggles.vue'

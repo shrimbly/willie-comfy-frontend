@@ -3,12 +3,7 @@
     <PopoverTrigger as-child>
       <button
         type="button"
-        :class="
-          cn(
-            'inline-flex h-6 cursor-pointer items-center gap-1 rounded-md border border-border-subtle bg-secondary-background px-2 text-xs text-base-foreground',
-            'hover:border-border-default hover:bg-secondary-background-hover'
-          )
-        "
+        :class="triggerClass"
         data-testid="moshpit-add-filter-trigger"
       >
         <i class="icon-[lucide--plus] size-3" aria-hidden="true" />
@@ -191,6 +186,14 @@ type EditorComponent =
   | typeof MoshpitResolutionFilterEditor
   | typeof MoshpitBooleanFilterEditor
 
+const { variant = 'inline' } = defineProps<{
+  /**
+   * 'inline' — default pill-sized trigger that sits alongside chips.
+   * 'block'  — full-width trigger suitable for use as a section CTA.
+   */
+  variant?: 'inline' | 'block'
+}>()
+
 const { t } = useI18n()
 const filterStore = useMoshpitFilterStore()
 
@@ -199,6 +202,18 @@ const step = ref<'param' | 'value'>('param')
 const paramSearch = ref('')
 const draftEntry = ref<ParamEntry | null>(null)
 const draftValue = ref<ChipValue | null>(null)
+
+const triggerClass = computed(() =>
+  variant === 'block'
+    ? cn(
+        'inline-flex h-8 w-full cursor-pointer items-center justify-center gap-1 rounded-md border border-border-subtle bg-secondary-background px-2 text-xs text-base-foreground',
+        'hover:border-border-default hover:bg-secondary-background-hover'
+      )
+    : cn(
+        'inline-flex h-6 cursor-pointer items-center gap-1 rounded-md border border-border-subtle bg-secondary-background px-2 text-xs text-base-foreground',
+        'hover:border-border-default hover:bg-secondary-background-hover'
+      )
+)
 
 const PARAM_ENTRIES: readonly ParamEntry[] = [
   {

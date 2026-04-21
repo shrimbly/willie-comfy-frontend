@@ -42,14 +42,10 @@ const stubs = {
     template: '<div data-testid="stub-grouping-toggles" />'
   },
   MoshpitFilterChipRow: {
-    props: ['tier'],
-    template: '<div data-testid="stub-filter-chip-row" :data-tier="tier" />'
+    template: '<div data-testid="stub-filter-chip-row" />'
   },
   MoshpitWithinClusterSort: {
     template: '<div data-testid="stub-within-cluster-sort" />'
-  },
-  MoshpitAdvancedFilters: {
-    template: '<div data-testid="stub-advanced-filters" />'
   },
   MoshpitGridSpacingControl: {
     template: '<div data-testid="stub-grid-spacing-control" />'
@@ -137,10 +133,9 @@ describe('MoshpitSettingsPanel gated composition (Phase 4)', () => {
     expect(screen.queryByTestId('stub-grouping-toggles')).toBeNull()
     expect(screen.queryByTestId('stub-filter-chip-row')).toBeNull()
     expect(screen.queryByTestId('stub-within-cluster-sort')).toBeNull()
-    expect(screen.queryByTestId('stub-advanced-filters')).toBeNull()
   })
 
-  it('renders grouping toggles, primary chip row, within-cluster sort and advanced filters once gated', async () => {
+  it('renders grouping toggles, chip row and within-cluster sort once gated', async () => {
     mountPanel()
     const filterStore = useMoshpitFilterStore()
     filterStore.workflow = 'abc123fingerprint'
@@ -148,19 +143,9 @@ describe('MoshpitSettingsPanel gated composition (Phase 4)', () => {
     expect(screen.getByTestId('stub-grouping-toggles')).toBeInTheDocument()
     expect(screen.getByTestId('stub-filter-chip-row')).toBeInTheDocument()
     expect(screen.getByTestId('stub-within-cluster-sort')).toBeInTheDocument()
-    expect(screen.getByTestId('stub-advanced-filters')).toBeInTheDocument()
   })
 
-  it('primary chip row receives tier="primary"', async () => {
-    mountPanel()
-    const filterStore = useMoshpitFilterStore()
-    filterStore.workflow = 'abc123fingerprint'
-    await new Promise((r) => setTimeout(r, 0))
-    const chipRow = screen.getByTestId('stub-filter-chip-row')
-    expect(chipRow.getAttribute('data-tier')).toBe('primary')
-  })
-
-  it('renders gated components in the documented layout order (grouping → chips → within-sort → advanced → spacing → show-hidden)', async () => {
+  it('renders gated components in the documented layout order (grouping → chips → within-sort → spacing → show-hidden)', async () => {
     mountPanel()
     const filterStore = useMoshpitFilterStore()
     filterStore.workflow = 'abc123fingerprint'
@@ -170,7 +155,6 @@ describe('MoshpitSettingsPanel gated composition (Phase 4)', () => {
       'stub-grouping-toggles',
       'stub-filter-chip-row',
       'stub-within-cluster-sort',
-      'stub-advanced-filters',
       'stub-grid-spacing-control',
       'stub-show-hidden-toggle'
     ]

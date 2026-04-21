@@ -1,16 +1,17 @@
 <template>
   <div
-    class="flex flex-col gap-1"
+    class="flex flex-col gap-2"
     role="group"
     :aria-label="t('moshpit.filters.sectionLabel')"
   >
-    <div class="flex flex-wrap gap-1">
+    <MoshpitAddFilterPopover variant="block" />
+    <div v-if="chips.length > 0" class="flex flex-wrap gap-1">
       <div
-        v-for="chip in tierChips"
+        v-for="chip in chips"
         :key="chip.id"
         :class="
           cn(
-            'inline-flex h-6 items-center gap-1 rounded-md bg-secondary-background px-2 text-xs'
+            'inline-flex h-6 items-center gap-1 rounded-md bg-secondary-background pr-0.5 pl-2 text-xs'
           )
         "
         data-testid="moshpit-filter-chip"
@@ -23,7 +24,7 @@
           type="button"
           :class="
             cn(
-              'size-5 rounded-sm text-muted-foreground',
+              'inline-flex size-5 items-center justify-center rounded-sm text-muted-foreground',
               'hover:bg-secondary-background-hover hover:text-base-foreground',
               'focus-visible:ring-1 focus-visible:ring-primary-background'
             )
@@ -36,15 +37,10 @@
           <i class="icon-[lucide--x] size-3" aria-hidden="true" />
         </button>
       </div>
-      <MoshpitAddFilterPopover />
     </div>
     <span class="sr-only" role="status" aria-live="polite">
       {{
-        t(
-          'moshpit.filters.chipCount',
-          { count: tierChips.length },
-          tierChips.length
-        )
+        t('moshpit.filters.chipCount', { count: chips.length }, chips.length)
       }}
     </span>
   </div>
@@ -56,32 +52,15 @@ import { useI18n } from 'vue-i18n'
 
 import { cn } from '@/utils/tailwindUtil'
 import { useMoshpitFilterStore } from '@/platform/moshpit/stores/moshpitFilterStore'
-import type {
-  FilterChip,
-  ParamKey
-} from '@/platform/moshpit/services/filterTypes'
-import {
-  ADVANCED_FILTER_PARAMS,
-  PRIMARY_FILTER_PARAMS
-} from '@/platform/moshpit/services/filterTypes'
+import type { FilterChip } from '@/platform/moshpit/services/filterTypes'
 import MoshpitAddFilterPopover from './MoshpitAddFilterPopover.vue'
 
 defineOptions({ name: 'MoshpitFilterChipRow' })
 
-const { tier = 'primary' } = defineProps<{
-  tier?: 'primary' | 'advanced'
-}>()
-
 const { t } = useI18n()
 const filterStore = useMoshpitFilterStore()
 
-const tierParams = computed<readonly ParamKey[]>(() =>
-  tier === 'advanced' ? ADVANCED_FILTER_PARAMS : PRIMARY_FILTER_PARAMS
-)
-
-const tierChips = computed(() =>
-  filterStore.chips.filter((c) => tierParams.value.includes(c.param))
-)
+const chips = computed(() => filterStore.chips)
 
 function chipLabel(chip: FilterChip): string {
   switch (chip.param) {
