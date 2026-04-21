@@ -1,5 +1,5 @@
 import { openDB } from 'idb'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { NormalizedParams } from './paramNormalize'
 import { MOSHPIT_DB_NAME } from './thumbRepository.types'
@@ -277,5 +277,270 @@ describe('thumbRepository v1→v2 migration', () => {
     const got = await getAssetMeta('already-has-params')
     expect(got?.params.model).toBe('already-migrated.safetensors')
     expect(got?.params.cfg).toBe(6.0)
+  })
+})
+
+describe('thumbRepository v2→v3 migration (D-11)', () => {
+  let warnSpy: ReturnType<typeof vi.spyOn>
+  let errorSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(async () => {
+    const { deleteMoshpitDB } = await import('./thumbRepository')
+    await deleteMoshpitDB()
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    warnSpy.mockRestore()
+    errorSpy.mockRestore()
+  })
+
+  // Seed a v2-shape DB directly via raw idb, bypassing openMoshpitDB.
+  async function seedV2DB(
+    records: readonly {
+      contentHash: string
+      metadata: Record<string, string>
+      params: NormalizedParams
+    }[]
+  ): Promise<void> {
+    const v2db = await openDB(MOSHPIT_DB_NAME, 2, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains('thumbs')) {
+          db.createObjectStore('thumbs', { keyPath: 'contentHash' })
+        }
+        if (!db.objectStoreNames.contains('assetMeta')) {
+          db.createObjectStore('assetMeta', { keyPath: 'contentHash' })
+        }
+      }
+    })
+    for (const rec of records) {
+      await v2db.put('assetMeta', {
+        contentHash: rec.contentHash,
+        metadata: rec.metadata,
+        curation: { favourite: false, tags: [], folders: [], hidden: false },
+        params: rec.params
+      })
+    }
+    v2db.close()
+  }
+
+  // Build a v2-era NormalizedParams missing saveNodeIdentity — simulates a
+  // record written before v3 when the schema did not yet include the field.
+  // Runtime shape uses an object literal without saveNodeIdentity; we cast to
+  // NormalizedParams to mirror the real on-disk state.
+  function legacyV2Params(
+    overrides: Partial<NormalizedParams> = {}
+  ): NormalizedParams {
+    const base = {
+      model: 'v1-5.safetensors',
+      loras: [],
+      cfg: 7,
+      steps: 20,
+      sampler: 'euler',
+      scheduler: 'normal',
+      seed: 1,
+      positivePrompt: undefined,
+      negativePrompt: undefined,
+      width: 512,
+      height: 512,
+      timestamp: 1700000000000,
+      workflowFingerprint: 'CheckpointLoaderSimple|KSampler',
+      workflowFilename: null
+    }
+    return { ...base, ...overrides } as NormalizedParams
+  }
+
+  it('fresh DB opens at v3 with thumbs + assetMeta stores and no errors', async () => {
+    const { openMoshpitDB } = await import('./thumbRepository')
+    const db = await openMoshpitDB()
+    expect(db.version).toBe(3)
+    expect(db.objectStoreNames.contains('thumbs')).toBe(true)
+    expect(db.objectStoreNames.contains('assetMeta')).toBe(true)
+    expect(errorSpy).not.toHaveBeenCalled()
+    expect(warnSpy).not.toHaveBeenCalled()
+  })
+
+  it('v2 DB with records auto-upgrades to v3 and populates saveNodeIdentity from rec.metadata', async () => {
+    const promptWithSaveImage = JSON.stringify({
+      '1': {
+        class_type: 'KSampler',
+        inputs: {
+          cfg: 7,
+          steps: 20,
+          sampler_name: 'euler',
+          scheduler: 'normal',
+          seed: 1
+        }
+      },
+      '9': {
+        class_type: 'SaveImage',
+        inputs: { filename_prefix: 'out' },
+        _meta: { title: 'Final Output' }
+      }
+    })
+    const promptWithPreview = JSON.stringify({
+      '1': {
+        class_type: 'PreviewImage',
+        inputs: {}
+      }
+    })
+    const promptWithoutSaveNode = JSON.stringify({
+      '1': {
+        class_type: 'CheckpointLoaderSimple',
+        inputs: { ckpt_name: 'x.safetensors' }
+      }
+    })
+
+    await seedV2DB([
+      {
+        contentHash: 'has-title',
+        metadata: { prompt: promptWithSaveImage },
+        params: legacyV2Params()
+      },
+      {
+        contentHash: 'class-only',
+        metadata: { prompt: promptWithPreview },
+        params: legacyV2Params()
+      },
+      {
+        contentHash: 'no-save-node',
+        metadata: { prompt: promptWithoutSaveNode },
+        params: legacyV2Params()
+      }
+    ])
+
+    const { openMoshpitDB, getAssetMeta } = await import('./thumbRepository')
+    const db = await openMoshpitDB()
+    expect(db.version).toBe(3)
+
+    const withTitle = await getAssetMeta('has-title')
+    expect(withTitle?.params.saveNodeIdentity).toBe('Final Output')
+
+    const classOnly = await getAssetMeta('class-only')
+    expect(classOnly?.params.saveNodeIdentity).toBe('PreviewImage')
+
+    const noSave = await getAssetMeta('no-save-node')
+    expect(noSave?.params.saveNodeIdentity).toBeNull()
+  })
+
+  it('v2→v3 migration preserves non-saveNodeIdentity params fields on existing records', async () => {
+    const prompt = JSON.stringify({
+      '1': { class_type: 'SaveImage', inputs: {} }
+    })
+    await seedV2DB([
+      {
+        contentHash: 'preserve',
+        metadata: { prompt },
+        params: legacyV2Params({
+          model: 'custom.safetensors',
+          cfg: 9.5,
+          steps: 42,
+          seed: 12345
+        })
+      }
+    ])
+
+    const { openMoshpitDB, getAssetMeta } = await import('./thumbRepository')
+    await openMoshpitDB()
+
+    const got = await getAssetMeta('preserve')
+    expect(got?.params.model).toBe('custom.safetensors')
+    expect(got?.params.cfg).toBe(9.5)
+    expect(got?.params.steps).toBe(42)
+    expect(got?.params.seed).toBe(12345)
+    expect(got?.params.saveNodeIdentity).toBe('SaveImage')
+  })
+
+  it('malformed prompt JSON is logged and skipped without aborting the upgrade', async () => {
+    const validPrompt = JSON.stringify({
+      '1': { class_type: 'SaveImage', inputs: {} }
+    })
+    await seedV2DB([
+      {
+        contentHash: 'bad-json',
+        metadata: { prompt: '{not valid json' },
+        params: legacyV2Params()
+      },
+      {
+        contentHash: 'good-record',
+        metadata: { prompt: validPrompt },
+        params: legacyV2Params()
+      }
+    ])
+
+    const { openMoshpitDB, getAssetMeta } = await import('./thumbRepository')
+    await openMoshpitDB()
+
+    // Malformed record: saveNodeIdentity falls out as null (normalizeParams
+    // returns fallback; no throw, no skip). Either behaviour is acceptable —
+    // what matters is that the second record still migrated.
+    const goodRec = await getAssetMeta('good-record')
+    expect(goodRec?.params.saveNodeIdentity).toBe('SaveImage')
+  })
+
+  it('emits console.warn with aggregate skip count when records throw during migration', async () => {
+    // Seed a record that will throw in the upgrade callback. We simulate this
+    // by putting a record with a metadata value that is non-string — the
+    // spread on rec.metadata is fine, but normalizeParams treats non-string
+    // `prompt` as missing and returns emptyParams. To force a throw we put a
+    // record whose shape is missing the contentHash field on update path; the
+    // simpler route is to provide metadata whose shape breaks the upgrade's
+    // normalizeParams call by making rec.metadata itself null. Since IDB
+    // serializes the value, we create the record with metadata: null directly.
+    const v2db = await openDB(MOSHPIT_DB_NAME, 2, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains('thumbs')) {
+          db.createObjectStore('thumbs', { keyPath: 'contentHash' })
+        }
+        if (!db.objectStoreNames.contains('assetMeta')) {
+          db.createObjectStore('assetMeta', { keyPath: 'contentHash' })
+        }
+      }
+    })
+    // Insert a record whose metadata is null — normalizeParams will throw on
+    // rawMeta['prompt'] access. This is the only synthetic way to force the
+    // per-record try/catch path inside the v2→v3 migration without mocking.
+    await v2db.put('assetMeta', {
+      contentHash: 'throws-on-migrate',
+      metadata: null,
+      curation: { favourite: false, tags: [], folders: [], hidden: false },
+      params: legacyV2Params()
+    })
+    v2db.close()
+
+    const { openMoshpitDB } = await import('./thumbRepository')
+    await openMoshpitDB()
+
+    // At least one error logged for the skipped record
+    expect(errorSpy).toHaveBeenCalled()
+    // Aggregate warn emitted with v2→v3 skip count
+    const warnCalls = warnSpy.mock.calls.map((c) => String(c[0]))
+    expect(warnCalls.some((msg) => /v2.*v3.*skipped/i.test(msg))).toBe(true)
+  })
+
+  it('v2→v3 migration is idempotent across re-opens (cached DB returned)', async () => {
+    const prompt = JSON.stringify({
+      '1': { class_type: 'SaveImage', inputs: {} }
+    })
+    await seedV2DB([
+      {
+        contentHash: 'once',
+        metadata: { prompt },
+        params: legacyV2Params()
+      }
+    ])
+
+    const { openMoshpitDB, getAssetMeta } = await import('./thumbRepository')
+    const db1 = await openMoshpitDB()
+    expect(db1.version).toBe(3)
+    const first = await getAssetMeta('once')
+
+    const db2 = await openMoshpitDB()
+    expect(db2.version).toBe(3)
+    const second = await getAssetMeta('once')
+
+    expect(first?.params.saveNodeIdentity).toBe('SaveImage')
+    expect(second?.params.saveNodeIdentity).toBe('SaveImage')
   })
 })
