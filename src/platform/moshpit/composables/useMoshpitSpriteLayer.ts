@@ -36,7 +36,7 @@
  * pan/zoom transforms the sprites automatically). `cellSize` is logical pixels.
  */
 
-import { Container, ImageSource, Sprite, Texture } from 'pixi.js'
+import { Assets, Container, ImageSource, Sprite, Texture } from 'pixi.js'
 import type { Ticker } from 'pixi.js'
 import type { Viewport } from 'pixi-viewport'
 import type { InjectionKey } from 'vue'
@@ -105,6 +105,7 @@ export function useMoshpitSpriteLayer(
   options.viewport.addChild(container)
 
   const spriteMap = new Map<string, SpriteEntry>()
+  let cancelled = false
 
   function computeLayoutSlots(hashes: readonly string[]): GridSlot[] {
     if (options.layoutProvider) {
@@ -115,24 +116,34 @@ export function useMoshpitSpriteLayer(
     return computeJitteredGrid(sorted, seed, cellSize)
   }
 
-  function makeSprite(contentHash: string, thumbUrl: string): Sprite | null {
-    // In Pixi v8, Texture.from can return undefined for blob URLs that are
-    // not yet in the Assets cache. Swallow that case and let the next
-    // watchEffect tick (after load) build the sprite.
-    const texture = Texture.from(thumbUrl) as Texture | undefined
-    if (!texture) return null
-    // Upgrade texture source options after Texture.from creates it. In Pixi v8
-    // mipmaps default on for image resources; the explicit sets keep the
-    // contract visible for future maintainers.
-    if (texture.source && texture.source instanceof ImageSource) {
-      texture.source.autoGenerateMipmaps = true
-      texture.source.autoGarbageCollect = true
+  // In Pixi v8 Texture.from() requires the resource to already live in the
+  // Assets cache. Our blob URLs are fresh out of the worker, so we load
+  // them through Assets first and build the sprite once the texture lands.
+  async function loadTexture(thumbUrl: string): Promise<Texture | null> {
+    try {
+      const texture = await Assets.load<Texture>(thumbUrl)
+      if (!texture) return null
+      if (texture.source && texture.source instanceof ImageSource) {
+        texture.source.autoGenerateMipmaps = true
+        texture.source.autoGarbageCollect = true
+      }
+      return texture
+    } catch (err) {
+      console.warn('[moshpit] texture load failed', thumbUrl, err)
+      return null
     }
+  }
+
+  function makeSpriteFromTexture(contentHash: string, texture: Texture): Sprite {
     const sprite = new Sprite(texture)
     sprite.anchor.set(0.5)
     sprite.label = `moshpit-sprite:${contentHash}`
     return sprite
   }
+
+  // Hashes currently being loaded — prevents duplicate Assets.load calls
+  // when syncSprites fires again before the first load resolves.
+  const pendingLoads = new Set<string>()
 
   function applySlot(entry: SpriteEntry, slot: GridSlot): void {
     entry.slot = slot
@@ -168,18 +179,29 @@ export function useMoshpitSpriteLayer(
       const slot = slotByHash.get(entry.contentHash)
       if (!slot) continue
       const existing = spriteMap.get(entry.contentHash)
-      if (!existing) {
-        const sprite = makeSprite(entry.contentHash, entry.thumbUrl)
-        // Texture not ready yet (Pixi Assets cache miss) — bail out and let
-        // the next thumbReady / watchEffect tick retry once the blob loads.
-        if (!sprite) continue
-        const newEntry: SpriteEntry = { sprite, slot }
-        applySlot(newEntry, slot)
-        spriteMap.set(entry.contentHash, newEntry)
-        container.addChild(sprite)
-      } else {
+      if (existing) {
         applySlot(existing, slot)
+        continue
       }
+      if (pendingLoads.has(entry.contentHash)) continue
+      pendingLoads.add(entry.contentHash)
+      const hash = entry.contentHash
+      const url = entry.thumbUrl
+      void loadTexture(url).then((texture) => {
+        pendingLoads.delete(hash)
+        if (!texture) return
+        // Sprite layer may have been torn down (cancelled) or the entry
+        // removed from the registry while the texture was loading.
+        if (cancelled) return
+        if (spriteMap.has(hash)) return
+        const latestSlot = slotByHash.get(hash)
+        if (!latestSlot) return
+        const sprite = makeSpriteFromTexture(hash, texture)
+        const newEntry: SpriteEntry = { sprite, slot: latestSlot }
+        applySlot(newEntry, latestSlot)
+        spriteMap.set(hash, newEntry)
+        container.addChild(sprite)
+      })
     }
   }
 
@@ -240,6 +262,7 @@ export function useMoshpitSpriteLayer(
   )
 
   function destroy(): void {
+    cancelled = true
     stopRegistryEffect()
     stopCompletionWatch()
     for (const [, entry] of spriteMap) {
