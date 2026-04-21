@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { NormalizedParams } from './paramNormalize'
 import { emptyParams } from './paramNormalize'
-import { processAsset } from './thumbWorker'
+import { deriveFilenameFromAssetInput, processAsset } from './thumbWorker'
 import type { WorkerOutMessage } from './workerMessages'
 
 function makeDefaultParams(): NormalizedParams {
@@ -46,9 +46,7 @@ function makeCtx(
         async () => overrides.parseResult ?? { workflow: '{}' }
       ),
       hash: vi.fn(async () => overrides.hashResult ?? 'CLIENT_HASH'),
-      normalize: vi.fn(
-        () => overrides.normalizeResult ?? makeDefaultParams()
-      ),
+      normalize: vi.fn(() => overrides.normalizeResult ?? makeDefaultParams()),
       now: vi.fn(() => overrides.nowResult ?? 1234567890)
     }
   }
@@ -163,5 +161,46 @@ describe('processAsset', () => {
     const { ctx } = makeCtx({ fetchOk: false })
     await processAsset(baseInput, new AbortController().signal, ctx)
     expect(ctx.normalize).not.toHaveBeenCalled()
+  })
+})
+
+describe('deriveFilenameFromAssetInput', () => {
+  function makeInput(fetchUrl: string) {
+    return {
+      id: 'f1:a1',
+      filterId: 'f1',
+      fetchUrl,
+      assetHash: 'H',
+      assetId: 'a1'
+    }
+  }
+
+  it('prefers ?filename= query param on ComfyUI view URLs', () => {
+    const input = makeInput(
+      '/api/view?filename=ComfyUI_00001_.png&subfolder=&type=output'
+    )
+    expect(deriveFilenameFromAssetInput(input)).toBe('ComfyUI_00001_.png')
+  })
+
+  it('prefers ?filename= over the path segment on absolute view URLs', () => {
+    const input = makeInput(
+      'http://127.0.0.1:8188/api/view?filename=my_run_00042_.png'
+    )
+    expect(deriveFilenameFromAssetInput(input)).toBe('my_run_00042_.png')
+  })
+
+  it('falls back to last path segment when no ?filename= is present', () => {
+    const input = makeInput('https://example.test/outputs/my_sweep_00042_.png')
+    expect(deriveFilenameFromAssetInput(input)).toBe('my_sweep_00042_.png')
+  })
+
+  it('falls back to last path segment on relative direct-file URLs', () => {
+    const input = makeInput('/outputs/flow.png')
+    expect(deriveFilenameFromAssetInput(input)).toBe('flow.png')
+  })
+
+  it('falls back to path segment when ?filename= is empty', () => {
+    const input = makeInput('/api/view?filename=&subfolder=output')
+    expect(deriveFilenameFromAssetInput(input)).toBe('view')
   })
 })

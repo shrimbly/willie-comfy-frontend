@@ -59,24 +59,31 @@ export interface ProcessCtx {
 }
 
 /**
- * Extract the final path segment (filename) from a URL string or null if the
- * URL has no meaningful filename component. Used to supply `workflowFilename`
- * to `normalizeParams` so the workflow picker can display a human-readable name.
+ * Extract the filename from an asset fetch URL. Used to supply
+ * `workflowFilename` to `normalizeParams` so the workflow picker can display a
+ * human-readable name.
+ *
+ * ComfyUI's `/api/view?filename=…&subfolder=…&type=output` endpoint carries the
+ * real filename in the `filename` query parameter, not the URL path. Prefer
+ * that when present; fall back to the last path segment for direct-file URLs.
  */
 export function deriveFilenameFromAssetInput(
   input: EnqueueAssetInput
 ): string | null {
-  try {
-    const url = new URL(input.fetchUrl)
-    const segments = url.pathname.split('/')
-    const last = segments[segments.length - 1]
-    return last && last.length > 0 ? last : null
-  } catch {
-    // fetchUrl is not a valid URL (e.g. relative path)
-    const segments = input.fetchUrl.split('/')
-    const last = segments[segments.length - 1]
-    return last && last.length > 0 ? last : null
+  const raw = input.fetchUrl
+  const queryIndex = raw.indexOf('?')
+  const pathPart = queryIndex >= 0 ? raw.slice(0, queryIndex) : raw
+  const queryPart = queryIndex >= 0 ? raw.slice(queryIndex + 1) : ''
+
+  if (queryPart.length > 0) {
+    const params = new URLSearchParams(queryPart)
+    const filename = params.get('filename')
+    if (filename !== null && filename.length > 0) return filename
   }
+
+  const segments = pathPart.split('/')
+  const last = segments[segments.length - 1]
+  return last && last.length > 0 ? last : null
 }
 
 export async function processAsset(
