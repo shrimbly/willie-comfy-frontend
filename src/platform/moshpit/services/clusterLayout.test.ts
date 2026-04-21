@@ -3,10 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import { GROUPING_AXES } from './groupAxes'
 import type { GroupingAxis, WithinClusterSortMode } from './groupAxes'
-import {
-  computeClusterLayout,
-  computeNestingOrder
-} from './clusterLayout'
+import { computeClusterLayout, computeNestingOrder } from './clusterLayout'
 import type { NormalizedParams } from './paramNormalize'
 
 // ---------------------------------------------------------------------------
@@ -41,9 +38,7 @@ function makeParams(
 function paramsMap(
   entries: Record<string, Partial<NormalizedParams>>
 ): Map<string, NormalizedParams> {
-  return new Map(
-    Object.entries(entries).map(([k, v]) => [k, makeParams(v)])
-  )
+  return new Map(Object.entries(entries).map(([k, v]) => [k, makeParams(v)]))
 }
 
 function filenameMap(
@@ -165,12 +160,18 @@ describe('computeClusterLayout — degenerate cases', () => {
     expect(root.children).toEqual([])
     // sqrt(4) = 2 columns
     expect(slots).toHaveLength(4)
-    // Row-wrapping: (0,0), (100,0), (0,100), (100,100) when sorted newestFirst
-    // Sorted newestFirst -> h1(4), h2(3), h3(2), h4(1)
-    expect(slots[0]).toEqual({ hash: 'h1', worldX: 0, worldY: 0 })
-    expect(slots[1]).toEqual({ hash: 'h2', worldX: GRID, worldY: 0 })
-    expect(slots[2]).toEqual({ hash: 'h3', worldX: 0, worldY: GRID })
-    expect(slots[3]).toEqual({ hash: 'h4', worldX: GRID, worldY: GRID })
+    // Sprites use anchor (0.5) — slot coords are sprite centers, so the first
+    // center sits at (GRID/2, GRID/2) inside the cluster bounds, not at the
+    // top-left corner. Sorted newestFirst -> h1(4), h2(3), h3(2), h4(1).
+    const HALF = GRID / 2
+    expect(slots[0]).toEqual({ hash: 'h1', worldX: HALF, worldY: HALF })
+    expect(slots[1]).toEqual({ hash: 'h2', worldX: HALF + GRID, worldY: HALF })
+    expect(slots[2]).toEqual({ hash: 'h3', worldX: HALF, worldY: HALF + GRID })
+    expect(slots[3]).toEqual({
+      hash: 'h4',
+      worldX: HALF + GRID,
+      worldY: HALF + GRID
+    })
     expect(root.leafHashes).toEqual(['h1', 'h2', 'h3', 'h4'])
   })
 })
@@ -290,17 +291,21 @@ describe('computeClusterLayout — nested groupings', () => {
 
 describe('computeClusterLayout — hash uniqueness invariant (property)', () => {
   it('every input hash appears in exactly one leaf cluster (any axis combo)', () => {
-    const axisArb = fc.uniqueArray(fc.constantFrom<GroupingAxis>(...GROUPING_AXES), {
-      minLength: 0,
-      maxLength: 5
-    })
+    const axisArb = fc.uniqueArray(
+      fc.constantFrom<GroupingAxis>(...GROUPING_AXES),
+      {
+        minLength: 0,
+        maxLength: 5
+      }
+    )
 
     const paramsArb = fc.record({
-      workflowFilename: fc.option(
-        fc.constantFrom('w1', 'w2', 'w3'),
-        { nil: null }
-      ),
-      model: fc.option(fc.constantFrom('m1', 'm2'), { nil: undefined as unknown as string }),
+      workflowFilename: fc.option(fc.constantFrom('w1', 'w2', 'w3'), {
+        nil: null
+      }),
+      model: fc.option(fc.constantFrom('m1', 'm2'), {
+        nil: undefined as unknown as string
+      }),
       positivePrompt: fc.option(
         fc.constantFrom('cat sitting', 'DOG running', 'cat sitting'),
         { nil: undefined as unknown as string }
@@ -452,12 +457,11 @@ describe('computeClusterLayout — perf budget (GROUP-10 / D-05)', () => {
       Object.fromEntries(hashes.map((h) => [h, null]))
     )
 
-    const nestingOrder = computeNestingOrder(
-      hashes,
-      params,
-      filenames,
-      ['workflow', 'model', 'prompt']
-    )
+    const nestingOrder = computeNestingOrder(hashes, params, filenames, [
+      'workflow',
+      'model',
+      'prompt'
+    ])
 
     const t0 = performance.now()
     const { slots } = computeClusterLayout(

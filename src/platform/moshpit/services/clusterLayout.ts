@@ -374,8 +374,11 @@ function emitSlots(
     const n = node.leafHashes.length
     if (n === 0) return
     const columns = Math.max(1, Math.ceil(Math.sqrt(n)))
-    const baseX = node.boundsWorld.x + offsetX
-    const baseY = node.boundsWorld.y + offsetY
+    // Sprites use anchor (0.5, 0.5) — `worldX/Y` is the sprite center. Place
+    // centers at grid-cell midpoints so the visual envelope of the leaf
+    // matches `boundsWorld` (which is `columns * gridSpacing` wide).
+    const baseX = node.boundsWorld.x + offsetX + gridSpacing / 2
+    const baseY = node.boundsWorld.y + offsetY + gridSpacing / 2
     for (let i = 0; i < n; i++) {
       const col = i % columns
       const row = Math.floor(i / columns)
