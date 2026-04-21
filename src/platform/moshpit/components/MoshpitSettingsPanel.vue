@@ -7,7 +7,7 @@
       <span>{{ t('moshpit.sidebar.settings') }}</span>
     </header>
     <div class="flex-1 overflow-y-auto px-3 py-2 text-xs">
-      <!-- Filter section (Phase 3 — FILTER-01, FILTER-08, FILTER-10) -->
+      <!-- Initial filter gate (unchanged) -->
       <section
         class="flex flex-col gap-2"
         :aria-label="t('moshpit.filters.sectionLabel')"
@@ -17,16 +17,29 @@
         </span>
         <MoshpitWorkflowPicker />
         <MoshpitTimeRangePicker />
-        <MoshpitFilterChipRow v-if="filterStore.isGated" />
       </section>
 
-      <!-- Footer controls (SORT-04, FILTER-11) -->
+      <!-- Grouping toggles (D-18, GROUP-01) — appears once gated -->
+      <MoshpitGroupingToggles v-if="filterStore.isGated" class="mt-4" />
+
+      <!-- Primary chip row (FILTER-12) -->
+      <div v-if="filterStore.isGated" class="mt-4">
+        <MoshpitFilterChipRow tier="primary" />
+      </div>
+
+      <!-- Within-cluster sort dropdown (CSORT-01) -->
+      <MoshpitWithinClusterSort v-if="filterStore.isGated" class="mt-4" />
+
+      <!-- Advanced filter disclosure (FILTER-12) -->
+      <MoshpitAdvancedFilters v-if="filterStore.isGated" class="mt-4" />
+
+      <!-- Footer controls (SORT-04 cluster spacing + FILTER-11 show-hidden) -->
       <div class="mt-4 flex flex-col gap-0">
         <MoshpitGridSpacingControl />
         <MoshpitShowHiddenToggle />
       </div>
 
-      <!-- excluded-count row (ASSET-06) — preserved unchanged -->
+      <!-- Excluded-count row (ASSET-06 unchanged) -->
       <div
         v-if="excludedCount > 0"
         class="mt-2 flex items-center gap-1"
@@ -51,10 +64,13 @@
 import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import MoshpitAdvancedFilters from '@/platform/moshpit/components/MoshpitAdvancedFilters.vue'
 import MoshpitFilterChipRow from '@/platform/moshpit/components/MoshpitFilterChipRow.vue'
 import MoshpitGridSpacingControl from '@/platform/moshpit/components/MoshpitGridSpacingControl.vue'
+import MoshpitGroupingToggles from '@/platform/moshpit/components/MoshpitGroupingToggles.vue'
 import MoshpitShowHiddenToggle from '@/platform/moshpit/components/MoshpitShowHiddenToggle.vue'
 import MoshpitTimeRangePicker from '@/platform/moshpit/components/MoshpitTimeRangePicker.vue'
+import MoshpitWithinClusterSort from '@/platform/moshpit/components/MoshpitWithinClusterSort.vue'
 import MoshpitWorkflowPicker from '@/platform/moshpit/components/MoshpitWorkflowPicker.vue'
 import { useMoshpitFilterStore } from '@/platform/moshpit/stores/moshpitFilterStore'
 import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetadataStore'

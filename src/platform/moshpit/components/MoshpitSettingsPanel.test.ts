@@ -16,64 +16,7 @@ const i18n = createI18n({
       moshpit: {
         sidebar: { settings: 'Settings' },
         filters: {
-          sectionLabel: 'Filter',
-          workflowPickerLabel: 'Select workflow',
-          workflowPickerPlaceholder: 'Select a workflow…',
-          workflowPickerSearch: 'Search workflows…',
-          workflowOptionCount:
-            '{name} ({count} asset) | {name} ({count} assets)',
-          timeRangeLabel: 'Time range',
-          timeRangeToday: 'Today',
-          timeRangeThisWeek: 'This week',
-          timeRangeThisMonth: 'This month',
-          timeRangeAllTime: 'All time',
-          timeRangeCustom: 'Custom…',
-          timeRangeFrom: 'From',
-          timeRangeTo: 'To',
-          addFilter: 'Add filter',
-          searchParams: 'Search parameters…',
-          removeChip: 'Remove {param} filter',
-          chipCount: '{count} filter active | {count} filters active',
-          paramModel: 'Model',
-          paramLoras: 'LoRA',
-          paramCfg: 'CFG',
-          paramSteps: 'Steps',
-          paramSampler: 'Sampler',
-          paramScheduler: 'Scheduler',
-          paramSeed: 'Seed',
-          paramPrompt: 'Prompt',
-          paramNegativePrompt: 'Negative prompt',
-          paramResolution: 'Resolution',
-          paramGenerationTime: 'Generation time',
-          paramTags: 'Tags',
-          paramFavourite: 'Favourite',
-          paramWidth: 'Width',
-          paramHeight: 'Height',
-          editorApply: 'Apply filter',
-          editorBack: 'Back',
-          editorMin: 'Min',
-          editorMax: 'Max',
-          editorExact: 'Exact value',
-          editorSubstringHint: 'Substring match, case-insensitive',
-          editorSearchValues: 'Search values…',
-          editorFavouriteLabel: 'Only favourited assets',
-          emptyStateHeading: 'Pick a workflow to start',
-          emptyStateBody:
-            'Select a workflow and time range in the Settings panel to populate the canvas.'
-        },
-        sort: {
-          sectionLabel: 'Sort',
-          xAxisLabel: 'Sort X',
-          yAxisLabel: 'Sort Y',
-          xAxisPlaceholder: 'None',
-          yAxisPlaceholder: 'None',
-          clearAxis: 'Clear',
-          axisSetAnnouncement: 'Sort axis set to {param}',
-          axisClearedAnnouncement: 'Sort axis cleared',
-          gridSpacingLabel: 'Grid spacing',
-          gridSpacingValue: '{value} px',
-          gridSpacingDisabledTooltip: 'Pick a workflow first',
-          showHiddenLabel: 'Show hidden'
+          sectionLabel: 'Filter'
         },
         assets: {
           excludedCount:
@@ -86,8 +29,8 @@ const i18n = createI18n({
   }
 })
 
-// Stub all Phase 3 child components so the test is not coupled to their
-// internals. We verify composition (presence / v-if gating) not child behaviour.
+// Stub all child components so the test is not coupled to their internals.
+// We verify composition (presence / v-if gating / layout order) not child behaviour.
 const stubs = {
   MoshpitWorkflowPicker: {
     template: '<div data-testid="stub-workflow-picker" />'
@@ -95,8 +38,18 @@ const stubs = {
   MoshpitTimeRangePicker: {
     template: '<div data-testid="stub-time-range-picker" />'
   },
+  MoshpitGroupingToggles: {
+    template: '<div data-testid="stub-grouping-toggles" />'
+  },
   MoshpitFilterChipRow: {
-    template: '<div data-testid="stub-filter-chip-row" />'
+    props: ['tier'],
+    template: '<div data-testid="stub-filter-chip-row" :data-tier="tier" />'
+  },
+  MoshpitWithinClusterSort: {
+    template: '<div data-testid="stub-within-cluster-sort" />'
+  },
+  MoshpitAdvancedFilters: {
+    template: '<div data-testid="stub-advanced-filters" />'
   },
   MoshpitGridSpacingControl: {
     template: '<div data-testid="stub-grid-spacing-control" />'
@@ -158,7 +111,7 @@ describe('MoshpitSettingsPanel excluded-count row', () => {
   })
 })
 
-describe('MoshpitSettingsPanel Phase 3 composition', () => {
+describe('MoshpitSettingsPanel gated composition (Phase 4)', () => {
   it('renders MoshpitWorkflowPicker unconditionally', () => {
     mountPanel()
     expect(screen.getByTestId('stub-workflow-picker')).toBeInTheDocument()
@@ -179,16 +132,57 @@ describe('MoshpitSettingsPanel Phase 3 composition', () => {
     expect(screen.getByTestId('stub-show-hidden-toggle')).toBeInTheDocument()
   })
 
-  it('hides MoshpitFilterChipRow when filterStore.workflow is null', () => {
+  it('hides gated-only components when filterStore is not gated', () => {
     mountPanel()
+    expect(screen.queryByTestId('stub-grouping-toggles')).toBeNull()
     expect(screen.queryByTestId('stub-filter-chip-row')).toBeNull()
+    expect(screen.queryByTestId('stub-within-cluster-sort')).toBeNull()
+    expect(screen.queryByTestId('stub-advanced-filters')).toBeNull()
   })
 
-  it('shows MoshpitFilterChipRow when filterStore.workflow is set', async () => {
+  it('renders grouping toggles, primary chip row, within-cluster sort and advanced filters once gated', async () => {
     mountPanel()
     const filterStore = useMoshpitFilterStore()
     filterStore.workflow = 'abc123fingerprint'
     await new Promise((r) => setTimeout(r, 0))
+    expect(screen.getByTestId('stub-grouping-toggles')).toBeInTheDocument()
     expect(screen.getByTestId('stub-filter-chip-row')).toBeInTheDocument()
+    expect(screen.getByTestId('stub-within-cluster-sort')).toBeInTheDocument()
+    expect(screen.getByTestId('stub-advanced-filters')).toBeInTheDocument()
+  })
+
+  it('primary chip row receives tier="primary"', async () => {
+    mountPanel()
+    const filterStore = useMoshpitFilterStore()
+    filterStore.workflow = 'abc123fingerprint'
+    await new Promise((r) => setTimeout(r, 0))
+    const chipRow = screen.getByTestId('stub-filter-chip-row')
+    expect(chipRow.getAttribute('data-tier')).toBe('primary')
+  })
+
+  it('renders gated components in the documented layout order (grouping → chips → within-sort → advanced → spacing → show-hidden)', async () => {
+    mountPanel()
+    const filterStore = useMoshpitFilterStore()
+    filterStore.workflow = 'abc123fingerprint'
+    await new Promise((r) => setTimeout(r, 0))
+
+    const expectedOrder = [
+      'stub-grouping-toggles',
+      'stub-filter-chip-row',
+      'stub-within-cluster-sort',
+      'stub-advanced-filters',
+      'stub-grid-spacing-control',
+      'stub-show-hidden-toggle'
+    ]
+
+    const nodes = expectedOrder.map((id) => screen.getByTestId(id))
+
+    // Each node must appear after the previous in document order.
+    for (let i = 1; i < nodes.length; i++) {
+      const previous = nodes[i - 1]
+      const current = nodes[i]
+      const relation = previous.compareDocumentPosition(current)
+      expect(relation & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
   })
 })
