@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-04-PLAN.md
-last_updated: '2026-04-21T18:02:21.014Z'
+stopped_at: Completed 04-05-PLAN.md
+last_updated: '2026-04-21T18:13:22.914Z'
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 35
-  completed_plans: 33
-  percent: 94
+  completed_plans: 34
+  percent: 97
 ---
 
 # Project State
@@ -26,11 +26,11 @@ progress:
 ## Current Position
 
 Phase: 04 (lineage-groupings-within-cluster-sort) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 
 - **Milestone:** v1
 - **Phase:** 4
-- **Plan:** 04-04 complete; 04-05 next
+- **Plan:** 04-05 complete; 04-06 next
 - **Status:** Executing Phase 04
 
 Progress: `[█████████░] 3 / 7 phases`
@@ -38,7 +38,7 @@ Progress: `[█████████░] 3 / 7 phases`
 ## Performance Metrics
 
 - Phases complete: 3 / 7
-- Plans complete: 30 / 35 (across phases 1–3 + Phase 4 Plan 01)
+- Plans complete: 34 / 35 (across phases 1–3 + Phase 4 Plans 01–05)
 - Requirements mapped: 74 / 74 (v1 total post-pivot)
 
 | Phase-Plan   | Duration | Tasks   | Files                  |
@@ -47,6 +47,7 @@ Progress: `[█████████░] 3 / 7 phases`
 | Phase 04 P02 | ~7 min   | 2 tasks | 5 modified files       |
 | Phase 04 P03 | 75 min   | 4 tasks | 13 files               |
 | Phase 04 P04 | ~29 min  | 4 tasks | 16 files               |
+| Phase 04 P05 | ~10min   | 1 tasks | 3 files                |
 
 ## Accumulated Context
 
@@ -99,6 +100,7 @@ Progress: `[█████████░] 3 / 7 phases`
 - [Phase 04]: Plan 04-02 — saveNodeIdentity materialised in NormalizedParamsSchema + IDB v2→v3 cursor migration. GROUP-04 data layer complete. Plan 04-03 can now read real saveNodeIdentity buckets via Plan 01's clusterLayout
 - [Phase 04]: Plan 04-03: moshpitFilterStore + useMoshpitFilteredAssets flipped onto computeClusterLayout. ParamKey widened with saveNode; PRIMARY/ADVANCED tier constants exported; exhaustive never-guards added to filterMath switches (Pitfall 1). Legacy MoshpitSortControls + MoshpitAxisOverlay deleted. Full-project typecheck now green (pre-existing useMinimap.test.ts TS2367 resolved inline as Rule 3 blocker).
 - [Phase 04]: Plan 04-04: Settings-panel UI building blocks shipped — MoshpitGroupingToggles (5 pills), MoshpitWithinClusterSort (native select), MoshpitAdvancedFilters (Reka Collapsible). MoshpitFilterChipRow gained tier prop; MoshpitAddFilterPopover split into Primary/Advanced sections with saveNode entry. useMoshpitParamValueOptions.saveNode case derives from params.saveNodeIdentity. 59 tests across 6 files green.
+- [Phase 04]: [Phase 04]: Plan 04-05: MoshpitClusterOverlay shipped — HTML-over-Pixi bounding-box + label overlay at depths 0 and 1 (D-06). Subscribes to viewport 'moved' via transformTick scalar bump; (other) bucket renders via t('moshpit.grouping.otherLabel'); display:none fallback when viewport is null. 8 tests green, ready for Plan 06 to mount into MoshpitView.vue.
 
 ### Active Todos
 
@@ -112,8 +114,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T18:02:20.926Z
-**Stopped at:** Completed 04-04-PLAN.md
+**Last session:** 2026-04-21T18:13:12.764Z
+**Stopped at:** Completed 04-05-PLAN.md
 
 **Context for next session:**
 
