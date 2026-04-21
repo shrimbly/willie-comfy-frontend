@@ -9,11 +9,9 @@
       class="pointer-events-none absolute rounded-md border border-(--interface-stroke)"
       :style="cluster.boxStyle"
       data-testid="moshpit-cluster-box"
+      :data-depth="cluster.depth"
     >
-      <span
-        class="absolute -top-4 left-0 max-w-56 truncate text-xs text-muted-foreground"
-        data-testid="moshpit-cluster-label"
-      >
+      <span :class="cluster.labelClass" data-testid="moshpit-cluster-label">
         {{ cluster.label }}
       </span>
     </div>
@@ -60,7 +58,18 @@ interface RenderedCluster {
   readonly key: string
   readonly label: string
   readonly boxStyle: StyleValue
+  readonly depth: 0 | 1
+  readonly labelClass: string
 }
+
+// Depth-0 labels sit above the outer box (caption for the whole group).
+// Depth-1 labels sit inside their own box in the top-left — keeps the two
+// levels from overlapping when an inner cluster is flush to its parent's
+// top-left corner (D-06 two-level overlay).
+const OUTER_LABEL_CLASS =
+  'absolute -top-4 left-0 max-w-56 truncate text-xs text-muted-foreground'
+const INNER_LABEL_CLASS =
+  'absolute top-1 left-1 max-w-56 truncate rounded bg-(--interface-panel-surface)/80 px-1 text-xs text-muted-foreground'
 
 function labelFor(cluster: ClusterNode): string {
   return cluster.bucketValue === OTHER_BUCKET_KEY
@@ -97,14 +106,18 @@ const renderedClusters = computed<readonly RenderedCluster[]>(() => {
     out.push({
       key: `d0-${i}-${outer.bucketValue}`,
       label: labelFor(outer),
-      boxStyle: boxStyle(outer)
+      boxStyle: boxStyle(outer),
+      depth: 0,
+      labelClass: OUTER_LABEL_CLASS
     })
     for (let j = 0; j < outer.children.length; j++) {
       const inner = outer.children[j]
       out.push({
         key: `d1-${i}-${j}-${inner.bucketValue}`,
         label: labelFor(inner),
-        boxStyle: boxStyle(inner)
+        boxStyle: boxStyle(inner),
+        depth: 1,
+        labelClass: INNER_LABEL_CLASS
       })
     }
   }

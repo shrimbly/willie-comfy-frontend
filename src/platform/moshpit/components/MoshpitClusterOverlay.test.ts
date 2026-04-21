@@ -190,6 +190,29 @@ describe('MoshpitClusterOverlay', () => {
     }
   })
 
+  it('depth-0 and depth-1 labels use different positions to avoid overlap', () => {
+    const inner = leaf('inner', 1)
+    const outer = node('outer', 0, [inner])
+    clusterTreeStub.value = node('root', -1, [outer])
+
+    renderWithViewport()
+
+    // The outer (depth-0) label hangs ABOVE its box at `-top-4`; the inner
+    // (depth-1) label sits INSIDE its box at `top-1`. This keeps the two
+    // levels from stacking at the same screen coord when an inner cluster
+    // is flush to its parent's top-left corner (the overlap regression
+    // reported in Phase 4 UAT).
+    const labels = screen.getAllByTestId(
+      'moshpit-cluster-label'
+    ) as HTMLElement[]
+    expect(labels).toHaveLength(2)
+
+    const [outerLabel, innerLabel] = labels
+    expect(outerLabel.classList.contains('-top-4')).toBe(true)
+    expect(innerLabel.classList.contains('top-1')).toBe(true)
+    expect(innerLabel.classList.contains('-top-4')).toBe(false)
+  })
+
   it('label element carries truncate + max-w-56 classes for overflow handling', () => {
     const longLabel = 'x'.repeat(60)
     clusterTreeStub.value = node('root', -1, [node(longLabel, 0, [])])
