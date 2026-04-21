@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { Application } from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
-import { inject, onBeforeUnmount, onMounted, provide, ref, shallowRef } from 'vue'
+import { inject, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import {
   MOSHPIT_QUEUE_INJECTION_KEY
@@ -35,8 +35,8 @@ if (!queue) throw new Error('MoshpitCanvas requires MOSHPIT_QUEUE_INJECTION_KEY 
 // falls back to Phase 2 jittered-grid in that case.
 const injectedLayout = inject(MOSHPIT_LAYOUT_INJECTION_KEY, null)
 
-const viewportRef = shallowRef<Viewport | null>(null)
-provide(MOSHPIT_VIEWPORT_INJECTION_KEY, viewportRef)
+const viewportRef = inject(MOSHPIT_VIEWPORT_INJECTION_KEY)
+if (!viewportRef) throw new Error('MoshpitCanvas requires MOSHPIT_VIEWPORT_INJECTION_KEY to be provided by MoshpitView')
 
 let app: Application | null = null
 let viewport: Viewport | null = null
