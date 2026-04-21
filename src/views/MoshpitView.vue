@@ -44,6 +44,8 @@ const marquee = useMoshpitMarquee({
 function onContainerPointerDown(e: PointerEvent) {
   containerEl.value?.focus()
   if (e.button === 0) sidebarStore.collapseOnFirstClick()
-  marquee.onPointerDown(e)
+  // Marquee selection is gated on shift-click so it doesn't steal the
+  // pointer from pixi-viewport's left-click-drag pan (Phase 3 Core Value).
+  if (e.shiftKey) marquee.onPointerDown(e)
 }
 </script>
