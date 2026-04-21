@@ -24,9 +24,9 @@
           type="button"
           :class="
             cn(
-              'inline-flex size-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground',
-              'hover:bg-secondary-background-hover hover:text-base-foreground',
-              'focus-visible:ring-1 focus-visible:ring-primary-background'
+              'inline-flex size-6 shrink-0 cursor-pointer items-center justify-center text-muted-foreground',
+              'hover:text-base-foreground',
+              'focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)'
             )
           "
           :aria-label="
