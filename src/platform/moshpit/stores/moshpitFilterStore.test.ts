@@ -61,6 +61,21 @@ describe('moshpitFilterStore', () => {
       expect(store.isGated).toBe(false)
       expect(store.workflow).toBeNull()
     })
+
+    it('isGated becomes true when a non-all time range is set without a workflow (OR semantics)', () => {
+      const store = useMoshpitFilterStore()
+      store.setTimeRange({ preset: 'today', from: null, to: null })
+      expect(store.workflow).toBeNull()
+      expect(store.isGated).toBe(true)
+    })
+
+    it('isGated flips back to false when time range is reset to all and no workflow is set', () => {
+      const store = useMoshpitFilterStore()
+      store.setTimeRange({ preset: 'week', from: null, to: null })
+      expect(store.isGated).toBe(true)
+      store.setTimeRange({ preset: 'all', from: null, to: null })
+      expect(store.isGated).toBe(false)
+    })
   })
 
   describe('addChip', () => {

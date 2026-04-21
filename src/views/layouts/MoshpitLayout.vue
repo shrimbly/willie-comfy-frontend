@@ -87,7 +87,9 @@ const metaStore = useMoshpitMetadataStore()
 watch(
   () => [filterStore.workflow, filterStore.timeRange] as const,
   ([workflow, timeRange]) => {
-    if (!workflow) return
+    // Gate: need a workflow OR a non-'all' time range (OR semantics — D-22).
+    if (!workflow && timeRange.preset === 'all') return
+
     const nowMs = Date.now()
     const range = getDateRangeForPreset(timeRange.preset, nowMs)
     const fromMs =
@@ -99,13 +101,14 @@ watch(
         ? (timeRange.to ?? Infinity)
         : (range?.to ?? Infinity)
 
-    // Filter assets by time window and workflow fingerprint.
+    // Filter assets by time window and (optionally) workflow fingerprint.
     // Un-processed assets (no params yet) are passed optimistically — the
     // in-memory filter (useMoshpitFilteredAssets) excludes fingerprint
     // mismatches once params arrive via thumbReady (D-06 best-effort).
     const candidates = assetsStore.outputJobAssets.filter((a) => {
       const created = a.created_at ? new Date(a.created_at).getTime() : 0
       if (!(created >= fromMs && created <= toMs)) return false
+      if (!workflow) return true
       const hash = a.asset_hash ?? metaStore.getHashForAssetId(a.id)
       if (!hash) return true
       const params = metaStore.paramsByHash.get(hash)
@@ -113,7 +116,7 @@ watch(
       return params.workflowFingerprint === workflow
     })
 
-    const filterKey = `${workflow}:${timeRange.preset}:${timeRange.from ?? ''}-${timeRange.to ?? ''}`
+    const filterKey = `${workflow ?? ''}:${timeRange.preset}:${timeRange.from ?? ''}-${timeRange.to ?? ''}`
     void queue.setFilter(filterKey, candidates)
   },
   { immediate: false }

@@ -81,7 +81,9 @@ export const useMoshpitFilterStore = defineStore('moshpitFilter', () => {
   const gridSpacing = ref(DEFAULT_CELL_SIZE)
   const showHidden = ref(false)
 
-  const isGated = computed(() => workflow.value !== null)
+  const isGated = computed(
+    () => workflow.value !== null || timeRange.value.preset !== 'all'
+  )
 
   function setWorkflow(value: string | null): void {
     workflow.value = value
