@@ -40,7 +40,7 @@
 - [x] **FILTER-09**: Assets lacking the filtered parameter are hidden
 - [x] **FILTER-10**: Filter chips render in the Settings panel; clicking removes the chip
 - [x] **FILTER-11**: Default filter set hides soft-deleted (hidden) assets; a "show hidden" toggle reveals them
-- [ ] **FILTER-12** _(new)_: Primary filter surface shows lineage-first filters (workflow, prompt, save node, model, time, favourite, hidden, tag); parameter filters (CFG, steps, seed, sampler, scheduler, resolution, LoRA, negative prompt) move behind an **Advanced** disclosure
+- [x] **FILTER-12** _(new)_: Primary filter surface shows lineage-first filters (workflow, prompt, save node, model, time, favourite, hidden, tag); parameter filters (CFG, steps, seed, sampler, scheduler, resolution, LoRA, negative prompt) move behind an **Advanced** disclosure
 
 ### Sorting — Deprecated by v3 Pivot
 
@@ -54,7 +54,7 @@ SORT-01..05 shipped in Phase 3 but are superseded by lineage groupings. The UI w
 
 ### Lineage Groupings _(new in v3)_
 
-- [ ] **GROUP-01**: User can enable any combination of grouping axes as non-exclusive toggles in the Settings panel
+- [x] **GROUP-01**: User can enable any combination of grouping axes as non-exclusive toggles in the Settings panel
 - [x] **GROUP-02**: Grouping nesting order is automatic — the axis with the largest average bucket size nests outermost, applied recursively at every level
 - [x] **GROUP-03**: User can group by **workflow** (workflow filename from embedded metadata)
 - [x] **GROUP-04**: User can group by **save node** (node id / name within the workflow that emitted the asset)
@@ -62,7 +62,7 @@ SORT-01..05 shipped in Phase 3 but are superseded by lineage groupings. The UI w
 - [x] **GROUP-06**: User can group by **model** (checkpoint)
 - [x] **GROUP-07**: User can group by **type** (aspect class / resolution bucket — landscape / portrait / square)
 - [x] **GROUP-08**: Assets missing a grouped parameter fall into an "(other)" cluster at that level (not hidden)
-- [ ] **GROUP-09**: Groupings are separate from filters — filters cull the set, groups organise what remains
+- [x] **GROUP-09**: Groupings are separate from filters — filters cull the set, groups organise what remains
 - [x] **GROUP-10**: Cluster layout recompute and tween complete within 400ms on grouping toggle at 5k assets
 
 ### Within-Cluster Sort _(new in v3)_
@@ -183,84 +183,84 @@ Deferred to future milestones. Tracked but not in current roadmap.
 
 ## Traceability
 
-| Requirement | Phase | Status              |
-| ----------- | ----- | ------------------- |
-| SHELL-01    | 1     | Complete            |
-| SHELL-02    | 1     | Complete            |
-| SHELL-03    | 1     | Complete            |
-| SHELL-04    | 1     | Complete            |
-| SHELL-05    | 1     | Complete            |
-| NAV-01      | 1     | Complete            |
-| NAV-02      | 1     | Complete            |
-| NAV-03      | 1     | Complete            |
-| NAV-04      | 1     | Complete            |
-| NAV-05      | 1     | Complete            |
-| ASSET-01    | 2     | Complete            |
-| ASSET-02    | 2     | Complete            |
-| ASSET-03    | 2     | Complete            |
-| ASSET-04    | 2     | Complete            |
-| ASSET-05    | 2     | Complete            |
-| ASSET-06    | 2     | Complete            |
-| ASSET-07    | 2     | Complete            |
-| ASSET-08    | 2     | Complete            |
-| ASSET-09    | 2     | Complete            |
-| ASSET-10    | 2     | Complete            |
-| FILTER-01   | 3     | Complete            |
-| FILTER-02   | 3     | Complete            |
-| FILTER-03   | 3     | Complete            |
-| FILTER-04   | 3     | Complete            |
-| FILTER-05   | 3     | Complete            |
-| FILTER-06   | 3     | Complete            |
-| FILTER-07   | 3     | Complete            |
-| FILTER-08   | 3     | Complete            |
-| FILTER-09   | 3     | Complete            |
-| FILTER-10   | 3     | Complete            |
-| FILTER-11   | 3     | Complete            |
-| FILTER-12   | 4     | Pending             |
+| Requirement | Phase | Status                |
+| ----------- | ----- | --------------------- |
+| SHELL-01    | 1     | Complete              |
+| SHELL-02    | 1     | Complete              |
+| SHELL-03    | 1     | Complete              |
+| SHELL-04    | 1     | Complete              |
+| SHELL-05    | 1     | Complete              |
+| NAV-01      | 1     | Complete              |
+| NAV-02      | 1     | Complete              |
+| NAV-03      | 1     | Complete              |
+| NAV-04      | 1     | Complete              |
+| NAV-05      | 1     | Complete              |
+| ASSET-01    | 2     | Complete              |
+| ASSET-02    | 2     | Complete              |
+| ASSET-03    | 2     | Complete              |
+| ASSET-04    | 2     | Complete              |
+| ASSET-05    | 2     | Complete              |
+| ASSET-06    | 2     | Complete              |
+| ASSET-07    | 2     | Complete              |
+| ASSET-08    | 2     | Complete              |
+| ASSET-09    | 2     | Complete              |
+| ASSET-10    | 2     | Complete              |
+| FILTER-01   | 3     | Complete              |
+| FILTER-02   | 3     | Complete              |
+| FILTER-03   | 3     | Complete              |
+| FILTER-04   | 3     | Complete              |
+| FILTER-05   | 3     | Complete              |
+| FILTER-06   | 3     | Complete              |
+| FILTER-07   | 3     | Complete              |
+| FILTER-08   | 3     | Complete              |
+| FILTER-09   | 3     | Complete              |
+| FILTER-10   | 3     | Complete              |
+| FILTER-11   | 3     | Complete              |
+| FILTER-12   | 4     | Complete              |
 | SORT-01     | 3     | Complete (deprecated) |
 | SORT-02     | 3     | Complete (deprecated) |
 | SORT-03     | 3     | Complete (deprecated) |
-| SORT-04     | 3     | Complete            |
-| SORT-05     | 3     | Complete            |
-| GROUP-01    | 4     | Pending             |
-| GROUP-02    | 4     | Complete |
-| GROUP-03    | 4     | Complete |
-| GROUP-04    | 4     | Complete |
-| GROUP-05    | 4     | Complete |
-| GROUP-06    | 4     | Complete |
-| GROUP-07    | 4     | Complete |
-| GROUP-08    | 4     | Complete |
-| GROUP-09    | 4     | Pending             |
-| GROUP-10    | 4     | Complete |
-| CSORT-01    | 4     | Complete |
-| TOUR-01     | 5     | Pending             |
-| TOUR-02     | 5     | Pending             |
-| TOUR-03     | 5     | Pending             |
-| TOUR-04     | 5     | Pending             |
-| TOUR-05     | 5     | Pending             |
-| TOUR-06     | 5     | Pending             |
-| TOUR-07     | 5     | Pending             |
-| TOUR-08     | 5     | Pending             |
-| PEEK-01     | 5     | Pending             |
-| PEEK-02     | 5     | Pending             |
-| PEEK-03     | 5     | Pending             |
-| CURATE-01   | 6     | Pending             |
-| CURATE-02   | 6     | Pending             |
-| CURATE-03   | 6     | Pending             |
-| CURATE-04   | 6     | Pending             |
-| CURATE-05   | 6     | Pending             |
-| CURATE-06   | 6     | Pending             |
-| CURATE-07   | 6     | Pending             |
-| UX-01       | 7     | Pending             |
-| UX-02       | 7     | Pending             |
-| UX-03       | 7     | Pending             |
-| UX-04       | 7     | Pending             |
-| UX-05       | 7     | Pending             |
-| UX-06       | 7     | Pending             |
-| UX-07       | 7     | Pending             |
-| UX-08       | 7     | Pending             |
-| UX-09       | 7     | Pending             |
-| UX-10       | 7     | Pending             |
+| SORT-04     | 3     | Complete              |
+| SORT-05     | 3     | Complete              |
+| GROUP-01    | 4     | Complete              |
+| GROUP-02    | 4     | Complete              |
+| GROUP-03    | 4     | Complete              |
+| GROUP-04    | 4     | Complete              |
+| GROUP-05    | 4     | Complete              |
+| GROUP-06    | 4     | Complete              |
+| GROUP-07    | 4     | Complete              |
+| GROUP-08    | 4     | Complete              |
+| GROUP-09    | 4     | Complete              |
+| GROUP-10    | 4     | Complete              |
+| CSORT-01    | 4     | Complete              |
+| TOUR-01     | 5     | Pending               |
+| TOUR-02     | 5     | Pending               |
+| TOUR-03     | 5     | Pending               |
+| TOUR-04     | 5     | Pending               |
+| TOUR-05     | 5     | Pending               |
+| TOUR-06     | 5     | Pending               |
+| TOUR-07     | 5     | Pending               |
+| TOUR-08     | 5     | Pending               |
+| PEEK-01     | 5     | Pending               |
+| PEEK-02     | 5     | Pending               |
+| PEEK-03     | 5     | Pending               |
+| CURATE-01   | 6     | Pending               |
+| CURATE-02   | 6     | Pending               |
+| CURATE-03   | 6     | Pending               |
+| CURATE-04   | 6     | Pending               |
+| CURATE-05   | 6     | Pending               |
+| CURATE-06   | 6     | Pending               |
+| CURATE-07   | 6     | Pending               |
+| UX-01       | 7     | Pending               |
+| UX-02       | 7     | Pending               |
+| UX-03       | 7     | Pending               |
+| UX-04       | 7     | Pending               |
+| UX-05       | 7     | Pending               |
+| UX-06       | 7     | Pending               |
+| UX-07       | 7     | Pending               |
+| UX-08       | 7     | Pending               |
+| UX-09       | 7     | Pending               |
+| UX-10       | 7     | Pending               |
 
 **Coverage:**
 

@@ -16,10 +16,11 @@ Present on HEAD before Plan 04-01 started. Running `pnpm typecheck`:
   narrowed legacy shape.
 - ~~`src/platform/moshpit/services/thumbRepository.ts(58,21)`: TS2339~~
   — **RESOLVED in Plan 04-02** (dfabb5259).
-- `src/renderer/extensions/minimap/composables/useMinimap.test.ts(854,36)`:
-  error TS2367: This comparison appears to be unintentional because the
-  types 'keyof DedicatedWorkerGlobalScopeEventMap' and '"resize"' have no
-  overlap. **Still outstanding** — unrelated to Moshpit.
+- ~~`src/renderer/extensions/minimap/composables/useMinimap.test.ts(854,36)`:
+  error TS2367~~ — **RESOLVED in Plan 04-03** (`327797c88`). Narrowed
+  `call[0]` to `string` via cast. Unrelated to Moshpit domain but
+  materially blocking every hook-gated commit on this branch under the
+  current husky config; fixed inline as Plan 04-03 Task 4 Rule 3 blocker.
 
 ## Husky pre-commit hook interaction
 

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-04-21T16:59:13.595Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: '2026-04-21T17:27:00.502Z'
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 35
-  completed_plans: 31
-  percent: 89
+  completed_plans: 32
+  percent: 91
 ---
 
 # Project State
@@ -26,11 +26,11 @@ progress:
 ## Current Position
 
 Phase: 04 (lineage-groupings-within-cluster-sort) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 
 - **Milestone:** v1
 - **Phase:** 4
-- **Plan:** 04-02 complete; 04-03 next
+- **Plan:** 04-03 complete; 04-04 next
 - **Status:** Executing Phase 04
 
 Progress: `[█████████░] 3 / 7 phases`
@@ -41,10 +41,11 @@ Progress: `[█████████░] 3 / 7 phases`
 - Plans complete: 30 / 35 (across phases 1–3 + Phase 4 Plan 01)
 - Requirements mapped: 74 / 74 (v1 total post-pivot)
 
-| Phase-Plan | Duration | Tasks | Files |
-| ---------- | -------- | ----- | ----- |
-| 04-01      | ~10 min  | 2     | 4 created + 1 modified |
-| Phase 04 P02 | ~7 min | 2 tasks | 5 modified files |
+| Phase-Plan   | Duration | Tasks   | Files                  |
+| ------------ | -------- | ------- | ---------------------- |
+| 04-01        | ~10 min  | 2       | 4 created + 1 modified |
+| Phase 04 P02 | ~7 min   | 2 tasks | 5 modified files       |
+| Phase 04 P03 | 75 min   | 4 tasks | 13 files               |
 
 ## Accumulated Context
 
@@ -95,11 +96,13 @@ Progress: `[█████████░] 3 / 7 phases`
 - `MOSHPIT_LAYOUT_INJECTION_KEY` co-located in `useMoshpitSpriteLayer.ts` — avoids new module, keeps key adjacent to `SpriteLayerOptions` type
 - `sortMath` primitives remain available in the codebase for Phase 4 cluster layout reuse (pure functions, no UI coupling)
 - [Phase 04]: Plan 04-02 — saveNodeIdentity materialised in NormalizedParamsSchema + IDB v2→v3 cursor migration. GROUP-04 data layer complete. Plan 04-03 can now read real saveNodeIdentity buckets via Plan 01's clusterLayout
+- [Phase 04]: Plan 04-03: moshpitFilterStore + useMoshpitFilteredAssets flipped onto computeClusterLayout. ParamKey widened with saveNode; PRIMARY/ADVANCED tier constants exported; exhaustive never-guards added to filterMath switches (Pitfall 1). Legacy MoshpitSortControls + MoshpitAxisOverlay deleted. Full-project typecheck now green (pre-existing useMinimap.test.ts TS2367 resolved inline as Rule 3 blocker).
 
 ### Active Todos
 
-- Execute Plan 04-03: wire `computeClusterLayout` into `useMoshpitFilteredAssets` so the renderer consumes the new lineage-grouping slots.
-- Follow with Plan 04-04 (moshpitFilterStore saveNode axis), Plan 04-05 (cluster overlay), Plan 04-06 (grouping toggle UI).
+- Execute Plan 04-04 (moshpitFilterStore saveNode axis wiring — popover tier routing).
+- Follow with Plan 04-05 (cluster overlay — reads `clusterTree` from `useMoshpitFilteredAssets`), Plan 04-06 (grouping toggle UI + chip tier popover using `PRIMARY_FILTER_PARAMS` / `ADVANCED_FILTER_PARAMS`).
+- Plan 06 retargeting notes are in `.planning/phases/04-lineage-groupings-within-cluster-sort/04-03-SUMMARY.md` ("Notes for Plan 06 Executor"): Task 3 deletions are done, Task 2 target should be MoshpitView.vue.
 
 ### Blockers
 
@@ -107,8 +110,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T16:59:05.332Z
-**Stopped at:** Completed 04-02-PLAN.md
+**Last session:** 2026-04-21T17:26:36.551Z
+**Stopped at:** Completed 04-03-PLAN.md
 
 **Context for next session:**
 

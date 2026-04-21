@@ -113,7 +113,7 @@
 
 - [x] 04-01-PLAN.md — Pure math: groupAxes + clusterLayout + sortMath Phase 4 reuse note (GROUP-02/03/05/06/07/08/10, CSORT-01 math)
 - [x] 04-02-PLAN.md — paramNormalize.saveNodeIdentity + IDB v2→v3 migration (GROUP-04, D-08, D-11)
-- [ ] 04-03-PLAN.md — filterTypes saveNode + moshpitFilterStore refactor + useMoshpitFilteredAssets cluster wiring (GROUP-01/09, CSORT-01, FILTER-12)
+- [x] 04-03-PLAN.md — filterTypes saveNode + moshpitFilterStore refactor + useMoshpitFilteredAssets cluster wiring (GROUP-01/09, CSORT-01, FILTER-12)
 - [ ] 04-04-PLAN.md — Settings-panel UI: MoshpitGroupingToggles + MoshpitWithinClusterSort + MoshpitAdvancedFilters + chip-row tier prop + popover split + i18n (GROUP-01, CSORT-01, FILTER-12)
 - [ ] 04-05-PLAN.md — MoshpitClusterOverlay HTML-over-Pixi bounding boxes + labels (GROUP-01/02)
 - [ ] 04-06-PLAN.md — Settings panel composition + canvas overlay swap + sort-UI deletions + i18n cleanup + HUMAN-UAT + VALIDATION + @moshpit spec [human checkpoint]
@@ -172,15 +172,15 @@
 
 ## Progress
 
-| Phase                                              | Plans Complete | Status      | Completed  |
-| -------------------------------------------------- | -------------- | ----------- | ---------- |
-| 1. Workspace Shell & Canvas Navigation             | 6/6            | Complete    | 2026-04-20 |
-| 2. Asset Pipeline                                  | 12/12          | Complete    | 2026-04-20 |
-| 3. Filter & Sort (Core Validation)                 | 11/11          | Complete (sort deprecated) | 2026-04-20 |
-| 4. Lineage Groupings & Within-Cluster Sort         | 0/?            | Not started | -          |
-| 5. Tournament Mode                                 | 0/?            | Not started | -          |
-| 6. Curation                                        | 0/?            | Not started | -          |
-| 7. UX Edges & Performance Validation               | 0/?            | Not started | -          |
+| Phase                                      | Plans Complete | Status                     | Completed  |
+| ------------------------------------------ | -------------- | -------------------------- | ---------- |
+| 1. Workspace Shell & Canvas Navigation     | 6/6            | Complete                   | 2026-04-20 |
+| 2. Asset Pipeline                          | 12/12          | Complete                   | 2026-04-20 |
+| 3. Filter & Sort (Core Validation)         | 11/11          | Complete (sort deprecated) | 2026-04-20 |
+| 4. Lineage Groupings & Within-Cluster Sort | 0/?            | Not started                | -          |
+| 5. Tournament Mode                         | 0/?            | Not started                | -          |
+| 6. Curation                                | 0/?            | Not started                | -          |
+| 7. UX Edges & Performance Validation       | 0/?            | Not started                | -          |
 
 ## Coverage
 
