@@ -1104,8 +1104,11 @@
       "paramGenerationTime": "Generation time",
       "paramTags": "Tags",
       "paramFavourite": "Favourite",
+      "paramSaveNode": "Save node",
       "paramWidth": "Width",
       "paramHeight": "Height",
+      "primaryLabel": "Primary",
+      "advancedLabel": "Advanced filters",
       "editorApply": "Apply filter",
       "editorBack": "Back",
       "editorMin": "Min",
@@ -1130,6 +1133,24 @@
       "gridSpacingValue": "{value}px",
       "gridSpacingDisabledTooltip": "Set a sort axis to enable grid spacing",
       "showHiddenLabel": "Show hidden"
+    },
+    "grouping": {
+      "sectionLabel": "Grouping",
+      "axis": {
+        "workflow": "Workflow",
+        "saveNode": "Save node",
+        "prompt": "Prompt",
+        "model": "Model",
+        "type": "Type"
+      },
+      "withinSort": {
+        "label": "Within cluster",
+        "newestFirst": "Newest first",
+        "oldestFirst": "Oldest first",
+        "alphabetical": "Alphabetical"
+      },
+      "otherLabel": "(other)",
+      "spacingLabel": "Cluster spacing"
     }
   },
   "tabMenu": {
