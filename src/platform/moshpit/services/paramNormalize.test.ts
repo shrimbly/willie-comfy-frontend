@@ -313,6 +313,123 @@ describe('normalizeParams', () => {
   })
 })
 
+describe('saveNodeIdentity (D-08)', () => {
+  const NOW = 1700000000000
+
+  function buildGraphMeta(graph: Record<string, unknown>): {
+    prompt: string
+  } {
+    return { prompt: JSON.stringify(graph) }
+  }
+
+  it('uses node._meta.title when a SaveImage output node has one', () => {
+    const graph = {
+      '10': {
+        class_type: 'SaveImage',
+        inputs: { filename_prefix: 'out' },
+        _meta: { title: 'Final Output' }
+      }
+    }
+    const result = normalizeParams(buildGraphMeta(graph), NOW)
+    expect(result.saveNodeIdentity).toBe('Final Output')
+  })
+
+  it('falls back to class_type when SaveImage has no _meta.title', () => {
+    const graph = {
+      '10': {
+        class_type: 'SaveImage',
+        inputs: { filename_prefix: 'out' }
+      }
+    }
+    const result = normalizeParams(buildGraphMeta(graph), NOW)
+    expect(result.saveNodeIdentity).toBe('SaveImage')
+  })
+
+  it('uses _meta.title for PreviewImage output nodes', () => {
+    const graph = {
+      '11': {
+        class_type: 'PreviewImage',
+        inputs: {},
+        _meta: { title: 'Debug Preview' }
+      }
+    }
+    const result = normalizeParams(buildGraphMeta(graph), NOW)
+    expect(result.saveNodeIdentity).toBe('Debug Preview')
+  })
+
+  it('returns null when there are no output-class nodes in the graph', () => {
+    const graph = {
+      '1': { class_type: 'KSampler', inputs: {} },
+      '2': { class_type: 'CLIPTextEncode', inputs: { text: 'hi' } }
+    }
+    const result = normalizeParams(buildGraphMeta(graph), NOW)
+    expect(result.saveNodeIdentity).toBeNull()
+  })
+
+  it('returns the first output node in Object.values order when multiple are present', () => {
+    const graph = {
+      a: {
+        class_type: 'SaveImage',
+        inputs: {},
+        _meta: { title: 'First' }
+      },
+      b: {
+        class_type: 'SaveImage',
+        inputs: {},
+        _meta: { title: 'Second' }
+      }
+    }
+    const result = normalizeParams(buildGraphMeta(graph), NOW)
+    expect(result.saveNodeIdentity).toBe('First')
+  })
+
+  it('returns null when prompt graph is missing / malformed', () => {
+    const missing = normalizeParams({}, NOW)
+    expect(missing.saveNodeIdentity).toBeNull()
+
+    const malformed = normalizeParams({ prompt: 'not json' }, NOW)
+    expect(malformed.saveNodeIdentity).toBeNull()
+  })
+
+  it('emptyParams(createdAtMs) includes saveNodeIdentity: null', () => {
+    const empty = emptyParams(NOW)
+    expect(empty.saveNodeIdentity).toBeNull()
+  })
+
+  it('recognises the full set of output-class types', () => {
+    const outputTypes = [
+      'SaveImage',
+      'PreviewImage',
+      'SaveImageWebsocket',
+      'SaveAnimatedWEBP',
+      'SaveImageExtended'
+    ]
+    for (const classType of outputTypes) {
+      const graph = {
+        '9': {
+          class_type: classType,
+          inputs: {},
+          _meta: { title: `title-for-${classType}` }
+        }
+      }
+      const result = normalizeParams(buildGraphMeta(graph), NOW)
+      expect(result.saveNodeIdentity).toBe(`title-for-${classType}`)
+    }
+  })
+
+  it('falls back to class_type when _meta.title is an empty string', () => {
+    const graph = {
+      '10': {
+        class_type: 'SaveImage',
+        inputs: {},
+        _meta: { title: '' }
+      }
+    }
+    const result = normalizeParams(buildGraphMeta(graph), NOW)
+    expect(result.saveNodeIdentity).toBe('SaveImage')
+  })
+})
+
 describe('extractWorkflowFilename', () => {
   it('strips _NNNNN_ counter + extension', () => {
     expect(extractWorkflowFilename('my_workflow_00042_.png')).toBe(
