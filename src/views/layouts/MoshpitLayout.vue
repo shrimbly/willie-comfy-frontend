@@ -137,5 +137,10 @@ function onIndicatorDone(): void {
 // covers the (correctly rendered) Moshpit UI. Remove it on mount.
 onMounted(() => {
   document.getElementById('splash-loader')?.remove()
+  // Moshpit is a peer of the Assets sidebar — users may land here directly
+  // without ever opening the sidebar that normally populates outputJobAssets.
+  // Trigger the fetch so the processing queue has candidates once a workflow
+  // or time range is selected.
+  void assetsStore.updateOutputJobs()
 })
 </script>
