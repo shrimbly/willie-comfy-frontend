@@ -87,6 +87,21 @@ describe('MoshpitWorkflowPicker', () => {
     expect(filterStore.workflow).toBe('fp-cfg')
   })
 
+  it('clicking the "All workflows" entry clears filterStore.workflow', async () => {
+    const user = userEvent.setup()
+    mountPicker()
+    const filterStore = useMoshpitFilterStore()
+    filterStore.setWorkflow('fp-cfg')
+
+    const trigger = screen.getByTestId('moshpit-workflow-picker-trigger')
+    await user.click(trigger)
+
+    const allEntry = await screen.findByTestId('moshpit-workflow-picker-all')
+    await user.click(allEntry)
+
+    expect(filterStore.workflow).toBeNull()
+  })
+
   it('renders option labels via ICU plural key — singular and plural forms', async () => {
     const user = userEvent.setup()
 
