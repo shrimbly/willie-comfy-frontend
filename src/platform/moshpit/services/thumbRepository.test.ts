@@ -19,7 +19,8 @@ const sampleParams: NormalizedParams = {
   height: 512,
   timestamp: 1700000000000,
   workflowFingerprint: 'CheckpointLoaderSimple|KSampler',
-  workflowFilename: 'my_sweep'
+  workflowFilename: 'my_sweep',
+  saveNodeIdentity: null
 }
 
 describe('thumbRepository (Wave 1, fake-indexeddb)', () => {
@@ -130,7 +131,8 @@ describe('thumbRepository (Wave 1, fake-indexeddb)', () => {
       height: undefined,
       timestamp: 1700000000001,
       workflowFingerprint: '',
-      workflowFilename: null
+      workflowFilename: null,
+      saveNodeIdentity: null
     }
     await putAssetMeta({
       contentHash: 'hash-empty-params',
@@ -257,7 +259,8 @@ describe('thumbRepository v1→v2 migration', () => {
       height: 512,
       timestamp: 1700000001000,
       workflowFingerprint: 'CheckpointLoaderSimple',
-      workflowFilename: null
+      workflowFilename: null,
+      saveNodeIdentity: null
     }
     await putAssetMeta({
       contentHash: 'already-has-params',

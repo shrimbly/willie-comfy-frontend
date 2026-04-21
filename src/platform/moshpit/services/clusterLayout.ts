@@ -284,7 +284,8 @@ export function computeClusterLayout(
           height: undefined,
           timestamp: 0,
           workflowFingerprint: '',
-          workflowFilename: null
+          workflowFilename: null,
+          saveNodeIdentity: null
         } as NormalizedParams)
       const filename = filenameByHash.get(hash) ?? null
       return { contentHash: hash, params, filename }

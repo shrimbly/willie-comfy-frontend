@@ -31,6 +31,7 @@ function params(overrides: Partial<NormalizedParams>): NormalizedParams {
     timestamp: NOW_MS,
     workflowFingerprint: '',
     workflowFilename: null,
+    saveNodeIdentity: null,
     ...overrides
   }
 }

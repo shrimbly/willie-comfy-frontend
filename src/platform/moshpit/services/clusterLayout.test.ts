@@ -32,7 +32,8 @@ function makeParams(
     height: undefined,
     timestamp: 0,
     workflowFingerprint: '',
-    workflowFilename: null
+    workflowFilename: null,
+    saveNodeIdentity: null
   }
   return { ...base, ...overrides }
 }

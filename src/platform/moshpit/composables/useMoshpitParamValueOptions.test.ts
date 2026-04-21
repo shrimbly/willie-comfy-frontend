@@ -24,6 +24,7 @@ function makeParams(overrides: Partial<NormalizedParams> = {}): NormalizedParams
     timestamp: 0,
     workflowFingerprint: 'test',
     workflowFilename: null,
+    saveNodeIdentity: null,
     ...overrides
   }
 }
