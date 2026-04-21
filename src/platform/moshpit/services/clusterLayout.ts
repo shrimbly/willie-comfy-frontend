@@ -198,6 +198,11 @@ export function computeClusterLayout(
 
     // Pack children in a row-wrapping grid at this depth.
     const gap = gridSpacing * (maxDepth - depth + 1)
+    // Inset children from the parent's border on all sides so the child
+    // cluster's outline doesn't sit flush with the parent's outline. The
+    // inset scales with depth for the same reason `gap` does — outer tiers
+    // get more breathing room than inner tiers.
+    const inset = gridSpacing * 0.5 * (maxDepth - depth + 1)
     const childCount = unsorted.length
     const columns = Math.max(1, Math.ceil(Math.sqrt(childCount)))
 
@@ -217,15 +222,16 @@ export function computeClusterLayout(
       }
     })
 
-    // Compute x-offsets per column and y-offsets per row.
+    // Compute x-offsets per column and y-offsets per row. Start at `inset`
+    // so the first child is padded off the parent's top-left corner.
     const colX: number[] = []
-    let runningX = 0
+    let runningX = inset
     for (let c = 0; c < colWidths.length; c++) {
       colX.push(runningX)
       runningX += colWidths[c] + gap
     }
     const rowY: number[] = []
-    let runningY = 0
+    let runningY = inset
     for (let r = 0; r < rowHeights.length; r++) {
       rowY.push(runningY)
       runningY += rowHeights[r] + gap
@@ -239,7 +245,8 @@ export function computeClusterLayout(
       return translateCluster(child.node, colX[col], rowY[row])
     })
 
-    // Parent bounds: span all placed children.
+    // Parent bounds: span all placed children plus the trailing inset on
+    // the right/bottom edges to mirror the leading inset on left/top.
     let maxX = 0
     let maxY = 0
     for (const c of positionedChildren) {
@@ -253,7 +260,7 @@ export function computeClusterLayout(
       axis: currentAxis,
       bucketValue,
       depth,
-      boundsWorld: { x: 0, y: 0, w: maxX, h: maxY },
+      boundsWorld: { x: 0, y: 0, w: maxX + inset, h: maxY + inset },
       children: positionedChildren,
       leafHashes: []
     }
