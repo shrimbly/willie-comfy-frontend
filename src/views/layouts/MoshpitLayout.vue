@@ -1,7 +1,7 @@
 <template>
   <WorkspaceAuthGate>
     <main
-      class="relative flex size-full overflow-hidden bg-node-component-surface"
+      class="fixed inset-0 z-0 flex h-screen w-screen overflow-hidden bg-node-component-surface"
     >
       <MoshpitSideRail />
       <MoshpitSettingsPanel v-if="isSettingsOpen" />
