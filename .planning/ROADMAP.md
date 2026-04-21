@@ -1,18 +1,19 @@
 # Roadmap: Moshpit (ComfyUI Autocanvas)
 
 **Created:** 2026-04-20
+**Pivoted:** 2026-04-21 (PRD v3 — curation-first framing)
 **Granularity:** standard
-**Core Value:** Prove that spatial-sort-by-parameter is a valuable interaction for reasoning about generation output.
+**Core Value:** Prove that a lineage-grouped spatial canvas with shortlist-then-tournament curation is a faster, more intuitive way to pick the best generations from a large set.
 
 ## Phases
 
-- [ ] **Phase 1: Workspace Shell & Canvas Navigation** — Full-bleed Moshpit workspace mounts, pan/zoom/selection feel identical to workflow canvas, Settings panel slot is wired
-- [ ] **Phase 2: Asset Pipeline** — Worker thumbnails + IndexedDB cache + progressive populate turn a filtered AssetItem stream into sprites on the canvas
-- [x] **Phase 3: Filter & Sort (Core Validation)** — Initial filter gate, subtractive filter chips, 1D and 2D spatial sort; this is the milestone that proves or disproves the core value (completed 2026-04-20)
-- [ ] **Phase 4: Comparison Mode** — Three compare modes with pinned+rotating navigation and automatic metadata/LoRA diff
-- [ ] **Phase 5: Curation** — Favourite, tag, folder, hide, export with toast-based undo; curation state persisted to IndexedDB
-- [ ] **Phase 6: Generate More Like This (Mocked)** — Live-parsed workflow modal with heuristic param exposure and a non-executing queue button
-- [ ] **Phase 7: UX Edges & Performance Validation** — Empty states, perf hardening to 5k-asset budgets, keyboard/a11y sweep
+- [x] **Phase 1: Workspace Shell & Canvas Navigation** — Full-bleed Moshpit workspace mounts, pan/zoom/selection feel identical to workflow canvas, Settings panel slot is wired (completed 2026-04-20)
+- [x] **Phase 2: Asset Pipeline** — Worker thumbnails + IndexedDB cache + progressive populate turn a filtered AssetItem stream into sprites on the canvas (completed 2026-04-20)
+- [x] **Phase 3: Filter & Sort (Core Validation)** — Initial filter gate, subtractive filter chips, 1D and 2D spatial sort shipped; sort axes _superseded_ by the v3 pivot and slated for removal in Phase 4 (completed 2026-04-20)
+- [ ] **Phase 4: Lineage Groupings & Within-Cluster Sort** _(new, replaces old Phase 4)_ — Multi-axis non-exclusive grouping toggles with auto-nested density-based hierarchy; within-cluster sort dropdown; Advanced-filter disclosure refactor; deprecated param-sort UI removal
+- [ ] **Phase 5: Tournament Mode** _(replaces old "Comparison Mode")_ — Pairwise winner selection over a selected set, three display modes preserved, ephemeral scoring, opt-in metadata peek
+- [ ] **Phase 6: Curation** _(was Phase 5)_ — Favourite, tag, folder, hide, export with toast-based undo; curation state persisted to IndexedDB
+- [ ] **Phase 7: UX Edges & Performance Validation** _(was Phase 7; old Phase 6 Generate More Like This cut)_ — Empty states, perf hardening to 5k-asset budgets, keyboard/a11y sweep
 
 ## Phase Details
 
@@ -69,22 +70,17 @@
 
 **UI hint**: yes
 
-### Phase 3: Filter & Sort (Core Validation)
+### Phase 3: Filter & Sort (Core Validation) — _Shipped, Sort Superseded_
 
-**Goal**: User can gate the canvas with an initial workflow + time-range filter, progressively add subtractive filter chips across the hardcoded parameter list, and arrange the visible set spatially via 1D-with-packing or 2D-scatter sort — proving whether spatial-sort-by-parameter is a valuable reasoning surface.
+**Goal** _(original)_: User can gate the canvas with an initial workflow + time-range filter, progressively add subtractive filter chips across the hardcoded parameter list, and arrange the visible set spatially via 1D-with-packing or 2D-scatter sort — proving whether spatial-sort-by-parameter is a valuable reasoning surface.
+
+**Outcome**: Filter gate + subtractive chips shipped and validated. Spatial parameter sort shipped but invalidated by dogfooding — led to the v3 curation pivot (2026-04-21). Sort UI is deprecated and will be removed in Phase 4; sort math primitives (`sortMath`) remain in the codebase for potential reuse by grouping layout.
+
 **Depends on**: Phase 2
-**Requirements**: FILTER-01, FILTER-02, FILTER-03, FILTER-04, FILTER-05, FILTER-06, FILTER-07, FILTER-08, FILTER-09, FILTER-10, FILTER-11, SORT-01, SORT-02, SORT-03, SORT-04, SORT-05
-**Success Criteria** (what must be TRUE):
-
-1. User must pick a workflow + time range before the canvas populates; the initial filter gate is the entry into the moshpit
-2. User can add filter chips across model, LoRA, CFG, steps, sampler, scheduler, seed, prompt/negative-prompt substring, resolution, time, tags, favourite, and hidden — non-matching assets vanish from the canvas (subtractive, not dimmed)
-3. User can sort by a parameter on X (with vertical packing) or by two parameters as a 2D scatter; assets lacking the sorted parameter are hidden, all positioning is grid-snapped, grid spacing is user-configurable
-4. Filter chips are click-to-remove in the Settings panel; default view hides soft-deleted assets and can reveal them via a "show hidden" toggle
-5. Running a parameter sweep (e.g. CFG on X) on a real workflow produces a visibly legible spatial arrangement of the filtered set
+**Requirements**: FILTER-01..11, SORT-01..05 (SORT-01..03 deprecated post-ship)
 
 **Plans:** 11/11 plans complete
 
-Plans:
 - [x] 03-01-PLAN.md — Pure paramNormalize + NormalizedParamsSchema + extractWorkflowFilename (FILTER-02/03/04/05/06/09 foundation)
 - [x] 03-02-PLAN.md — Pure filterMath predicates + filterTypes domain (FILTER-02/03/04/05/06/07/08/09/11)
 - [x] 03-03-PLAN.md — Pure sortMath 1D/2D layout with row-band accumulation (SORT-01/02/03/04/05)
@@ -99,25 +95,53 @@ Plans:
 
 **UI hint**: yes
 
-### Phase 4: Comparison Mode
+### Phase 4: Lineage Groupings & Within-Cluster Sort _(new — replaces old Phase 4 Comparison Mode)_
 
-**Goal**: User can enter comparison mode from a selection of ≥2 assets, navigate candidates via pinned+rotating arrows, switch between three comparison modes, and read an automatic metadata diff (including LoRA set-diff) at full resolution.
-**Depends on**: Phase 3
-**Requirements**: COMPARE-01, COMPARE-02, COMPARE-03, COMPARE-04, COMPARE-05, COMPARE-06, COMPARE-07, COMPARE-08
+**Goal**: Replace the deprecated parameter-sort UI with lineage-based spatial clustering. User can enable any combination of grouping axes (workflow, save node, prompt, model, type), see clusters auto-nest by bucket density, and control within-cluster order via a single dropdown. Primary filter surface is lineage-first; parameter filters move behind an Advanced disclosure. The old 1D/2D sort controls are removed.
+**Depends on**: Phase 3 (filter pipeline, sort math primitives available for reuse)
+**Requirements**: GROUP-01..10, CSORT-01, FILTER-12
 **Success Criteria** (what must be TRUE):
 
-1. With ≥2 assets selected, `Enter` opens comparison; `Esc` exits with the canvas selection preserved
-2. User can switch between side-by-side, overlap (opacity/wipe), and A/B flip via `[`/`]`; `Space` triggers an A/B flip in any mode
-3. First-selected asset is pinned on the left; `←`/`→` rotate the right slot through the rest of the selection
-4. A synced metadata panel lists all parameters for both assets, matching parameters render plainly, differing parameters render highlighted, and LoRAs render as an order-insensitive set diff with added / removed / weight-changed callouts
-5. Full-resolution assets load on comparison entry — not on hover, not on high zoom
-   **Plans**: TBD
-   **UI hint**: yes
+1. User can toggle any combination of `workflow`, `save node`, `prompt`, `model`, `type` groupings in the Settings panel; toggling instantly recomputes cluster layout with an animated transition under 400ms at 5k assets
+2. When multiple groupings are active, nesting order is deterministic and auto-derived — the axis with the largest average bucket size nests outermost, applied recursively at every level
+3. Assets missing a grouped parameter fall into an "(other)" cluster at that level rather than being hidden
+4. Within each leaf cluster, assets arrange in a grid ordered by a user-selected within-cluster sort (newest first default, oldest first, alphabetical by filename)
+5. Primary filter surface shows lineage filters (workflow, prompt, save node, model, time, favourite, hidden, tag); parameter filters (CFG, steps, seed, sampler, scheduler, resolution, LoRA, negative prompt) live behind an Advanced disclosure
+6. The deprecated 1D/2D parameter sort UI (MoshpitSortControls axis pickers, MoshpitAxisOverlay) is removed from the Settings panel; sort math primitives remain available for reuse by cluster layout
 
-### Phase 5: Curation
+**Plans:** 6 plans
 
-**Goal**: User can favourite, tag, folder-assign, soft-delete (hide), and export selected assets via right-click or keyboard shortcuts; every bulk curation action produces an ~8s toast undo.
-**Depends on**: Phase 2 (IndexedDB store), Phase 1 (selection)
+- [ ] 04-01-PLAN.md — Pure math: groupAxes + clusterLayout + sortMath Phase 4 reuse note (GROUP-02/03/05/06/07/08/10, CSORT-01 math)
+- [ ] 04-02-PLAN.md — paramNormalize.saveNodeIdentity + IDB v2→v3 migration (GROUP-04, D-08, D-11)
+- [ ] 04-03-PLAN.md — filterTypes saveNode + moshpitFilterStore refactor + useMoshpitFilteredAssets cluster wiring (GROUP-01/09, CSORT-01, FILTER-12)
+- [ ] 04-04-PLAN.md — Settings-panel UI: MoshpitGroupingToggles + MoshpitWithinClusterSort + MoshpitAdvancedFilters + chip-row tier prop + popover split + i18n (GROUP-01, CSORT-01, FILTER-12)
+- [ ] 04-05-PLAN.md — MoshpitClusterOverlay HTML-over-Pixi bounding boxes + labels (GROUP-01/02)
+- [ ] 04-06-PLAN.md — Settings panel composition + canvas overlay swap + sort-UI deletions + i18n cleanup + HUMAN-UAT + VALIDATION + @moshpit spec [human checkpoint]
+
+**UI hint**: yes
+
+### Phase 5: Tournament Mode _(replaces old Comparison Mode framing)_
+
+**Goal**: User can enter tournament mode from a selection of ≥2 assets, step through pairwise comparisons using three display modes ([/] cycles side-by-side / overlap / A/B flip), pick winners with `←`/`→` (or skip with `↓`), and exit with the winner set selected on the canvas for export or foldering. Scores are ephemeral; no persisted elo or leaderboards. An optional metadata peek (`M`) surfaces parameter diffs on demand.
+**Depends on**: Phase 4 (canvas selection, cluster layout stable)
+**Requirements**: TOUR-01..08, PEEK-01..03
+**Success Criteria** (what must be TRUE):
+
+1. With ≥2 assets selected, `Enter` opens tournament mode; `Esc` exits with the canvas selection preserved
+2. Three display modes accessible via `[` / `]`: side-by-side, overlap (opacity / wipe), A/B flip; `Space` triggers an A/B flip in any mode
+3. User picks the winner of each pair via `←` (left/A) or `→` (right/B); `↓` advances without picking
+4. Exit produces a winner set selected on the canvas — user can immediately export (`E`), favourite (`S`), tag (`T`), or folder-assign the winners
+5. No tournament scores, elo, or bracket state persist across sessions — tournaments are per-session only
+6. Metadata peek is hidden by default; `M` toggles an overlay showing automatic parameter diff including LoRA set-diff (name-based, order-insensitive)
+7. Full-resolution assets load on tournament entry within the Phase 7 perf budget
+
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 6: Curation _(was Phase 5)_
+
+**Goal**: User can favourite, tag, folder-assign, soft-delete (hide), and export selected assets via right-click or keyboard shortcuts; every bulk curation action produces an ~8s toast undo. Folders become the way to persist shortlists for later tournamenting.
+**Depends on**: Phase 2 (IndexedDB store), Phase 1 (selection), Phase 5 (tournament winner set feeds export / folder)
 **Requirements**: CURATE-01, CURATE-02, CURATE-03, CURATE-04, CURATE-05, CURATE-06, CURATE-07
 **Success Criteria** (what must be TRUE):
 
@@ -125,66 +149,58 @@ Plans:
 2. Tag, untag, hide, unhide, folder add/remove, and bulk favourite each fire a toast with an Undo button; `Cmd`/`Ctrl`-Z within the ~8s toast window reverses the action
 3. Curation state persists across sessions (content-hash keyed in IndexedDB) and is respected by the filter system (tags become filterable, hidden defaults off)
 4. Hidden assets remain on disk — no real deletion in v1
-   **Plans**: TBD
-   **UI hint**: yes
+5. Folders can be created from a tournament winner set in one action
 
-### Phase 6: Generate More Like This (Mocked)
+**Plans**: TBD
+**UI hint**: yes
 
-**Goal**: Right-clicking a single asset opens a modal that live-parses the source workflow JSON, exposes tweakable parameters heuristically, and presents a non-executing "queue N variations" button — proving the interaction on real workflows without wiring a backend.
-**Depends on**: Phase 5 (right-click context surface)
-**Requirements**: GENMORE-01, GENMORE-02, GENMORE-03, GENMORE-04, GENMORE-05, GENMORE-06
-**Success Criteria** (what must be TRUE):
+### Phase 7: UX Edges & Performance Validation _(unchanged from old Phase 7; old Phase 6 cut)_
 
-1. Right-clicking a single asset surfaces "Generate more like this" and opens a modal
-2. Modal reads the embedded workflow JSON via `getFromPngBuffer` and renders tweakable controls (sliders / inputs / dropdowns) initialised from the asset's KSampler widgets and LoRA strengths
-3. Modal includes a "queue N variations" input (default 4–8) and a Queue button that does nothing — no backend call, no event logging
-4. When the heuristic cannot identify tweakable parameters, the modal shows a fallback message rather than stubbed fake fields
-   **Plans**: TBD
-   **UI hint**: yes
-
-### Phase 7: UX Edges & Performance Validation
-
-**Goal**: All four empty states render correctly, user-facing actions are keyboard-reachable and screen-reader-legible, and the 5k-asset performance budget is demonstrably met (60fps pan/zoom, <2s first thumb cold, <3s warm populate, <500ms warm full-res).
+**Goal**: All four empty states render correctly, user-facing actions are keyboard-reachable and screen-reader-legible, and the 5k-asset performance budget is demonstrably met (60fps pan/zoom, <2s first thumb cold, <3s warm populate, <500ms warm full-res, <400ms grouping recompute).
 **Depends on**: Phases 1–6 (validation is end-to-end)
-**Requirements**: UX-01, UX-02, UX-03, UX-04, UX-05, UX-06, UX-07, UX-08, UX-09
+**Requirements**: UX-01..10
 **Success Criteria** (what must be TRUE):
 
 1. User sees the correct empty state in each condition: no initial filter, zero-match initial filter, narrowed-to-zero mid-session (with "remove last filter" affordance on the most recent chip), and all-hidden (with "show hidden" toggle)
 2. At 5,000 assets steady-state, pan/zoom sustains 60fps and zoom-to-detail transitions complete within 200ms
-3. At 5,000 assets cold start, the first thumbnail is visible within 2s of the initial filter and all thumbnails render within 60s; warm start populates within 3s; comparison entry full-res loads within 500ms warm / 2s cold
-4. All user actions (filter, sort, compare, curate, export, "generate more") are reachable and legible via keyboard and screen reader through the Settings panel, comparison UI, and curation dialogs
-   **Plans**: TBD
-   **UI hint**: yes
+3. At 5,000 assets cold start, the first thumbnail is visible within 2s of the initial filter and all thumbnails render within 60s; warm start populates within 3s; tournament entry full-res loads within 500ms warm / 2s cold
+4. Grouping toggle recompute + animation completes within 400ms at 5k assets
+5. All user actions (filter, group, tournament, curate, export) are reachable and legible via keyboard and screen reader through the Settings panel, tournament UI, and curation dialogs
+
+**Plans**: TBD
+**UI hint**: yes
 
 ## Progress
 
-| Phase                                  | Plans Complete | Status      | Completed  |
-| -------------------------------------- | -------------- | ----------- | ---------- |
-| 1. Workspace Shell & Canvas Navigation | 6/6            | Complete    | 2026-04-20 |
-| 2. Asset Pipeline                      | 0/12           | Planned     | -          |
-| 3. Filter & Sort (Core Validation)     | 11/11 | Complete   | 2026-04-20 |
-| 4. Comparison Mode                     | 0/?            | Not started | -          |
-| 5. Curation                            | 0/?            | Not started | -          |
-| 6. Generate More Like This (Mocked)    | 0/?            | Not started | -          |
-| 7. UX Edges & Performance Validation   | 0/?            | Not started | -          |
+| Phase                                              | Plans Complete | Status      | Completed  |
+| -------------------------------------------------- | -------------- | ----------- | ---------- |
+| 1. Workspace Shell & Canvas Navigation             | 6/6            | Complete    | 2026-04-20 |
+| 2. Asset Pipeline                                  | 12/12          | Complete    | 2026-04-20 |
+| 3. Filter & Sort (Core Validation)                 | 11/11          | Complete (sort deprecated) | 2026-04-20 |
+| 4. Lineage Groupings & Within-Cluster Sort         | 0/?            | Not started | -          |
+| 5. Tournament Mode                                 | 0/?            | Not started | -          |
+| 6. Curation                                        | 0/?            | Not started | -          |
+| 7. UX Edges & Performance Validation               | 0/?            | Not started | -          |
 
 ## Coverage
 
-- v1 requirements: 66 total (SHELL 5 + ASSET 10 + FILTER 11 + SORT 5 + NAV 5 + COMPARE 8 + CURATE 7 + GENMORE 6 + UX 9)
-- Mapped to phases: 66 ✓
+- v1 requirements: 74 total (SHELL 5 + NAV 5 + ASSET 10 + FILTER 12 + SORT 5 + GROUP 10 + CSORT 1 + TOUR 8 + PEEK 3 + CURATE 7 + UX 10)
+- Mapped to phases: 74 ✓
 - Unmapped: 0 ✓
-
-**Note:** REQUIREMENTS.md header states "65 total" but the actual enumerated list contains 66 requirements. All 66 are mapped.
+- Deprecated post-ship: 3 (SORT-01, SORT-02, SORT-03)
 
 ## Notes
 
-- **Phase 3 is the validation milestone.** The Core Value question — does spatial-sort-by-parameter feel good on real parameter sweeps — is answered or falsified at the end of Phase 3. Phases 4–7 are only worth building if Phase 3 lands.
-- **PixiJS is net-new.** Expect dependency installation, viewport setup, sprite loading, and mipmap LOD to be scoped into Phase 1 and/or Phase 2 research.
+- **v3 pivot (2026-04-21).** The Core Value was reframed from "spatial-sort-by-parameter is valuable" to "lineage-grouped canvas + shortlist/tournament curation is valuable" after Phase 3 shipped. See `temp/plans/moshpit_prd.md` v3 for the full PRD. Phases 1 and 2 survive unchanged; Phase 3 shipped but sort axes are deprecated; Phases 4–7 are reorganised (old Comparison Mode → Tournament Mode, old Curation renumbered, old Generate More Like This cut).
+- **Phase 4 is the new validation milestone.** Lineage groupings + within-cluster sort is where the v3 Core Value is answered or falsified. Phase 5 and beyond are only worth building if Phase 4 clicks on real dogfooding.
+- **PixiJS is shipped.** Viewport, sprite layer, mipmap LOD, and pan/zoom parity are established in Phases 1–2.
 - **No entity-class modifications.** `LGraphNode`, `LGraphCanvas`, `LGraph`, `Subgraph` are off-limits (ADR 0003/0008). The shared input composable is an extraction of reusable pointer/viewport math out of `useCanvasInteractions`, not a modification of litegraph.
-- **Curation relies on Phase 2 IndexedDB.** Phase 5 cannot start until Phase 2 has shipped a stable IndexedDB store keyed by content hash.
-- **Generate More is intentionally isolated.** It can slot in after Phase 5 or in parallel with Phase 7 — it does not block other phases.
+- **Curation relies on Phase 2 IndexedDB.** Phase 6 builds on the IndexedDB store already shipped in Phase 2 (thumbs + curation scaffold already in place via `moshpitCurationStore`).
+- **Generate More Like This cut from v1.** Reinstated as v2-GEN-01/02 for a future milestone; out of v1 scope to keep the pivot focused on filter → group → shortlist → tournament → export.
+- **Tournament math primitives shipped.** The `sortMath` module from Phase 3 is deprecated in terms of UI but its pure-function layout primitives may be reused by Phase 4's cluster layout.
 
 ---
 
 _Roadmap created: 2026-04-20_
 _Updated: 2026-04-20 — Phase 2 plan list populated (12 plans across 5 waves)_
+_Pivoted: 2026-04-21 — v3 curation pivot. Phases 4–7 reorganised; old Comparison Mode → Tournament Mode; old Curation renumbered to Phase 6; old Generate More Like This phase cut._
