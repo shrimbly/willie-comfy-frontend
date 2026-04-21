@@ -30,9 +30,7 @@ import {
   useMoshpitProcessingQueue
 } from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
 import { useMoshpitFilteredAssets } from '@/platform/moshpit/composables/useMoshpitFilteredAssets'
-import {
-  MOSHPIT_LAYOUT_INJECTION_KEY
-} from '@/platform/moshpit/composables/useMoshpitSpriteLayer'
+import { MOSHPIT_LAYOUT_INJECTION_KEY } from '@/platform/moshpit/composables/useMoshpitSpriteLayer'
 import { getDateRangeForPreset } from '@/platform/moshpit/services/filterMath'
 import { useMoshpitFilterStore } from '@/platform/moshpit/stores/moshpitFilterStore'
 import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetadataStore'
@@ -85,7 +83,12 @@ const assetsStore = useAssetsStore()
 const metaStore = useMoshpitMetadataStore()
 
 watch(
-  () => [filterStore.workflow, filterStore.timeRange] as const,
+  () =>
+    [
+      filterStore.workflow,
+      filterStore.timeRange,
+      assetsStore.outputJobAssets.length
+    ] as const,
   ([workflow, timeRange]) => {
     // Gate: need a workflow OR a non-'all' time range (OR semantics — D-22).
     if (!workflow && timeRange.preset === 'all') return
@@ -114,6 +117,13 @@ watch(
       const params = metaStore.paramsByHash.get(hash)
       if (!params) return true
       return params.workflowFingerprint === workflow
+    })
+
+    console.warn('[moshpit] setFilter', {
+      workflow,
+      preset: timeRange.preset,
+      outputJobAssets: assetsStore.outputJobAssets.length,
+      candidates: candidates.length
     })
 
     const filterKey = `${workflow ?? ''}:${timeRange.preset}:${timeRange.from ?? ''}-${timeRange.to ?? ''}`
