@@ -57,7 +57,7 @@ SORT-01..05 shipped in Phase 3 but are superseded by lineage groupings. The UI w
 - [ ] **GROUP-01**: User can enable any combination of grouping axes as non-exclusive toggles in the Settings panel
 - [x] **GROUP-02**: Grouping nesting order is automatic — the axis with the largest average bucket size nests outermost, applied recursively at every level
 - [x] **GROUP-03**: User can group by **workflow** (workflow filename from embedded metadata)
-- [ ] **GROUP-04**: User can group by **save node** (node id / name within the workflow that emitted the asset)
+- [x] **GROUP-04**: User can group by **save node** (node id / name within the workflow that emitted the asset)
 - [x] **GROUP-05**: User can group by **prompt** (normalised positive-prompt text — trim, lowercase, collapse whitespace)
 - [x] **GROUP-06**: User can group by **model** (checkpoint)
 - [x] **GROUP-07**: User can group by **type** (aspect class / resolution bucket — landscape / portrait / square)
@@ -225,7 +225,7 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | GROUP-01    | 4     | Pending             |
 | GROUP-02    | 4     | Complete |
 | GROUP-03    | 4     | Complete |
-| GROUP-04    | 4     | Pending             |
+| GROUP-04    | 4     | Complete |
 | GROUP-05    | 4     | Complete |
 | GROUP-06    | 4     | Complete |
 | GROUP-07    | 4     | Complete |

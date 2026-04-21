@@ -3,13 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-04-21T10:28:31.006Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-04-21T16:59:13.595Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 35
-  completed_plans: 30
-  percent: 86
+  completed_plans: 31
+  percent: 89
 ---
 
 # Project State
@@ -25,14 +26,14 @@ progress:
 ## Current Position
 
 Phase: 04 (lineage-groupings-within-cluster-sort) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 
 - **Milestone:** v1
 - **Phase:** 4
-- **Plan:** 04-01 complete; 04-02 next
+- **Plan:** 04-02 complete; 04-03 next
 - **Status:** Executing Phase 04
 
-Progress: `[████░░░░░░] 3 / 7 phases`
+Progress: `[█████████░] 3 / 7 phases`
 
 ## Performance Metrics
 
@@ -43,6 +44,7 @@ Progress: `[████░░░░░░] 3 / 7 phases`
 | Phase-Plan | Duration | Tasks | Files |
 | ---------- | -------- | ----- | ----- |
 | 04-01      | ~10 min  | 2     | 4 created + 1 modified |
+| Phase 04 P02 | ~7 min | 2 tasks | 5 modified files |
 
 ## Accumulated Context
 
@@ -92,11 +94,12 @@ Progress: `[████░░░░░░] 3 / 7 phases`
 - `transformTick` void pattern for 60fps overlay updates — `void transformTick.value` registers reactive dep without lint-triggering unused variable
 - `MOSHPIT_LAYOUT_INJECTION_KEY` co-located in `useMoshpitSpriteLayer.ts` — avoids new module, keeps key adjacent to `SpriteLayerOptions` type
 - `sortMath` primitives remain available in the codebase for Phase 4 cluster layout reuse (pure functions, no UI coupling)
+- [Phase 04]: Plan 04-02 — saveNodeIdentity materialised in NormalizedParamsSchema + IDB v2→v3 cursor migration. GROUP-04 data layer complete. Plan 04-03 can now read real saveNodeIdentity buckets via Plan 01's clusterLayout
 
 ### Active Todos
 
-- Execute Plan 04-02: extend `NormalizedParams` with `saveNodeIdentity` (D-08) and wire the IDB v2 → v3 migration (D-11) so `clusterLayout` produces meaningful save-node buckets.
-- Plan 04-03 then wires `computeClusterLayout` into `useMoshpitFilteredAssets`.
+- Execute Plan 04-03: wire `computeClusterLayout` into `useMoshpitFilteredAssets` so the renderer consumes the new lineage-grouping slots.
+- Follow with Plan 04-04 (moshpitFilterStore saveNode axis), Plan 04-05 (cluster overlay), Plan 04-06 (grouping toggle UI).
 
 ### Blockers
 
@@ -104,8 +107,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T10:26:52Z
-**Stopped at:** Completed 04-01-PLAN.md (cluster math substrate)
+**Last session:** 2026-04-21T16:59:05.332Z
+**Stopped at:** Completed 04-02-PLAN.md
 
 **Context for next session:**
 

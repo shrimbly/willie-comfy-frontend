@@ -1,6 +1,6 @@
 # Deferred Items — Phase 04
 
-Out-of-scope issues observed during Plan 01 execution. Tracked for future
+Out-of-scope issues observed during Plan execution. Tracked for future
 cleanup; NOT addressed in this plan per the scope-boundary rule (only fix
 issues directly caused by the current task's changes).
 
@@ -8,21 +8,18 @@ issues directly caused by the current task's changes).
 
 Present on HEAD before Plan 04-01 started. Running `pnpm typecheck`:
 
-- `src/platform/moshpit/services/thumbRepository.ts(51,50)`: error TS2339:
-  Property 'metadata' does not exist on type 'never'.
-- `src/platform/moshpit/services/thumbRepository.ts(52,37)`: error TS2698:
-  Spread types may only be created from object types.
-- `src/platform/moshpit/services/thumbRepository.ts(58,21)`: error TS2339:
-  Property 'contentHash' does not exist on type 'never'.
+- ~~`src/platform/moshpit/services/thumbRepository.ts(51,50)`: TS2339~~
+  — **RESOLVED in Plan 04-02** (dfabb5259). v1→v2 cursor narrowed via
+  `as unknown as { contentHash, metadata }` to unblock the v2→v3 branch.
+- ~~`src/platform/moshpit/services/thumbRepository.ts(52,37)`: TS2698~~
+  — **RESOLVED in Plan 04-02** (dfabb5259). Spread now targets the
+  narrowed legacy shape.
+- ~~`src/platform/moshpit/services/thumbRepository.ts(58,21)`: TS2339~~
+  — **RESOLVED in Plan 04-02** (dfabb5259).
 - `src/renderer/extensions/minimap/composables/useMinimap.test.ts(854,36)`:
   error TS2367: This comparison appears to be unintentional because the
   types 'keyof DedicatedWorkerGlobalScopeEventMap' and '"resize"' have no
-  overlap.
-
-These pre-date this plan. `thumbRepository` is scheduled for a v2→v3
-migration edit in Plan 04-02 (D-11 — `saveNodeIdentity` re-derivation) so the
-type errors will be addressed there. The minimap test error is unrelated to
-Moshpit and should be filed separately.
+  overlap. **Still outstanding** — unrelated to Moshpit.
 
 ## Husky pre-commit hook interaction
 
