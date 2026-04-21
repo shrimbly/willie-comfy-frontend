@@ -34,7 +34,7 @@
           "
           @click="filterStore.removeChip(chip.id)"
         >
-          <i class="icon-[lucide--x] size-4" aria-hidden="true" />
+          <i class="icon-[lucide--x] size-5" aria-hidden="true" />
         </button>
       </div>
     </div>
