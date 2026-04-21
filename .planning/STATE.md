@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-05-PLAN.md
-last_updated: '2026-04-21T18:13:22.914Z'
+stopped_at: Completed 04-06-PLAN.md tasks 1-6; Task 7 human-verify checkpoint awaiting D-22 sign-off
+last_updated: '2026-04-21T18:58:05.306Z'
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 35
-  completed_plans: 34
-  percent: 97
+  completed_plans: 35
+  percent: 100
 ---
 
 # Project State
@@ -48,6 +48,7 @@ Progress: `[█████████░] 3 / 7 phases`
 | Phase 04 P03 | 75 min   | 4 tasks | 13 files               |
 | Phase 04 P04 | ~29 min  | 4 tasks | 16 files               |
 | Phase 04 P05 | ~10min   | 1 tasks | 3 files                |
+| Phase 04 P06 | 55min    | 6 tasks | 10 files               |
 
 ## Accumulated Context
 
@@ -101,6 +102,9 @@ Progress: `[█████████░] 3 / 7 phases`
 - [Phase 04]: Plan 04-03: moshpitFilterStore + useMoshpitFilteredAssets flipped onto computeClusterLayout. ParamKey widened with saveNode; PRIMARY/ADVANCED tier constants exported; exhaustive never-guards added to filterMath switches (Pitfall 1). Legacy MoshpitSortControls + MoshpitAxisOverlay deleted. Full-project typecheck now green (pre-existing useMinimap.test.ts TS2367 resolved inline as Rule 3 blocker).
 - [Phase 04]: Plan 04-04: Settings-panel UI building blocks shipped — MoshpitGroupingToggles (5 pills), MoshpitWithinClusterSort (native select), MoshpitAdvancedFilters (Reka Collapsible). MoshpitFilterChipRow gained tier prop; MoshpitAddFilterPopover split into Primary/Advanced sections with saveNode entry. useMoshpitParamValueOptions.saveNode case derives from params.saveNodeIdentity. 59 tests across 6 files green.
 - [Phase 04]: [Phase 04]: Plan 04-05: MoshpitClusterOverlay shipped — HTML-over-Pixi bounding-box + label overlay at depths 0 and 1 (D-06). Subscribes to viewport 'moved' via transformTick scalar bump; (other) bucket renders via t('moshpit.grouping.otherLabel'); display:none fallback when viewport is null. 8 tests green, ready for Plan 06 to mount into MoshpitView.vue.
+- [Phase 04]: Plan 04-06: MoshpitClusterOverlay mounted in src/views/MoshpitView.vue (not MoshpitCanvas.vue) — matches Plan 03 SUMMARY executor note. Cluster overlay replaces the removed MoshpitAxisOverlay parallel to the sprite layer.
+- [Phase 04]: Plan 04-06: moshpit.sort.\* i18n block fully removed (12 keys); showHiddenLabel relocated to moshpit.filters.showHiddenLabel; grid-spacing label now lives in moshpit.grouping.spacingLabel + spacingValue.
+- [Phase 04]: Plan 04-06 Task 5 (Playwright @moshpit spec) deferred per D-21 — pre-existing typecheck:browser tsconfig mismatch on main blocks browser_tests/ commits. Full rationale + 5-test design logged to deferred-items.md.
 
 ### Active Todos
 
@@ -114,8 +118,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T18:13:12.764Z
-**Stopped at:** Completed 04-05-PLAN.md
+**Last session:** 2026-04-21T18:57:53.750Z
+**Stopped at:** Completed 04-06-PLAN.md tasks 1-6; Task 7 human-verify checkpoint awaiting D-22 sign-off
 
 **Context for next session:**
 
