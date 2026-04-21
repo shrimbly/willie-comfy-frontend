@@ -24,6 +24,36 @@ export type ParamKey =
   | 'favourite'
   | 'tags'
   | 'resolution'
+  | 'saveNode'
+
+/**
+ * D-13: Primary filter chip params surfaced in Plan 04's popover.
+ *
+ * Workflow / timestamp are gate controls handled by MoshpitWorkflowPicker and
+ * MoshpitTimeRangePicker; hidden is exposed via MoshpitShowHiddenToggle — none
+ * of those belong in the chip popover.
+ */
+export const PRIMARY_FILTER_PARAMS: readonly ParamKey[] = [
+  'positivePrompt',
+  'saveNode',
+  'model',
+  'favourite',
+  'tags'
+]
+
+/**
+ * D-14: Advanced filter chip params — hidden behind a Reka Collapsible.
+ */
+export const ADVANCED_FILTER_PARAMS: readonly ParamKey[] = [
+  'cfg',
+  'steps',
+  'seed',
+  'sampler',
+  'scheduler',
+  'resolution',
+  'loras',
+  'negativePrompt'
+]
 
 export type ChipValue =
   | {

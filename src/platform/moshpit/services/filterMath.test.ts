@@ -506,6 +506,68 @@ describe('matchesChip', () => {
     })
   })
 
+  describe('saveNode categorical (D-14, GROUP-04)', () => {
+    it('admits asset whose saveNodeIdentity matches single-value chip', () => {
+      const p = params({ saveNodeIdentity: 'Final Output' })
+      const c = curation({})
+      expect(
+        matchesChip(
+          p,
+          c,
+          chip('saveNode', {
+            kind: 'categorical',
+            values: ['Final Output']
+          })
+        )
+      ).toBe(true)
+    })
+
+    it('admits asset when saveNodeIdentity matches any value in multi-value chip (OR within chip)', () => {
+      const p = params({ saveNodeIdentity: 'Preview' })
+      const c = curation({})
+      expect(
+        matchesChip(
+          p,
+          c,
+          chip('saveNode', {
+            kind: 'categorical',
+            values: ['Final Output', 'Preview']
+          })
+        )
+      ).toBe(true)
+    })
+
+    it('excludes asset when saveNodeIdentity does not match any chip value', () => {
+      const p = params({ saveNodeIdentity: 'Draft' })
+      const c = curation({})
+      expect(
+        matchesChip(
+          p,
+          c,
+          chip('saveNode', {
+            kind: 'categorical',
+            values: ['Final Output', 'Preview']
+          })
+        )
+      ).toBe(false)
+    })
+
+    it('excludes asset with null saveNodeIdentity (FILTER-09 missing-param semantics)', () => {
+      const p = params({ saveNodeIdentity: null })
+      const c = curation({})
+      expect(
+        matchesChip(
+          p,
+          c,
+          chip('saveNode', {
+            kind: 'categorical',
+            values: ['Final Output']
+          })
+        )
+      ).toBe(false)
+    })
+  })
+
   describe('silently null — missing params excluded (FILTER-09)', () => {
     it('excludes asset with undefined cfg when numeric chip queries cfg', () => {
       const p = params({ cfg: undefined })

@@ -227,8 +227,28 @@ function getCategoricalParamValue(
       return params.sampler
     case 'scheduler':
       return params.scheduler
-    default:
+    case 'saveNode':
+      return params.saveNodeIdentity ?? undefined
+    // Params handled by matchesChip's dedicated branches — these never reach
+    // the categorical lookup path, but listing them keeps the switch exhaustive
+    // so future ParamKey additions surface as compile errors (T-04-03-01).
+    case 'loras':
+    case 'tags':
+    case 'favourite':
+    case 'resolution':
+    case 'positivePrompt':
+    case 'negativePrompt':
+    case 'cfg':
+    case 'steps':
+    case 'seed':
+    case 'width':
+    case 'height':
+    case 'timestamp':
       return undefined
+    default: {
+      const _exhaustive: never = param
+      return _exhaustive
+    }
   }
 }
 
@@ -247,8 +267,24 @@ function getNumericParamValue(
       return params.width
     case 'height':
       return params.height
-    default:
+    // Non-numeric params — listed explicitly so ParamKey widenings become
+    // compile errors rather than silent undefined fall-through (T-04-03-01).
+    case 'model':
+    case 'loras':
+    case 'sampler':
+    case 'scheduler':
+    case 'positivePrompt':
+    case 'negativePrompt':
+    case 'timestamp':
+    case 'favourite':
+    case 'tags':
+    case 'resolution':
+    case 'saveNode':
       return undefined
+    default: {
+      const _exhaustive: never = param
+      return _exhaustive
+    }
   }
 }
 
