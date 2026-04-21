@@ -115,14 +115,15 @@ export function useMoshpitSpriteLayer(
     return computeJitteredGrid(sorted, seed, cellSize)
   }
 
-  function makeSprite(contentHash: string, thumbUrl: string): Sprite {
-    const texture = Texture.from(thumbUrl)
+  function makeSprite(contentHash: string, thumbUrl: string): Sprite | null {
+    // In Pixi v8, Texture.from can return undefined for blob URLs that are
+    // not yet in the Assets cache. Swallow that case and let the next
+    // watchEffect tick (after load) build the sprite.
+    const texture = Texture.from(thumbUrl) as Texture | undefined
+    if (!texture) return null
     // Upgrade texture source options after Texture.from creates it. In Pixi v8
     // mipmaps default on for image resources; the explicit sets keep the
     // contract visible for future maintainers.
-    // source is undefined when the blob URL has been revoked or the asset
-    // is not yet in the Pixi Assets cache — skip the upgrade in that case
-    // rather than crashing the sprite layer.
     if (texture.source && texture.source instanceof ImageSource) {
       texture.source.autoGenerateMipmaps = true
       texture.source.autoGarbageCollect = true
@@ -169,6 +170,9 @@ export function useMoshpitSpriteLayer(
       const existing = spriteMap.get(entry.contentHash)
       if (!existing) {
         const sprite = makeSprite(entry.contentHash, entry.thumbUrl)
+        // Texture not ready yet (Pixi Assets cache miss) — bail out and let
+        // the next thumbReady / watchEffect tick retry once the blob loads.
+        if (!sprite) continue
         const newEntry: SpriteEntry = { sprite, slot }
         applySlot(newEntry, slot)
         spriteMap.set(entry.contentHash, newEntry)
