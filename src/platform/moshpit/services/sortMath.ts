@@ -12,6 +12,11 @@
  *
  * Coordinate system matches layoutMath.ts: world-space pixels inside
  * pixi-viewport.
+ *
+ * Phase 4 reuse note (2026-04-21): After the v3 pivot, parameter-axis sort UI
+ * is removed, but the grid-packing primitives in this module remain part of
+ * the cluster-layout substrate. See `clusterLayout.ts` and D-16 in
+ * `.planning/phases/04-lineage-groupings-within-cluster-sort/04-CONTEXT.md`.
  */
 
 import type { GridSlot } from './layoutMath'
