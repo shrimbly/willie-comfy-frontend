@@ -208,9 +208,9 @@ describe('MoshpitClusterOverlay', () => {
     expect(labels).toHaveLength(2)
 
     const [outerLabel, innerLabel] = labels
-    expect(outerLabel.classList.contains('-top-4')).toBe(true)
+    expect(outerLabel.classList.contains('-top-3')).toBe(true)
     expect(innerLabel.classList.contains('top-1')).toBe(true)
-    expect(innerLabel.classList.contains('-top-4')).toBe(false)
+    expect(innerLabel.classList.contains('-top-3')).toBe(false)
   })
 
   it('label element carries truncate + max-w-56 classes for overflow handling', () => {
@@ -260,5 +260,42 @@ describe('MoshpitClusterOverlay', () => {
       (c) => c[0] === 'moved'
     )
     expect(movedRegistrations).toHaveLength(1)
+  })
+
+  it('clicking a label requests a padded zoom-to-selection on the viewport store', async () => {
+    const { useMoshpitViewportStore } =
+      await import('@/platform/moshpit/stores/moshpitViewportStore')
+    const outer = node('outer-0', 0, [], bounds(100, 200, 400, 300))
+    clusterTreeStub.value = node('root', -1, [outer])
+
+    renderWithViewport()
+
+    const store = useMoshpitViewportStore()
+    const label = screen.getByTestId('moshpit-cluster-label') as HTMLElement
+    label.click()
+
+    // 15% padding on each side → bbox grows by 0.15 * size per edge.
+    const target = store.consumeZoomToSelection()
+    expect(target).toEqual({
+      x: 100 - 400 * 0.15,
+      y: 200 - 300 * 0.15,
+      width: 400 * (1 + 0.15 * 2),
+      height: 300 * (1 + 0.15 * 2)
+    })
+  })
+
+  it('clicking a zero-size cluster label is a no-op', async () => {
+    const { useMoshpitViewportStore } =
+      await import('@/platform/moshpit/stores/moshpitViewportStore')
+    const outer = node('empty', 0, [], bounds(0, 0, 0, 0))
+    clusterTreeStub.value = node('root', -1, [outer])
+
+    renderWithViewport()
+
+    const store = useMoshpitViewportStore()
+    const label = screen.getByTestId('moshpit-cluster-label') as HTMLElement
+    label.click()
+
+    expect(store.consumeZoomToSelection()).toBeNull()
   })
 })

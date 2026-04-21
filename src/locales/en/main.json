@@ -1139,7 +1139,8 @@
       },
       "otherLabel": "(other)",
       "spacingLabel": "Cluster spacing",
-      "spacingValue": "{value}px"
+      "spacingValue": "{value}px",
+      "focusBadgeTooltip": "Focus on {label}"
     }
   },
   "tabMenu": {
