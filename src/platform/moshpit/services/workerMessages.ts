@@ -22,6 +22,13 @@ export interface EnqueueAssetInput {
   readonly assetHash: string | null // cloud fast-path; null → client hash
   /** AssetItem.id — echoed back in thumbReady for OSS-path hash bridging. */
   readonly assetId: string
+  /**
+   * Epoch ms derived from `AssetItem.created_at` — the original file's mtime,
+   * not ingest time. When absent, the worker falls back to `ctx.now()`.
+   * Makes the `newestFirst` within-cluster sort stable across ingest (ingest
+   * time drifts per asset; real creation time does not).
+   */
+  readonly createdAtMs?: number
 }
 
 export type WorkerInMessage =

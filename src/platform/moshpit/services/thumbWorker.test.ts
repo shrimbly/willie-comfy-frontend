@@ -137,6 +137,20 @@ describe('processAsset', () => {
     expect(posted).toHaveLength(1)
   })
 
+  it('prefers input.createdAtMs over ctx.now() when provided', async () => {
+    const { ctx } = makeCtx({ nowResult: 9999999 })
+    const inputWithCreatedAt = {
+      ...baseInput,
+      createdAtMs: 1_700_000_000_000
+    }
+    await processAsset(inputWithCreatedAt, new AbortController().signal, ctx)
+    expect(ctx.normalize).toHaveBeenCalledWith(
+      expect.any(Object),
+      1_700_000_000_000,
+      expect.anything()
+    )
+  })
+
   it('ctx.normalize receives derived source filename from fetchUrl', async () => {
     const { ctx } = makeCtx()
     const inputWithFilename = {

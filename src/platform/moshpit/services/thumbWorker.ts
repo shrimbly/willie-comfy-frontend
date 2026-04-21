@@ -133,7 +133,10 @@ export async function processAsset(
     assetHash && assetHash.length > 0 ? assetHash : await ctx.hash(buffer)
   if (signal.aborted) return
 
-  const createdAtMs = ctx.now()
+  // Prefer the real asset mtime supplied by the main thread over ingest time,
+  // so the `newestFirst` within-cluster sort lands on the same order the
+  // registry presents during populate.
+  const createdAtMs = input.createdAtMs ?? ctx.now()
   const sourceFilename = deriveFilenameFromAssetInput(input)
   const params = ctx.normalize(metadata, createdAtMs, sourceFilename)
 

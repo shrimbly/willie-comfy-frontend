@@ -97,11 +97,14 @@ export function useMoshpitProcessingQueue(options?: {
     // The worker uses Date.now() as a fallback; the processing queue knows the
     // actual creation timestamp from the AssetItem loaded by setFilter.
     const asset = assetsSnapshot.value.find((a) => a.id === msg.assetId)
-    const createdAtMs =
-      asset?.created_at ? new Date(asset.created_at).getTime() : NaN
+    const createdAtMs = asset?.created_at
+      ? new Date(asset.created_at).getTime()
+      : NaN
     const paramsWithRealTimestamp: NormalizedParams = {
       ...msg.params,
-      timestamp: Number.isFinite(createdAtMs) ? createdAtMs : msg.params.timestamp
+      timestamp: Number.isFinite(createdAtMs)
+        ? createdAtMs
+        : msg.params.timestamp
     }
     metaStore.setParams(msg.contentHash, paramsWithRealTimestamp)
 
@@ -155,7 +158,9 @@ export function useMoshpitProcessingQueue(options?: {
     // whose thumbs are already cached. This avoids re-running the worker and
     // ensures paramsByHash is fully populated for filter/sort on re-entry.
     // Chunk size 10 bounds concurrent IDB reads (T-03-05-02 mitigation).
-    const cachedViews = asViews.filter((v) => v.assetHash && cached.has(v.assetHash))
+    const cachedViews = asViews.filter(
+      (v) => v.assetHash && cached.has(v.assetHash)
+    )
     const CHUNK_SIZE = 10
     for (let i = 0; i < cachedViews.length; i += CHUNK_SIZE) {
       const chunk = cachedViews.slice(i, i + CHUNK_SIZE)
@@ -180,12 +185,16 @@ export function useMoshpitProcessingQueue(options?: {
     for (const view of delta) {
       const src = assets.find((a) => a.id === view.id)
       if (!src) continue
+      const createdMs = src.created_at ? Date.parse(src.created_at) : Number.NaN
       bridge.enqueue({
         id: `${filterKey}:${view.id}`,
         filterId: filterKey,
         fetchUrl: getAssetUrl(src),
         assetId: view.id, // T-02-08-01: namespaced id prevents cross-filter spoofing
-        assetHash: view.assetHash
+        assetHash: view.assetHash,
+        // Prefer real file mtime over ingest Date.now() so newestFirst stays
+        // stable between populate and post-ingest layout.
+        createdAtMs: Number.isFinite(createdMs) ? createdMs : undefined
       })
     }
   }
