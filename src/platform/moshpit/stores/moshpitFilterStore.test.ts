@@ -71,7 +71,7 @@ describe('moshpitFilterStore', () => {
 
     it('isGated flips back to false when time range is reset to all and no workflow is set', () => {
       const store = useMoshpitFilterStore()
-      store.setTimeRange({ preset: 'week', from: null, to: null })
+      store.setTimeRange({ preset: 'thisWeek', from: null, to: null })
       expect(store.isGated).toBe(true)
       store.setTimeRange({ preset: 'all', from: null, to: null })
       expect(store.isGated).toBe(false)
