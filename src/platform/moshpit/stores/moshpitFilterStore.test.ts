@@ -23,10 +23,19 @@ describe('moshpitFilterStore', () => {
       expect(store.chips).toHaveLength(0)
     })
 
-    it('sortX and sortY are null', () => {
+    it('activeGroupings is empty', () => {
       const store = useMoshpitFilterStore()
-      expect(store.sortX).toBeNull()
-      expect(store.sortY).toBeNull()
+      expect(store.activeGroupings).toHaveLength(0)
+    })
+
+    it('withinClusterSort defaults to newestFirst', () => {
+      const store = useMoshpitFilterStore()
+      expect(store.withinClusterSort).toBe('newestFirst')
+    })
+
+    it('isAdvancedOpen is false', () => {
+      const store = useMoshpitFilterStore()
+      expect(store.isAdvancedOpen).toBe(false)
     })
 
     it('showHidden is false', () => {
@@ -215,20 +224,76 @@ describe('moshpitFilterStore', () => {
     })
   })
 
-  describe('setSortX / setSortY', () => {
-    it('accepts valid sortable ParamKey', () => {
+  describe('toggleGrouping (GROUP-01, D-19)', () => {
+    it('adds axis when not present', () => {
       const store = useMoshpitFilterStore()
-      store.setSortX('cfg')
-      expect(store.sortX).toBe('cfg')
-      store.setSortY('steps')
-      expect(store.sortY).toBe('steps')
+      store.toggleGrouping('workflow')
+      expect(store.activeGroupings).toEqual(['workflow'])
     })
 
-    it('accepts null to clear the axis', () => {
+    it('removes axis when already present', () => {
       const store = useMoshpitFilterStore()
-      store.setSortX('cfg')
-      store.setSortX(null)
-      expect(store.sortX).toBeNull()
+      store.toggleGrouping('workflow')
+      store.toggleGrouping('workflow')
+      expect(store.activeGroupings).toHaveLength(0)
+    })
+
+    it('preserves insertion order when toggling multiple axes', () => {
+      const store = useMoshpitFilterStore()
+      store.toggleGrouping('workflow')
+      store.toggleGrouping('prompt')
+      store.toggleGrouping('model')
+      expect(store.activeGroupings).toEqual(['workflow', 'prompt', 'model'])
+    })
+
+    it('removes only the specified axis from the middle of the ordered list', () => {
+      const store = useMoshpitFilterStore()
+      store.toggleGrouping('workflow')
+      store.toggleGrouping('prompt')
+      store.toggleGrouping('model')
+      store.toggleGrouping('prompt')
+      expect(store.activeGroupings).toEqual(['workflow', 'model'])
+    })
+  })
+
+  describe('setWithinClusterSort (CSORT-01)', () => {
+    it('updates the within-cluster sort mode', () => {
+      const store = useMoshpitFilterStore()
+      store.setWithinClusterSort('oldestFirst')
+      expect(store.withinClusterSort).toBe('oldestFirst')
+      store.setWithinClusterSort('alphabetical')
+      expect(store.withinClusterSort).toBe('alphabetical')
+    })
+  })
+
+  describe('toggleAdvanced / setAdvancedOpen (D-14)', () => {
+    it('toggleAdvanced flips isAdvancedOpen', () => {
+      const store = useMoshpitFilterStore()
+      store.toggleAdvanced()
+      expect(store.isAdvancedOpen).toBe(true)
+      store.toggleAdvanced()
+      expect(store.isAdvancedOpen).toBe(false)
+    })
+
+    it('setAdvancedOpen assigns the boolean directly (Reka controlled path)', () => {
+      const store = useMoshpitFilterStore()
+      store.setAdvancedOpen(true)
+      expect(store.isAdvancedOpen).toBe(true)
+      store.setAdvancedOpen(false)
+      expect(store.isAdvancedOpen).toBe(false)
+    })
+  })
+
+  describe('saveNode chip (D-14 tier-agnostic add)', () => {
+    it('adding a chip with param: "saveNode" lands in chips[] unchanged by tier routing', () => {
+      const store = useMoshpitFilterStore()
+      store.addChip({
+        id: 'chip-save-node',
+        param: 'saveNode',
+        value: { kind: 'categorical', values: ['Final Output'] }
+      })
+      expect(store.chips).toHaveLength(1)
+      expect(store.chips[0].param).toBe('saveNode')
     })
   })
 
@@ -268,16 +333,19 @@ describe('moshpitFilterStore', () => {
         param: 'sampler',
         value: { kind: 'categorical', values: ['euler'] }
       })
-      store.setSortX('cfg')
-      store.setSortY('steps')
+      store.toggleGrouping('workflow')
+      store.toggleGrouping('prompt')
+      store.setWithinClusterSort('alphabetical')
+      store.setAdvancedOpen(true)
       store.setGridSpacing(800)
       store.setShowHidden(true)
       store.reset()
       expect(store.workflow).toBeNull()
       expect(store.timeRange.preset).toBe('all')
       expect(store.chips).toHaveLength(0)
-      expect(store.sortX).toBeNull()
-      expect(store.sortY).toBeNull()
+      expect(store.activeGroupings).toHaveLength(0)
+      expect(store.withinClusterSort).toBe('newestFirst')
+      expect(store.isAdvancedOpen).toBe(false)
       expect(store.showHidden).toBe(false)
       expect(store.isGated).toBe(false)
     })
