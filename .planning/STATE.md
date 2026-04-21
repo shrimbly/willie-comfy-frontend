@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-04-21T08:39:56.234Z"
+last_updated: "2026-04-21T10:28:31.006Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 35
-  completed_plans: 29
-  percent: 83
+  completed_plans: 30
+  percent: 86
 ---
 
 # Project State
@@ -20,25 +20,29 @@ progress:
 
 **Project:** Moshpit (ComfyUI Autocanvas)
 **Core Value:** Prove that a lineage-grouped spatial canvas with shortlist-then-tournament curation is a faster, more intuitive way to pick the best generations from a large set.
-**Current Focus:** Phase 04 — lineage-groupings-and-within-cluster-sort (new milestone after v3 pivot)
+**Current Focus:** Phase 04 — lineage-groupings-within-cluster-sort
 
 ## Current Position
 
-Phase: 04 (lineage-groupings-and-within-cluster-sort) — READY TO PLAN
-Plan: not yet created
+Phase: 04 (lineage-groupings-within-cluster-sort) — EXECUTING
+Plan: 2 of 6
 
 - **Milestone:** v1
 - **Phase:** 4
-- **Plan:** Not started
-- **Status:** Ready to execute
+- **Plan:** 04-01 complete; 04-02 next
+- **Status:** Executing Phase 04
 
 Progress: `[████░░░░░░] 3 / 7 phases`
 
 ## Performance Metrics
 
 - Phases complete: 3 / 7
-- Plans complete: 29 / 29 (across shipped phases 1–3)
+- Plans complete: 30 / 35 (across phases 1–3 + Phase 4 Plan 01)
 - Requirements mapped: 74 / 74 (v1 total post-pivot)
+
+| Phase-Plan | Duration | Tasks | Files |
+| ---------- | -------- | ----- | ----- |
+| 04-01      | ~10 min  | 2     | 4 created + 1 modified |
 
 ## Accumulated Context
 
@@ -67,6 +71,16 @@ Progress: `[████░░░░░░] 3 / 7 phases`
 - Parameter filters (CFG, steps, seed, sampler, scheduler, resolution, LoRA, negative prompt) demoted behind an "Advanced" disclosure in the Settings panel.
 - Within-cluster sort is a single dropdown: newest first (default), oldest first, alphabetical.
 
+**Phase 4 Plan 01 (2026-04-21) — cluster math substrate:**
+
+- `computeClusterLayout` recursive row-wrapping packer lives in `src/platform/moshpit/services/clusterLayout.ts`; worker-safe (no Vue / Pinia / DOM).
+- `computeNestingOrder` decides outer → inner axis ordering by avg bucket size descending (ties broken by GROUPING_AXES declaration order). Separate entry point from the packer so the Pinia store can memoise the order without re-packing.
+- Bucket-key memoisation keyed by `${axis}|${hash}` inside both `computeNestingOrder` and `computeClusterLayout` keeps 5 k × 3-axis math at ~18 ms locally (budget 100 ms; GROUP-10 / D-05).
+- `groupAxes.ts` houses five axis-extraction primitives + `compareAssetsForWithinCluster` (CSORT-01). `deriveTypeBucket` is derived at read time; not persisted.
+- Forward-compatibility pattern: `saveNodeIdentity` consumed via structural widening on `NormalizedParams` so Plan 01 / Plan 02 remain independently shippable.
+- TDD RED commits collide with husky's global `pnpm typecheck` step because pre-existing `thumbRepository.ts` errors surface on every commit; commits still land (git accepts them — lint-staged only reverts the staged index).
+- fast-check property assertions established as the regression guard for both the within-cluster comparator (determinism) and the cluster packer (hash-uniqueness invariant — Pitfall 2).
+
 **Phase 3 engineering notes (retained for Phase 4 reuse):**
 
 - `emitted<unknown[]>()` typing pattern required to satisfy vue-tsc on @testing-library/vue `emitted()` return type
@@ -81,8 +95,8 @@ Progress: `[████░░░░░░] 3 / 7 phases`
 
 ### Active Todos
 
-- Plan Phase 4 (Lineage Groupings & Within-Cluster Sort) via `/gsd-plan-phase 4`.
-- Before planning, consider running `/gsd-discuss-phase 4` to surface open design questions (cluster layout algorithm, "(other)" cluster placement, grouping-toggle animation strategy, Advanced-filter disclosure UX).
+- Execute Plan 04-02: extend `NormalizedParams` with `saveNodeIdentity` (D-08) and wire the IDB v2 → v3 migration (D-11) so `clusterLayout` produces meaningful save-node buckets.
+- Plan 04-03 then wires `computeClusterLayout` into `useMoshpitFilteredAssets`.
 
 ### Blockers
 
@@ -90,7 +104,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-21T07:10:17.044Z
+**Last session:** 2026-04-21T10:26:52Z
+**Stopped at:** Completed 04-01-PLAN.md (cluster math substrate)
 
 **Context for next session:**
 
