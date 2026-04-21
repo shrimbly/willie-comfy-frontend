@@ -5,8 +5,8 @@
         type="button"
         :class="
           cn(
-            'inline-flex h-6 items-center gap-1 rounded-md px-2 text-xs text-muted-foreground',
-            'hover:bg-secondary-background hover:text-base-foreground'
+            'inline-flex h-6 cursor-pointer items-center gap-1 rounded-md border border-border-subtle bg-secondary-background px-2 text-xs text-base-foreground',
+            'hover:border-border-default hover:bg-secondary-background-hover'
           )
         "
         data-testid="moshpit-add-filter-trigger"
@@ -18,10 +18,12 @@
     <PopoverPortal>
       <PopoverContent
         side="bottom"
+        align="start"
         :side-offset="4"
+        :collision-padding="8"
         :class="
           cn(
-            'z-1700 w-50 rounded-md border border-border-subtle bg-base-background p-1 shadow-sm',
+            'z-1700 w-56 rounded-md border border-border-subtle bg-interface-panel-surface p-1 shadow-lg',
             'data-[state=open]:data-[side=bottom]:animate-slideUpAndFade'
           )
         "
@@ -34,17 +36,18 @@
             :placeholder="t('moshpit.filters.searchParams')"
             class="mb-1 h-7 w-full rounded-sm border-b border-border-subtle bg-transparent px-2 text-xs outline-none"
           />
-          <div v-if="primaryEntries.length > 0" class="flex flex-col gap-0.5">
-            <span
-              class="px-2 text-2xs tracking-wide text-muted-foreground uppercase"
-              data-testid="moshpit-add-filter-primary-header"
-            >
-              {{ t('moshpit.filters.primaryLabel') }}
-            </span>
-            <ul class="max-h-[140px] overflow-y-auto">
+          <ul class="m-0 max-h-[260px] list-none overflow-y-auto p-0">
+            <template v-if="primaryEntries.length > 0">
+              <li
+                class="mt-0.5 px-2 pt-1 pb-0.5 text-2xs tracking-wide text-muted-foreground uppercase"
+                data-testid="moshpit-add-filter-primary-header"
+                role="presentation"
+              >
+                {{ t('moshpit.filters.primaryLabel') }}
+              </li>
               <li
                 v-for="entry in primaryEntries"
-                :key="entry.key"
+                :key="`primary-${entry.key}`"
                 role="option"
                 :aria-disabled="isParamActive(entry.key) ? 'true' : 'false'"
                 :class="
@@ -63,22 +66,18 @@
                 />
                 <span>{{ entry.label }}</span>
               </li>
-            </ul>
-          </div>
-          <div
-            v-if="advancedEntries.length > 0"
-            class="mt-1 flex flex-col gap-0.5"
-          >
-            <span
-              class="px-2 text-2xs tracking-wide text-muted-foreground uppercase"
-              data-testid="moshpit-add-filter-advanced-header"
-            >
-              {{ t('moshpit.filters.advancedLabel') }}
-            </span>
-            <ul class="max-h-[140px] overflow-y-auto">
+            </template>
+            <template v-if="advancedEntries.length > 0">
+              <li
+                class="mt-1 px-2 pt-1 pb-0.5 text-2xs tracking-wide text-muted-foreground uppercase"
+                data-testid="moshpit-add-filter-advanced-header"
+                role="presentation"
+              >
+                {{ t('moshpit.filters.advancedLabel') }}
+              </li>
               <li
                 v-for="entry in advancedEntries"
-                :key="entry.key"
+                :key="`advanced-${entry.key}`"
                 role="option"
                 :aria-disabled="isParamActive(entry.key) ? 'true' : 'false'"
                 :class="
@@ -97,8 +96,8 @@
                 />
                 <span>{{ entry.label }}</span>
               </li>
-            </ul>
-          </div>
+            </template>
+          </ul>
         </div>
 
         <!-- Step 2: Value editor -->
