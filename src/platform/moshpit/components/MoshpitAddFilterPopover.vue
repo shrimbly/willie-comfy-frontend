@@ -18,7 +18,7 @@
         :collision-padding="8"
         :class="
           cn(
-            'z-1700 w-56 rounded-md border border-border-subtle bg-comfy-menu-bg p-1 shadow-lg',
+            'z-1700 w-56 rounded-md border border-border-default bg-comfy-menu-bg p-1 shadow-lg',
             'data-[state=open]:data-[side=bottom]:animate-slideUpAndFade'
           )
         "
@@ -29,7 +29,7 @@
             v-model="paramSearch"
             type="text"
             :placeholder="t('moshpit.filters.searchParams')"
-            class="mb-1 h-7 w-full rounded-sm border-b border-border-subtle bg-transparent px-2 text-xs outline-none"
+            class="mb-1 h-7 w-full rounded-sm border-b border-border-default bg-transparent px-2 text-xs outline-none"
           />
           <ul class="m-0 max-h-[260px] list-none overflow-y-auto p-0">
             <template v-if="primaryEntries.length > 0">
@@ -206,11 +206,11 @@ const draftValue = ref<ChipValue | null>(null)
 const triggerClass = computed(() =>
   variant === 'block'
     ? cn(
-        'inline-flex h-8 w-full cursor-pointer items-center justify-center gap-1 rounded-md border border-border-subtle bg-secondary-background px-2 text-xs text-base-foreground',
+        'inline-flex h-8 w-full cursor-pointer items-center justify-center gap-1 rounded-md border border-border-default bg-secondary-background px-2 text-xs text-base-foreground',
         'hover:border-border-default hover:bg-secondary-background-hover'
       )
     : cn(
-        'inline-flex h-6 cursor-pointer items-center gap-1 rounded-md border border-border-subtle bg-secondary-background px-2 text-xs text-base-foreground',
+        'inline-flex h-6 cursor-pointer items-center gap-1 rounded-md border border-border-default bg-secondary-background px-2 text-xs text-base-foreground',
         'hover:border-border-default hover:bg-secondary-background-hover'
       )
 )

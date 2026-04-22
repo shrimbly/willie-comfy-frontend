@@ -12,7 +12,7 @@
         data-testid="moshpit-workflow-picker-trigger"
         :class="
           cn(
-            'flex h-8 w-full items-center justify-between gap-2 rounded-md border border-border-subtle bg-secondary-background px-2 text-xs'
+            'flex h-8 w-full items-center justify-between gap-2 rounded-md border border-border-default bg-secondary-background px-2 text-xs'
           )
         "
         @click="isOpen = !isOpen"
@@ -45,14 +45,14 @@
       :class="
         cn(
           'z-1700 max-h-60 w-(--reka-combobox-trigger-width) overflow-y-auto',
-          'rounded-md border border-border-subtle bg-comfy-menu-bg shadow-interface'
+          'rounded-md border border-border-default bg-comfy-menu-bg shadow-interface'
         )
       "
     >
       <ComboboxInput
         :placeholder="t('moshpit.filters.workflowPickerSearch')"
         :aria-label="t('moshpit.filters.workflowPickerSearch')"
-        class="sticky top-0 h-8 w-full border-b border-border-subtle bg-transparent px-2 text-xs outline-none"
+        class="sticky top-0 h-8 w-full border-b border-border-default bg-transparent px-2 text-xs outline-none"
       />
 
       <ComboboxItem

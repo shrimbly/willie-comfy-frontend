@@ -43,7 +43,7 @@
           type="date"
           :aria-label="t('moshpit.filters.timeRangeFrom')"
           :value="epochToISODate(filterStore.timeRange.from)"
-          class="h-8 flex-1 rounded-md border border-border-subtle bg-transparent px-2 text-xs text-base-foreground"
+          class="h-8 flex-1 rounded-md border border-border-default bg-transparent px-2 text-xs text-base-foreground"
           @change="onFromChange"
         />
       </label>
@@ -58,7 +58,7 @@
           type="date"
           :aria-label="t('moshpit.filters.timeRangeTo')"
           :value="epochToISODate(filterStore.timeRange.to)"
-          class="h-8 flex-1 rounded-md border border-border-subtle bg-transparent px-2 text-xs text-base-foreground"
+          class="h-8 flex-1 rounded-md border border-border-default bg-transparent px-2 text-xs text-base-foreground"
           @change="onToChange"
         />
       </label>
