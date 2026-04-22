@@ -36,6 +36,7 @@ import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetada
 import { useMoshpitTournamentStore } from '@/platform/moshpit/stores/moshpitTournamentStore'
 
 import MoshpitMetadataPeekPanel from './MoshpitMetadataPeekPanel.vue'
+import MoshpitTournamentBracketTree from './MoshpitTournamentBracketTree.vue'
 import MoshpitTournamentPair from './MoshpitTournamentPair.vue'
 import MoshpitTournamentWinner from './MoshpitTournamentWinner.vue'
 
@@ -141,6 +142,7 @@ const openModel = computed({
             />
           </template>
           <template v-else>
+            <MoshpitTournamentBracketTree />
             <div class="relative flex-1">
               <MoshpitTournamentPair
                 :resolve-full-res-url="resolveFullResUrl"
