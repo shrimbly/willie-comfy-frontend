@@ -28,7 +28,7 @@ import {
   DialogTitle,
   VisuallyHidden
 } from 'reka-ui'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useMoshpitTournamentKeybindings } from '@/platform/moshpit/composables/useMoshpitTournamentKeybindings'
@@ -48,8 +48,9 @@ const { t } = useI18n()
 const tournamentStore = useMoshpitTournamentStore()
 const metadataStore = useMoshpitMetadataStore()
 
-const contentRef = ref<HTMLElement | null>(null)
-useMoshpitTournamentKeybindings(contentRef)
+// Keybindings attach to window in capture phase and self-gate on
+// tournamentStore.isActive — no DOM ref plumbing needed.
+useMoshpitTournamentKeybindings()
 
 const paramsA = computed(() =>
   tournamentStore.currentPair
@@ -75,10 +76,6 @@ const openModel = computed({
     if (!v) tournamentStore.exit('esc')
   }
 })
-
-function onContentRef(el: unknown): void {
-  contentRef.value = el instanceof HTMLElement ? el : null
-}
 </script>
 
 <template>
@@ -89,7 +86,6 @@ function onContentRef(el: unknown): void {
         data-testid="moshpit-tournament-overlay-backdrop"
       />
       <DialogContent
-        :ref="onContentRef"
         class="fixed inset-0 z-50 flex flex-col outline-none"
         tabindex="-1"
         data-testid="moshpit-tournament-overlay-content"

@@ -1,8 +1,8 @@
 /**
  * Phase 5 Plan 03 — Tournament keybindings composable (D-13 / D-16).
  *
- * Attaches a scoped keydown listener to the overlay root element and routes
- * the full tournament keymap to `useMoshpitTournamentStore` actions:
+ * Attaches a capture-phase keydown listener to `window` and routes the full
+ * tournament keymap to `useMoshpitTournamentStore` actions:
  *
  *   ArrowLeft  -> pickWinner('A')
  *   ArrowRight -> pickWinner('B')
@@ -16,22 +16,21 @@
  *   /          -> resetWipe()
  *
  * Esc is intentionally NOT routed here — it's handled by Reka DialogContent's
- * @escape-key-down in Plan 05 so the focus-trap / aria-modal lifecycle stays
- * intact.
+ * @escape-key-down so the focus-trap / aria-modal lifecycle stays intact.
+ *
+ * Window-scope (capture phase) is used instead of a DialogContent template ref
+ * because Reka's `<Primitive>` exposes a component instance, not an HTMLElement,
+ * so a scoped listener silently attaches to nothing. The handler is a no-op
+ * unless `store.isActive` is true, so non-modal keystrokes pass through freely.
  *
  * Every handled key calls preventDefault() + stopPropagation() so canvas
  * shortcuts (F / Z / Cmd+A / Space-pan) never fire behind the overlay.
- *
- * No-op when tournamentStore.isActive is false — safe to mount early.
  */
 import { useEventListener } from '@vueuse/core'
-import type { Ref } from 'vue'
 
 import { useMoshpitTournamentStore } from '../stores/moshpitTournamentStore'
 
-export function useMoshpitTournamentKeybindings(
-  rootEl: Ref<HTMLElement | null>
-): void {
+export function useMoshpitTournamentKeybindings(): void {
   const store = useMoshpitTournamentStore()
 
   function onKeydown(e: KeyboardEvent): void {
@@ -78,5 +77,5 @@ export function useMoshpitTournamentKeybindings(
     }
   }
 
-  useEventListener(rootEl, 'keydown', onKeydown)
+  useEventListener(() => window, 'keydown', onKeydown, { capture: true })
 }

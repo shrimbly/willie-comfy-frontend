@@ -1,37 +1,28 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Ref } from 'vue'
-import { defineComponent, h, ref } from 'vue'
+import { defineComponent, h } from 'vue'
 import { mount } from '@vue/test-utils'
 
 import { useMoshpitTournamentKeybindings } from './useMoshpitTournamentKeybindings'
 import { useMoshpitTournamentStore } from '@/platform/moshpit/stores/moshpitTournamentStore'
 
 interface MountResult {
-  rootEl: HTMLElement
+  rootEl: Window
 }
 
 function mountHarness(): MountResult {
-  const el: Ref<HTMLElement | null> = ref(null)
   const Harness = defineComponent({
     setup() {
-      useMoshpitTournamentKeybindings(el)
-      return () =>
-        h('div', {
-          ref: (node: unknown) => {
-            el.value = (node as HTMLElement | null) ?? null
-          },
-          tabindex: -1
-        })
+      useMoshpitTournamentKeybindings()
+      return () => h('div', { tabindex: -1 })
     }
   })
-  const wrapper = mount(Harness, { attachTo: document.body })
-  const rootEl = wrapper.element as HTMLElement
-  return { rootEl }
+  mount(Harness, { attachTo: document.body })
+  return { rootEl: window }
 }
 
 function dispatchKey(
-  el: HTMLElement,
+  el: Window | HTMLElement,
   key: string,
   opts: { shiftKey?: boolean } = {}
 ): KeyboardEvent {
@@ -44,7 +35,6 @@ function dispatchKey(
   const preventSpy = vi.spyOn(ev, 'preventDefault')
   const stopSpy = vi.spyOn(ev, 'stopPropagation')
   el.dispatchEvent(ev)
-  // Store spies on the event so callers can assert on them
   Object.assign(ev, { _preventSpy: preventSpy, _stopSpy: stopSpy })
   return ev
 }
@@ -247,6 +237,19 @@ describe('useMoshpitTournamentKeybindings', () => {
       rootEl.dispatchEvent(ev)
 
       expect(stopSpy).toHaveBeenCalled()
+    })
+
+    it('listens in capture phase so it fires before bubble-phase listeners', () => {
+      const { rootEl } = mountHarness()
+      const store = activate()
+      const spy = vi.spyOn(store, 'pickWinner')
+
+      // A bubble-phase listener attached after the composable should still
+      // receive the event (our handler does stopPropagation in capture —
+      // dispatchEvent on window runs capture + target but skips bubble).
+      dispatchKey(rootEl, 'ArrowLeft')
+
+      expect(spy).toHaveBeenCalledWith('A')
     })
   })
 })

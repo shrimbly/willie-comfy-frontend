@@ -90,11 +90,11 @@ onMounted(async () => {
     events: app.renderer.events // REQUIRED for pixi.js v8 (Pitfall 3)
   })
   app.stage.addChild(viewport)
-  // Left-drag is reserved for marquee selection (see useMoshpitMarquee). Pan is
-  // available via middle-drag, right-drag, space+drag (useMoshpitSpacePan),
-  // pinch, and wheel.
+  // Left-drag pans; marquee selection only engages when Cmd/Ctrl is held
+  // (gated in MoshpitView.onContainerPointerDown). Space-drag, middle-drag,
+  // and right-drag also pan. Pinch + wheel zoom.
   viewport
-    .drag({ mouseButtons: 'middle-right' })
+    .drag({ mouseButtons: 'all' })
     .pinch()
     .wheel({ smooth: 3 })
     .decelerate()

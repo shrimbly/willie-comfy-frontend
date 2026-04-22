@@ -112,10 +112,10 @@ function onContainerPointerDown(e: PointerEvent) {
   containerEl.value?.focus()
   if (e.button !== 0) return
   sidebarStore.collapseOnFirstClick()
-  // Viewport pan is on middle/right drag (and space+drag). Left-click starts
-  // both the marquee tracker (only commits past the 5px drag threshold) and
-  // a click candidate — whichever resolves first wins on pointerup.
-  marquee.onPointerDown(e)
+  // Marquee only engages with Cmd (mac) or Ctrl (windows/linux) held — plain
+  // left-drag stays with pixi-viewport for pan. Track click candidacy either
+  // way so a plain left-click (no drag) can still hit-test for sprite select.
+  if (e.ctrlKey || e.metaKey) marquee.onPointerDown(e)
   clickDownX = e.clientX
   clickDownY = e.clientY
   clickPointerId = e.pointerId
