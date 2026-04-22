@@ -1165,7 +1165,19 @@
         "mode": "[ ] mode",
         "flip": "Space flip",
         "peek": "M peek",
-        "exit": "Esc exit"
+        "exit": "Esc exit",
+        "confirm": "Enter confirm"
+      },
+      "winner": {
+        "title": "Tournament complete",
+        "titlePlural": "Tournament complete — top {count}",
+        "headerComplete": "Tournament complete",
+        "winsLabel": "{count} win | {count} wins",
+        "confirm": "Done",
+        "paramsTitle": "Parameters",
+        "lorasTitle": "LoRAs",
+        "lorasEmpty": "No LoRAs",
+        "metadataUnavailable": "Metadata unavailable"
       }
     },
     "peek": {

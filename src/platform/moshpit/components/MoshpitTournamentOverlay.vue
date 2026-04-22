@@ -37,6 +37,7 @@ import { useMoshpitTournamentStore } from '@/platform/moshpit/stores/moshpitTour
 
 import MoshpitMetadataPeekPanel from './MoshpitMetadataPeekPanel.vue'
 import MoshpitTournamentPair from './MoshpitTournamentPair.vue'
+import MoshpitTournamentWinner from './MoshpitTournamentWinner.vue'
 
 defineOptions({ name: 'MoshpitTournamentOverlay' })
 
@@ -65,6 +66,10 @@ const paramsB = computed(() =>
 
 function onEscape(): void {
   tournamentStore.exit('esc')
+}
+
+function onConfirmWinner(): void {
+  tournamentStore.exit('complete')
 }
 
 // v-model:open proxy — getter mirrors store state; setter routes every close
@@ -112,26 +117,48 @@ const openModel = computed({
               })
             }}
           </span>
+          <span
+            v-else-if="tournamentStore.isFinished"
+            data-testid="moshpit-tournament-overlay-complete"
+          >
+            {{ t('moshpit.tournament.winner.headerComplete') }}
+          </span>
         </header>
 
         <main class="relative flex flex-1 overflow-hidden">
-          <div class="relative flex-1">
-            <MoshpitTournamentPair :resolve-full-res-url="resolveFullResUrl" />
-          </div>
-          <MoshpitMetadataPeekPanel :params-a="paramsA" :params-b="paramsB" />
+          <template v-if="tournamentStore.isFinished">
+            <MoshpitTournamentWinner
+              :resolve-full-res-url="resolveFullResUrl"
+              @confirm="onConfirmWinner"
+            />
+          </template>
+          <template v-else>
+            <div class="relative flex-1">
+              <MoshpitTournamentPair
+                :resolve-full-res-url="resolveFullResUrl"
+              />
+            </div>
+            <MoshpitMetadataPeekPanel :params-a="paramsA" :params-b="paramsB" />
+          </template>
         </main>
 
         <footer
           class="flex flex-wrap gap-4 border-t border-(--interface-stroke) px-4 py-2 text-xs text-muted-foreground"
           data-testid="moshpit-tournament-overlay-legend"
         >
-          <span>{{ t('moshpit.tournament.legend.pickA') }}</span>
-          <span>{{ t('moshpit.tournament.legend.pickB') }}</span>
-          <span>{{ t('moshpit.tournament.legend.skip') }}</span>
-          <span>{{ t('moshpit.tournament.legend.mode') }}</span>
-          <span>{{ t('moshpit.tournament.legend.flip') }}</span>
-          <span>{{ t('moshpit.tournament.legend.peek') }}</span>
-          <span>{{ t('moshpit.tournament.legend.exit') }}</span>
+          <template v-if="tournamentStore.isFinished">
+            <span>{{ t('moshpit.tournament.legend.confirm') }}</span>
+            <span>{{ t('moshpit.tournament.legend.exit') }}</span>
+          </template>
+          <template v-else>
+            <span>{{ t('moshpit.tournament.legend.pickA') }}</span>
+            <span>{{ t('moshpit.tournament.legend.pickB') }}</span>
+            <span>{{ t('moshpit.tournament.legend.skip') }}</span>
+            <span>{{ t('moshpit.tournament.legend.mode') }}</span>
+            <span>{{ t('moshpit.tournament.legend.flip') }}</span>
+            <span>{{ t('moshpit.tournament.legend.peek') }}</span>
+            <span>{{ t('moshpit.tournament.legend.exit') }}</span>
+          </template>
         </footer>
       </DialogContent>
     </DialogPortal>

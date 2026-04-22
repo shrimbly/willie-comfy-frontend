@@ -64,6 +64,19 @@ function isParamMissing(value: unknown): boolean {
 }
 
 /**
+ * Canonical string rendering for a scalar param value. Missing → em-dash,
+ * numbers/strings rendered as-is, everything else JSON-stringified. Shared
+ * between `MoshpitMetadataPeekPanel` (diff rows) and
+ * `MoshpitTournamentWinner` (single-asset rows).
+ */
+export function formatValue(value: unknown): string {
+  if (value === null || value === undefined || value === '') return '—'
+  if (typeof value === 'number') return String(value)
+  if (typeof value === 'string') return value
+  return JSON.stringify(value)
+}
+
+/**
  * Classify each scalar key in `PARAM_DIFF_KEY_ORDER` as
  * `match | differ | onlyA | onlyB | missingBoth`. `undefined`, `null`, and
  * empty-string are all treated as "missing" so absent-vs-"" does not surface

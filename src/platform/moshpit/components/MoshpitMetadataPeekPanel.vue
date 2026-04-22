@@ -27,7 +27,11 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { diffLoras, diffParams } from '@/platform/moshpit/services/metadataDiff'
+import {
+  diffLoras,
+  diffParams,
+  formatValue
+} from '@/platform/moshpit/services/metadataDiff'
 import type {
   LoraDiffEntry,
   LoraDiffState,
@@ -75,13 +79,6 @@ function loraStateClass(state: LoraDiffState): string {
     default:
       return 'text-muted-foreground'
   }
-}
-
-function formatValue(value: unknown): string {
-  if (value === null || value === undefined || value === '') return '—'
-  if (typeof value === 'number') return String(value)
-  if (typeof value === 'string') return value
-  return JSON.stringify(value)
 }
 </script>
 

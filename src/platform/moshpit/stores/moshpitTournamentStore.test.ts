@@ -407,4 +407,58 @@ describe('moshpitTournamentStore', () => {
       expect(store.progress.current).toBe(2)
     })
   })
+
+  describe('isFinished + winnerHashes computeds', () => {
+    it('isFinished is false when tournament is inactive', () => {
+      const store = useMoshpitTournamentStore()
+      expect(store.isFinished).toBe(false)
+      expect(store.winnerHashes).toEqual([])
+    })
+
+    it('isFinished is false mid-tournament', () => {
+      const store = useMoshpitTournamentStore()
+      store.enter(['a', 'b', 'c', 'd'])
+      store.pickWinner('A')
+      expect(store.isFinished).toBe(false)
+    })
+
+    it('round-robin tournament: isFinished true + winnerHashes top-N after all pairs consumed', () => {
+      const store = useMoshpitTournamentStore()
+      store.enter(['a', 'b', 'c', 'd'])
+      // 6 pairs: (a,b)(a,c)(a,d)(b,c)(b,d)(c,d). Always pick A to make `a`
+      // the dominant winner.
+      const totalPairs = store.bracket.length
+      for (let i = 0; i < totalPairs; i++) store.pickWinner('A')
+
+      expect(store.isFinished).toBe(true)
+      expect(store.winnerHashes.length).toBeGreaterThan(0)
+      expect(store.winnerHashes[0]).toBe('a')
+    })
+
+    it('single-elim tournament: isFinished true + single champion at end', () => {
+      const store = useMoshpitTournamentStore()
+      const hashes = Array.from({ length: 8 }, (_, i) => `h${i}`)
+      store.enter(hashes)
+      // Drive to completion by always picking A (keeps appending rounds until
+      // the final).
+      let safety = 0
+      while (!store.isFinished && safety < 100) {
+        store.pickWinner('A')
+        safety++
+      }
+      expect(safety).toBeLessThan(100)
+      expect(store.isFinished).toBe(true)
+      expect(store.winnerHashes.length).toBe(1)
+    })
+
+    it('isFinished flips back to false once exit() clears state', () => {
+      const store = useMoshpitTournamentStore()
+      store.enter(['a', 'b'])
+      store.pickWinner('A')
+      expect(store.isFinished).toBe(true)
+      store.exit('complete')
+      expect(store.isFinished).toBe(false)
+      expect(store.isActive).toBe(false)
+    })
+  })
 })

@@ -101,6 +101,21 @@ export const useMoshpitTournamentStore = defineStore(
 
     const totalPairs: ComputedRef<number> = computed(() => bracket.value.length)
 
+    // True once every pair has been consumed and no further round will be
+    // generated. `pickWinner()` appends the next round synchronously when a
+    // round boundary is crossed (single-elim), so reading this after pick
+    // settles is safe: `currentPair === null` means tournament is over.
+    const isFinished: ComputedRef<boolean> = computed(
+      () =>
+        isActive.value &&
+        bracket.value.length > 0 &&
+        currentPairIndex.value >= bracket.value.length
+    )
+
+    const winnerHashes: ComputedRef<readonly string[]> = computed(() =>
+      computeWinnerSet(wins.value, bracketShape.value, selectionOnEntry.value)
+    )
+
     const progress: ComputedRef<{ current: number; total: number }> = computed(
       () => ({
         current: Math.min(
@@ -349,6 +364,8 @@ export const useMoshpitTournamentStore = defineStore(
       pickPulseId,
       currentPair,
       totalPairs,
+      isFinished,
+      winnerHashes,
       progress,
       enter,
       exit,

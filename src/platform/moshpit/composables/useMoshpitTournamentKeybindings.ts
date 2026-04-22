@@ -36,6 +36,22 @@ export function useMoshpitTournamentKeybindings(): void {
   function onKeydown(e: KeyboardEvent): void {
     if (!store.isActive) return
     let handled = true
+    // Terminal (winner) screen only accepts confirm (Enter) and exit (Esc,
+    // handled by Reka). Pick / skip / display-mode bindings no-op on the
+    // store when currentPair is null, but gating here avoids swallowing
+    // keystrokes the user may intend for underlying UI.
+    if (store.isFinished) {
+      if (e.key === 'Enter') {
+        store.exit('complete')
+      } else {
+        handled = false
+      }
+      if (handled) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+      return
+    }
     switch (e.key) {
       case 'ArrowLeft':
         store.pickWinner('A')
