@@ -30,8 +30,13 @@ import MoshpitClusterOverlay from '@/platform/moshpit/components/MoshpitClusterO
 import MoshpitEmptyGateOverlay from '@/platform/moshpit/components/MoshpitEmptyGateOverlay.vue'
 import MoshpitMarqueeOverlay from '@/platform/moshpit/components/MoshpitMarqueeOverlay.vue'
 import MoshpitTournamentOverlay from '@/platform/moshpit/components/MoshpitTournamentOverlay.vue'
+import type { MarqueeRect } from '@/platform/moshpit/composables/useMoshpitMarquee'
 import { useMoshpitMarquee } from '@/platform/moshpit/composables/useMoshpitMarquee'
-import { MOSHPIT_VIEWPORT_INJECTION_KEY } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
+import type { SpriteHitTester } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
+import {
+  MOSHPIT_SPRITE_HITTEST_INJECTION_KEY,
+  MOSHPIT_VIEWPORT_INJECTION_KEY
+} from '@/platform/moshpit/composables/useMoshpitViewportInjection'
 import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetadataStore'
 import { useMoshpitSelectionStore } from '@/platform/moshpit/stores/moshpitSelectionStore'
 import { useMoshpitSidebarStore } from '@/platform/moshpit/stores/moshpitSidebarStore'
@@ -39,12 +44,18 @@ import { useMoshpitTournamentStore } from '@/platform/moshpit/stores/moshpitTour
 import { useToastStore } from '@/platform/updates/common/toastStore'
 import { useAssetsStore } from '@/stores/assetsStore'
 
+const CLICK_DRAG_THRESHOLD_PX = 5
+
 defineOptions({ name: 'MoshpitView' })
 
 const containerEl = ref<HTMLElement | null>(null)
 
 const viewportRef = shallowRef<Viewport | null>(null)
 provide(MOSHPIT_VIEWPORT_INJECTION_KEY, viewportRef)
+
+const spriteHitTestRef = shallowRef<SpriteHitTester | null>(null)
+provide(MOSHPIT_SPRITE_HITTEST_INJECTION_KEY, spriteHitTestRef)
+
 const sidebarStore = useMoshpitSidebarStore()
 const selectionStore = useMoshpitSelectionStore()
 const tournamentStore = useMoshpitTournamentStore()
@@ -53,9 +64,27 @@ const assetsStore = useAssetsStore()
 const toastStore = useToastStore()
 const { t } = useI18n()
 
+function screenRectToWorld(rect: MarqueeRect): MarqueeRect | null {
+  const vp = viewportRef.value
+  if (!vp) return null
+  const topLeft = vp.toWorld(rect.left, rect.top)
+  const bottomRight = vp.toWorld(rect.right, rect.bottom)
+  return {
+    left: Math.min(topLeft.x, bottomRight.x),
+    top: Math.min(topLeft.y, bottomRight.y),
+    right: Math.max(topLeft.x, bottomRight.x),
+    bottom: Math.max(topLeft.y, bottomRight.y)
+  }
+}
+
 const marquee = useMoshpitMarquee({
   containerEl,
-  hitTest: () => [] // Phase 1: no assets to hit-test; Phase 2 replaces this.
+  hitTest: (screenRect) => {
+    const world = screenRectToWorld(screenRect)
+    const hitTester = spriteHitTestRef.value
+    if (!world || !hitTester) return []
+    return hitTester.hitTestRect(world)
+  }
 })
 
 /**
@@ -75,12 +104,52 @@ function resolveFullResUrl(hash: string): string | null {
   return null
 }
 
+let clickDownX = 0
+let clickDownY = 0
+let clickPointerId: number | null = null
+
 function onContainerPointerDown(e: PointerEvent) {
   containerEl.value?.focus()
-  if (e.button === 0) sidebarStore.collapseOnFirstClick()
-  // Marquee selection is gated on shift-click so it doesn't steal the
-  // pointer from pixi-viewport's left-click-drag pan (Phase 3 Core Value).
-  if (e.shiftKey) marquee.onPointerDown(e)
+  if (e.button !== 0) return
+  sidebarStore.collapseOnFirstClick()
+  // Viewport pan is on middle/right drag (and space+drag). Left-click starts
+  // both the marquee tracker (only commits past the 5px drag threshold) and
+  // a click candidate — whichever resolves first wins on pointerup.
+  marquee.onPointerDown(e)
+  clickDownX = e.clientX
+  clickDownY = e.clientY
+  clickPointerId = e.pointerId
+  document.addEventListener('pointerup', onContainerPointerUp, { once: true })
+}
+
+function onContainerPointerUp(e: PointerEvent) {
+  if (clickPointerId !== null && e.pointerId !== clickPointerId) {
+    document.addEventListener('pointerup', onContainerPointerUp, { once: true })
+    return
+  }
+  clickPointerId = null
+  const dx = Math.abs(e.clientX - clickDownX)
+  const dy = Math.abs(e.clientY - clickDownY)
+  // A drag (marquee) handles its own selection commit in the marquee composable.
+  if (dx > CLICK_DRAG_THRESHOLD_PX || dy > CLICK_DRAG_THRESHOLD_PX) return
+
+  const el = containerEl.value
+  const vp = viewportRef.value
+  const hitTester = spriteHitTestRef.value
+  if (!el || !vp || !hitTester) return
+  const bounds = el.getBoundingClientRect()
+  const world = vp.toWorld(e.clientX - bounds.left, e.clientY - bounds.top)
+  const hit = hitTester.hitTestPoint(world.x, world.y)
+
+  const isToggle = e.ctrlKey || e.metaKey
+  const isAdd = e.shiftKey
+  if (hit === null) {
+    if (!isToggle && !isAdd) selectionStore.clear()
+    return
+  }
+  if (isToggle) selectionStore.toggle(hit)
+  else if (isAdd) selectionStore.add(hit)
+  else selectionStore.setSelection([hit])
 }
 
 function onContainerKeydown(e: KeyboardEvent) {

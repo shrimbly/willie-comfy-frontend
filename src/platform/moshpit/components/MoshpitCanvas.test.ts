@@ -44,7 +44,11 @@ vi.mock('@/platform/moshpit/composables/useMoshpitSpacePan', () => ({
 }))
 
 vi.mock('@/platform/moshpit/composables/useMoshpitSpriteLayer', () => ({
-  useMoshpitSpriteLayer: vi.fn(() => ({ destroy: vi.fn() })),
+  useMoshpitSpriteLayer: vi.fn(() => ({
+    destroy: vi.fn(),
+    hitTestPoint: vi.fn(() => null),
+    hitTestRect: vi.fn(() => [])
+  })),
   MOSHPIT_LAYOUT_INJECTION_KEY: Symbol('moshpit:layout'),
   DEFAULT_CELL_SIZE: 560,
   REPACK_DURATION_MS: 300
@@ -54,7 +58,11 @@ import type { Viewport } from 'pixi-viewport'
 import { computed, ref, shallowRef } from 'vue'
 import { mount } from '@vue/test-utils'
 import { MOSHPIT_QUEUE_INJECTION_KEY } from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
-import { MOSHPIT_VIEWPORT_INJECTION_KEY } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
+import type { SpriteHitTester } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
+import {
+  MOSHPIT_SPRITE_HITTEST_INJECTION_KEY,
+  MOSHPIT_VIEWPORT_INJECTION_KEY
+} from '@/platform/moshpit/composables/useMoshpitViewportInjection'
 import MoshpitCanvas from './MoshpitCanvas.vue'
 
 const fakeQueue = {
@@ -91,7 +99,10 @@ describe('MoshpitCanvas', () => {
       global: {
         provide: {
           [MOSHPIT_QUEUE_INJECTION_KEY as symbol]: fakeQueue,
-          [MOSHPIT_VIEWPORT_INJECTION_KEY as symbol]: shallowRef<Viewport | null>(null)
+          [MOSHPIT_VIEWPORT_INJECTION_KEY as symbol]:
+            shallowRef<Viewport | null>(null),
+          [MOSHPIT_SPRITE_HITTEST_INJECTION_KEY as symbol]:
+            shallowRef<SpriteHitTester | null>(null)
         }
       }
     })

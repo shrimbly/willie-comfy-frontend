@@ -36,7 +36,7 @@
  * pan/zoom transforms the sprites automatically). `cellSize` is logical pixels.
  */
 
-import { Container, ImageSource, Sprite, Texture } from 'pixi.js'
+import { Container, Graphics, ImageSource, Sprite, Texture } from 'pixi.js'
 import type { Ticker } from 'pixi.js'
 import type { Viewport } from 'pixi-viewport'
 import type { InjectionKey } from 'vue'
@@ -44,9 +44,11 @@ import { onBeforeUnmount, watchEffect } from 'vue'
 
 import type { ProcessingQueueState } from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
 import { useMoshpitAssetRegistry } from '@/platform/moshpit/composables/useMoshpitAssetRegistry'
+import type { SpriteHitRect } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
 import { layoutSeedHash } from '@/platform/moshpit/services/contentHash'
 import type { GridSlot } from '@/platform/moshpit/services/layoutMath'
 import { computeJitteredGrid } from '@/platform/moshpit/services/layoutMath'
+import { useMoshpitSelectionStore } from '@/platform/moshpit/stores/moshpitSelectionStore'
 
 export const DEFAULT_CELL_SIZE = 560
 
@@ -88,19 +90,37 @@ interface SpriteEntry {
   slot: GridSlot
 }
 
-export function useMoshpitSpriteLayer(options: SpriteLayerOptions): {
+export interface SpriteLayerHandle {
   destroy(): void
-} {
+  /** Returns the top-most asset hash whose sprite AABB contains the world point, or null. */
+  hitTestPoint(worldX: number, worldY: number): string | null
+  /** Returns every asset hash whose sprite AABB intersects the world rect. */
+  hitTestRect(rect: SpriteHitRect): string[]
+}
+
+export function useMoshpitSpriteLayer(
+  options: SpriteLayerOptions
+): SpriteLayerHandle {
   const cellSize = options.cellSize ?? DEFAULT_CELL_SIZE
   const queue = options.queue
   const registry = useMoshpitAssetRegistry()
+  const selection = useMoshpitSelectionStore()
 
   const container = new Container()
   container.label = 'moshpit-sprites'
   container.cullable = true
   options.viewport.addChild(container)
 
+  // Selection rings live in a separate container above the sprite container so
+  // they render on top regardless of sprite draw order. Parented to the same
+  // viewport so world-space pan/zoom applies uniformly.
+  const selectionRings = new Container()
+  selectionRings.label = 'moshpit-selection-rings'
+  selectionRings.cullable = true
+  options.viewport.addChild(selectionRings)
+
   const spriteMap = new Map<string, SpriteEntry>()
+  const ringMap = new Map<string, Graphics>()
   let cancelled = false
 
   function computeLayoutSlots(hashes: readonly string[]): GridSlot[] {
@@ -221,17 +241,112 @@ export function useMoshpitSpriteLayer(options: SpriteLayerOptions): {
     syncSprites(registry.entries.value)
   })
 
+  function drawRing(entry: SpriteEntry): Graphics {
+    const g = new Graphics()
+    const w = entry.sprite.width || cellSize
+    const h = entry.sprite.height || cellSize
+    const thickness = Math.max(4, Math.min(w, h) * 0.03)
+    g.rect(-w / 2, -h / 2, w, h).stroke({
+      width: thickness,
+      color: 0x4f9eff,
+      alpha: 1,
+      alignment: 0.5
+    })
+    g.x = entry.slot.worldX
+    g.y = entry.slot.worldY
+    return g
+  }
+
+  // Sync selection rings on every selection change AND whenever sprites
+  // re-layout (registry effect above may reassign slots or swap textures).
+  // watchEffect tracks `selection.selected` and reads from spriteMap — the
+  // sprite entries are not reactive, so we re-run from the registry effect
+  // too via `syncSprites` (which implicitly triggers a microtask).
+  const stopSelectionEffect = watchEffect(() => {
+    const ids = new Set(selection.selected)
+    for (const [hash, ring] of ringMap) {
+      if (!ids.has(hash)) {
+        selectionRings.removeChild(ring)
+        ring.destroy()
+        ringMap.delete(hash)
+      }
+    }
+    for (const hash of ids) {
+      const entry = spriteMap.get(hash)
+      if (!entry) continue
+      const existing = ringMap.get(hash)
+      if (existing) {
+        existing.x = entry.slot.worldX
+        existing.y = entry.slot.worldY
+        continue
+      }
+      const ring = drawRing(entry)
+      ringMap.set(hash, ring)
+      selectionRings.addChild(ring)
+    }
+  })
+
+  function hitTestPoint(worldX: number, worldY: number): string | null {
+    // Iterate in reverse child order so the top-most sprite wins on overlap.
+    const children = container.children
+    for (let i = children.length - 1; i >= 0; i--) {
+      const sprite = children[i]
+      if (!(sprite instanceof Sprite)) continue
+      const halfW = sprite.width / 2
+      const halfH = sprite.height / 2
+      if (
+        worldX >= sprite.x - halfW &&
+        worldX <= sprite.x + halfW &&
+        worldY >= sprite.y - halfH &&
+        worldY <= sprite.y + halfH
+      ) {
+        for (const [hash, entry] of spriteMap) {
+          if (entry.sprite === sprite) return hash
+        }
+      }
+    }
+    return null
+  }
+
+  function hitTestRect(rect: SpriteHitRect): string[] {
+    const hits: string[] = []
+    for (const [hash, entry] of spriteMap) {
+      const sprite = entry.sprite
+      const halfW = sprite.width / 2
+      const halfH = sprite.height / 2
+      const left = sprite.x - halfW
+      const right = sprite.x + halfW
+      const top = sprite.y - halfH
+      const bottom = sprite.y + halfH
+      if (
+        right >= rect.left &&
+        left <= rect.right &&
+        bottom >= rect.top &&
+        top <= rect.bottom
+      ) {
+        hits.push(hash)
+      }
+    }
+    return hits
+  }
+
   function destroy(): void {
     cancelled = true
+    stopSelectionEffect()
     stopRegistryEffect()
     for (const [, entry] of spriteMap) {
       entry.sprite.destroy()
     }
     spriteMap.clear()
+    for (const [, ring] of ringMap) {
+      ring.destroy()
+    }
+    ringMap.clear()
+    selectionRings.destroy({ children: true })
     container.destroy({ children: true })
   }
 
   onBeforeUnmount(destroy)
 
-  return { destroy }
+  return { destroy, hitTestPoint, hitTestRect }
 }

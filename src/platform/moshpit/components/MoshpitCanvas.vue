@@ -13,7 +13,11 @@ import {
   MOSHPIT_LAYOUT_INJECTION_KEY,
   useMoshpitSpriteLayer
 } from '@/platform/moshpit/composables/useMoshpitSpriteLayer'
-import { MOSHPIT_VIEWPORT_INJECTION_KEY } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
+import type { SpriteLayerHandle } from '@/platform/moshpit/composables/useMoshpitSpriteLayer'
+import {
+  MOSHPIT_SPRITE_HITTEST_INJECTION_KEY,
+  MOSHPIT_VIEWPORT_INJECTION_KEY
+} from '@/platform/moshpit/composables/useMoshpitViewportInjection'
 import { useMoshpitViewportStore } from '@/platform/moshpit/stores/moshpitViewportStore'
 
 defineOptions({ name: 'MoshpitCanvas' })
@@ -42,9 +46,15 @@ if (!viewportRef)
     'MoshpitCanvas requires MOSHPIT_VIEWPORT_INJECTION_KEY to be provided by MoshpitView'
   )
 
+const spriteHitTestRef = inject(MOSHPIT_SPRITE_HITTEST_INJECTION_KEY)
+if (!spriteHitTestRef)
+  throw new Error(
+    'MoshpitCanvas requires MOSHPIT_SPRITE_HITTEST_INJECTION_KEY to be provided by MoshpitView'
+  )
+
 let app: Application | null = null
 let viewport: Viewport | null = null
-let spriteLayerRef: { destroy(): void } | null = null
+let spriteLayerRef: SpriteLayerHandle | null = null
 let rafHandle: number | null = null
 let cancelled = false
 let resizeObs: ResizeObserver | null = null
@@ -80,8 +90,11 @@ onMounted(async () => {
     events: app.renderer.events // REQUIRED for pixi.js v8 (Pitfall 3)
   })
   app.stage.addChild(viewport)
+  // Left-drag is reserved for marquee selection (see useMoshpitMarquee). Pan is
+  // available via middle-drag, right-drag, space+drag (useMoshpitSpacePan),
+  // pinch, and wheel.
   viewport
-    .drag({ mouseButtons: 'all' })
+    .drag({ mouseButtons: 'middle-right' })
     .pinch()
     .wheel({ smooth: 3 })
     .decelerate()
@@ -99,6 +112,12 @@ onMounted(async () => {
     queue,
     layoutProvider: injectedLayout ?? undefined
   })
+
+  // Expose hit-testers to MoshpitView's pointer handlers.
+  spriteHitTestRef.value = {
+    hitTestPoint: spriteLayerRef.hitTestPoint,
+    hitTestRect: spriteLayerRef.hitTestRect
+  }
 
   viewportStore.setScreenSize(host.clientWidth, host.clientHeight)
 
@@ -173,6 +192,7 @@ onBeforeUnmount(() => {
     spriteLayerRef.destroy()
     spriteLayerRef = null
   }
+  spriteHitTestRef.value = null
   // Application.destroy with { children: true } cascades through the stage and
   // tears the viewport down with it, so we don't call viewport.destroy() here
   // to avoid double-free / "already destroyed" warnings from pixi-viewport.

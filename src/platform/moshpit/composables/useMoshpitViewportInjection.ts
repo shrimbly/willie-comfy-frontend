@@ -9,8 +9,9 @@ import type { Viewport } from 'pixi-viewport'
  * The value is a `Ref<Viewport | null>` — null until `Application.init()`
  * completes inside MoshpitCanvas's onMounted. Consumers must handle null.
  */
-export const MOSHPIT_VIEWPORT_INJECTION_KEY: InjectionKey<Ref<Viewport | null>> =
-  Symbol('moshpit:viewport')
+export const MOSHPIT_VIEWPORT_INJECTION_KEY: InjectionKey<
+  Ref<Viewport | null>
+> = Symbol('moshpit:viewport')
 
 export function useMoshpitViewport(): Ref<Viewport | null> {
   const ref = inject(MOSHPIT_VIEWPORT_INJECTION_KEY)
@@ -21,3 +22,30 @@ export function useMoshpitViewport(): Ref<Viewport | null> {
   }
   return ref
 }
+
+/**
+ * World-space AABB used for sprite hit-testing. Matches the marquee's convention
+ * (min on left/top, max on right/bottom) but in world coords.
+ */
+export interface SpriteHitRect {
+  readonly left: number
+  readonly top: number
+  readonly right: number
+  readonly bottom: number
+}
+
+/**
+ * Hit-test API exposed by the sprite layer. Populated by MoshpitCanvas once the
+ * sprite layer mounts. Consumers (selection gestures) must handle null while
+ * the canvas is still bootstrapping.
+ */
+export interface SpriteHitTester {
+  /** Returns the top-most asset hash whose sprite AABB contains the world point, or null. */
+  hitTestPoint(worldX: number, worldY: number): string | null
+  /** Returns every asset hash whose sprite AABB intersects the world rect. */
+  hitTestRect(rect: SpriteHitRect): string[]
+}
+
+export const MOSHPIT_SPRITE_HITTEST_INJECTION_KEY: InjectionKey<
+  Ref<SpriteHitTester | null>
+> = Symbol('moshpit:sprite-hittest')
