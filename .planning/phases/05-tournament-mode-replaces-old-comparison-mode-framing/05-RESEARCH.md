@@ -794,32 +794,32 @@ function onContainerKeydown(e: KeyboardEvent) {
 | A7  | Full-res crossfade is desired when thumb→full-res swaps                                        | D-24                        | LOW — purely cosmetic; if removed, behaviour still meets TOUR-08 literal. Planner may skip.                                                                                   |
 | A8  | Winner-set visual treatment (pulse on selection) not required for acceptance                   | D-25 Claude's Discretion    | LOW — explicitly marked discretionary.                                                                                                                                        |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `exit('complete')` apply `setSelection` before or after overlay unmounts?**
    - What we know: D-08 only specifies the mutation happens on exit. Timing is not specified.
    - What's unclear: Pre-unmount = user sees winner highlight "through" fade; post-unmount = cleaner transition but winner ring pops.
-   - Recommendation: Apply BEFORE unmount; animate overlay out with 200ms fade so the user sees the handoff visually. Logged as Pitfall 8.
+   - **RESOLVED:** Apply `setSelection` BEFORE overlay unmount. This avoids a DOM-unmount race against the selection reactivity graph (computed chains tied to sprite highlighting would otherwise tear briefly). The store's `exit()` mutates selection synchronously, then flips `isActive=false`; Reka `DialogRoot` drives the unmount on `open=false`. Mirrored in Plan 05-03 Task 2 `exit()` action sequence (setSelection → restore sidebar → `isActive.value = false`).
 
 2. **Should `useMoshpitSpacePan` be made tournament-aware?**
    - What we know: Space in tournament mode toggles flip; `useMoshpitSpacePan` watches `useMagicKeys().space` and reconfigures pixi-viewport drag.
    - What's unclear: Whether the reconfigure is visibly disruptive (canvas is inert, but drag mode change might leak via pointer-capture).
-   - Recommendation: Leave alone; verify in HUMAN-UAT. If regression surfaces, add one-line early-return guard. Logged as A2.
+   - **RESOLVED:** Leave `useMoshpitSpacePan` alone. The tournament overlay (Reka `DialogPortal` + full-bleed `DialogContent` with `z-50`) captures pointer events, and the scoped keydown composable (Plan 05-03) calls `preventDefault() + stopPropagation()` on Space before it bubbles to any canvas-level listener. The pixi-viewport drag reconfigure is idempotent and not visible while the canvas sits behind a `bg-background/95 backdrop-blur-sm` overlay. Verified by the T-05-06-04 acceptance in Plan 05-06.
 
 3. **Which keys nudge the wipe divider?**
    - What we know: D-16 proposes `,`/`.` / `Shift+,`/`Shift+.` / `/`.
    - What's unclear: Users may struggle to find `,`/`.` on ergonomic keyboards; `-`/`=` / `0` alternative offered.
-   - Recommendation: Ship `,`/`.` default; keep legend copy accurate. Swap only if dogfood complaints surface.
+   - **RESOLVED:** Ship the D-16 default `,`/`.` + `Shift+,`/`Shift+.` + `/` keymap as planned in Plan 05-03 Task 3. Key-chord re-mapping / ergonomic-keyboard polish is deferred to Phase 7 (UX pass). No scope change in Phase 5.
 
 4. **Is there a Moshpit-specific `text-success` / `text-warning` / `text-danger` token in Comfy Design Standards?**
    - What we know: `src/assets/css/style.css` defines semantic tokens.
    - What's unclear: Whether Moshpit diff UI has a dedicated palette or reuses the global one.
-   - Recommendation: Planner checks Figma Design Standards for `Moshpit > Peek` frame; if no Moshpit-specific tokens, use global `text-success`/`text-danger`/`text-warning`.
+   - **RESOLVED:** Use the existing global `text-success` / `text-warning` / `text-danger` tokens from `packages/design-system/src/css/style.css`. Canvas-specific peek tokens (if designers decide they are wanted) are deferred. Plan 05-05 Task 1 references these tokens directly for the LoRA diff states per D-21.
 
 5. **Does `useMoshpitProcessingQueue` preload block canvas on entry?**
    - What we know: Phase 2 processing queue owns workers; tournament preload is a separate `Image()` path.
    - What's unclear: Whether in-flight thumb worker fetches slow the full-res burst.
-   - Recommendation: Not a blocker — browser connection pool shared but Pixi thumb fetches complete in <100ms from IDB (warm cache). Worst case: full-res lands 200ms slower on entry; still inside the UX-08 envelope.
+   - **RESOLVED:** Accepted — non-blocking. Tournament preload is bounded by the canvas selection size (typically ≤32 per D-23), well below the browser per-origin connection cap (6). The preload path is pure `new Image(); img.src = url` (fire-and-forget, no worker coupling) and does not compete with the Pixi thumb processing queue which is served from IDB. If dogfood surfaces saturation, apply the 8-concurrent cap noted in Plan 05-03 T-05-03-05 disposition. No architectural change required for Phase 5.
 
 ## Sources
 
