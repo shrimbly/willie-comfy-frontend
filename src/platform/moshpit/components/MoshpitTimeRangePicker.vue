@@ -9,24 +9,25 @@
       role="radiogroup"
       :aria-label="t('moshpit.filters.timeRangeLabel')"
     >
-      <button
+      <Button
         v-for="preset in TIME_PRESETS"
         :key="preset"
         type="button"
         role="radio"
+        size="sm"
+        variant="secondary"
         :aria-checked="filterStore.timeRange.preset === preset"
         :class="
           cn(
-            'h-6 rounded-full px-2 text-xs',
             filterStore.timeRange.preset === preset
-              ? 'bg-secondary-background-selected text-base-foreground'
-              : 'bg-secondary-background text-muted-foreground hover:bg-secondary-background-hover'
+              ? 'bg-interface-menu-component-surface-selected text-base-foreground'
+              : 'text-muted-foreground hover:text-base-foreground'
           )
         "
         @click="selectPreset(preset)"
       >
         {{ presetLabel(preset) }}
-      </button>
+      </Button>
     </div>
 
     <div
@@ -69,6 +70,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 
+import Button from '@/components/ui/button/Button.vue'
 import { cn } from '@/utils/tailwindUtil'
 import { TIME_PRESETS } from '@/platform/moshpit/services/filterTypes'
 import type { TimePreset } from '@/platform/moshpit/services/filterTypes'

@@ -20,12 +20,13 @@
             {{ chipValueSummary(chip) }}
           </span>
         </div>
-        <button
+        <Button
           type="button"
+          variant="textonly"
+          size="icon-sm"
           :class="
             cn(
-              'inline-flex size-6 shrink-0 cursor-pointer items-center justify-center text-muted-foreground',
-              'hover:text-base-foreground',
+              'text-muted-foreground hover:text-base-foreground',
               'focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)'
             )
           "
@@ -35,7 +36,7 @@
           @click="filterStore.removeChip(chip.id)"
         >
           <i class="icon-[lucide--x] size-5" aria-hidden="true" />
-        </button>
+        </Button>
       </div>
     </div>
     <span class="sr-only" role="status" aria-live="polite">
@@ -50,6 +51,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import Button from '@/components/ui/button/Button.vue'
 import { cn } from '@/utils/tailwindUtil'
 import { useMoshpitFilterStore } from '@/platform/moshpit/stores/moshpitFilterStore'
 import type { FilterChip } from '@/platform/moshpit/services/filterTypes'
