@@ -7,12 +7,14 @@
       :reset-search-term-on-select="false"
       :disabled="isReadOnly"
     >
-      <div :class="cn(WidgetInputBaseClass, 'flex w-full')">
+      <div
+        v-tooltip.bottom="pathTooltip"
+        :class="cn(WidgetInputBaseClass, 'flex w-full')"
+      >
         <ComboboxAnchor as-child>
           <div class="relative min-w-0 flex-1">
             <div
               v-if="!isEditing"
-              v-tooltip="tooltipText"
               :class="
                 cn(
                   'flex w-full cursor-text items-center gap-0.5 overflow-hidden rounded-l-lg px-4 hover:bg-component-node-widget-background-hovered',
@@ -26,7 +28,6 @@
                 <template v-for="(seg, i) in segments" :key="i">
                   <span
                     v-if="seg.type === 'directory'"
-                    v-tooltip="seg.path"
                     :class="
                       cn(
                         'inline-flex shrink-0 items-center gap-1 rounded-sm px-1.5 py-px text-2xs',
@@ -292,7 +293,7 @@ onScopeDispose(() => {
   if (locatorId) validationStore.setNodeInvalid(locatorId, false)
 })
 
-const tooltipText = computed(() => {
+const pathTooltip = computed(() => {
   if (!modelValue.value) return undefined
   const graph = canvasStore.canvas?.graph
   const withDir = resolveDirectoryTokens(modelValue.value)
