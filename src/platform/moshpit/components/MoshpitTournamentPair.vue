@@ -167,8 +167,8 @@ const flipHash = computed(() =>
 .moshpit-pick-pulse {
   background: linear-gradient(
     to var(--pulse-direction, right),
-    oklch(0.75 0.15 150 / 0.35),
-    oklch(0.75 0.15 150 / 0)
+    color-mix(in oklch, var(--success-background) 35%, transparent),
+    color-mix(in oklch, var(--success-background) 0%, transparent)
   );
   animation: moshpit-pick-pulse 420ms ease-out forwards;
 }

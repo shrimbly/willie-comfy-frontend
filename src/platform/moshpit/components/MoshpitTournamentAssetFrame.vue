@@ -89,7 +89,7 @@ const altText = computed(() => t('moshpit.tournament.assetAlt'))
     />
     <div
       v-if="label"
-      class="absolute top-2 left-2 rounded-sm bg-interface-panel-surface/80 px-2 py-1 text-xs font-medium text-base-foreground"
+      class="absolute top-2 left-2 rounded-sm border border-border-subtle bg-secondary-background px-2 py-1 text-xs font-medium text-base-foreground shadow-sm"
       data-testid="moshpit-tournament-asset-label"
     >
       {{ label }}

@@ -58,19 +58,21 @@ function onConfirm(): void {
 
 <template>
   <section
-    class="flex size-full flex-col overflow-hidden"
+    class="flex size-full flex-col overflow-hidden bg-interface-panel-surface"
     data-testid="moshpit-tournament-winner"
   >
-    <header class="flex items-center justify-between px-6 pt-4 pb-2">
-      <h2 class="text-lg font-medium text-base-foreground">{{ title }}</h2>
+    <header
+      class="flex items-center justify-between border-b border-(--interface-stroke) px-4 py-3"
+    >
+      <h2 class="text-sm font-medium text-base-foreground">{{ title }}</h2>
     </header>
 
     <div
       :class="
         cn(
-          'flex-1 overflow-hidden px-6 pb-4',
+          'min-h-0 flex-1 overflow-hidden p-4',
           isSingle
-            ? 'flex min-h-0'
+            ? 'flex gap-4'
             : 'grid auto-rows-max grid-cols-1 gap-4 overflow-y-auto md:grid-cols-2 xl:grid-cols-3'
         )
       "
@@ -80,10 +82,8 @@ function onConfirm(): void {
         :key="hash"
         :class="
           cn(
-            'min-h-0 overflow-hidden',
-            isSingle
-              ? 'flex w-full gap-6'
-              : 'flex flex-col rounded-md border border-(--interface-stroke) bg-base-background'
+            'flex min-h-0 overflow-hidden rounded-md border border-border-subtle bg-secondary-background',
+            isSingle ? 'w-full flex-row' : 'flex-col'
           )
         "
         :data-testid="`moshpit-tournament-winner-card-${hash}`"
@@ -91,7 +91,7 @@ function onConfirm(): void {
         <div
           :class="
             cn(
-              'relative min-h-0 overflow-hidden',
+              'relative min-h-0 overflow-hidden bg-base-background',
               isSingle ? 'flex-3' : 'aspect-square w-full'
             )
           "
@@ -105,13 +105,17 @@ function onConfirm(): void {
         <div
           :class="
             cn(
-              'flex min-h-0 flex-col gap-3 overflow-y-auto',
-              isSingle ? 'flex-2' : 'border-t border-(--interface-stroke) p-3'
+              'flex min-h-0 flex-col gap-3 overflow-y-auto p-3',
+              isSingle
+                ? 'flex-2 border-l border-border-subtle'
+                : 'border-t border-border-subtle'
             )
           "
         >
-          <div class="flex items-center justify-between text-xs">
-            <span class="font-medium text-base-foreground">
+          <div class="flex items-center justify-between">
+            <span
+              class="text-2xs font-medium tracking-wide text-muted-foreground uppercase"
+            >
               {{
                 t('moshpit.tournament.winner.winsLabel', {
                   count: getWins(hash)
@@ -120,59 +124,65 @@ function onConfirm(): void {
             </span>
             <!-- deferred: favourite / tag / hide actions wire in here -->
             <div
-              class="flex items-center gap-2"
+              class="flex items-center gap-1"
               :data-testid="`moshpit-tournament-winner-actions-${hash}`"
             />
           </div>
 
           <template v-if="metadataStore.getParams(hash)">
-            <h3 class="text-xs font-medium text-muted-foreground">
-              {{ t('moshpit.tournament.winner.paramsTitle') }}
-            </h3>
-            <div class="flex flex-col gap-0.5">
-              <div
-                v-for="key in PARAM_DIFF_KEY_ORDER"
-                :key="key"
-                class="grid grid-cols-[1fr_auto] items-center gap-2 text-xs"
-                :data-testid="`moshpit-tournament-winner-param-${hash}-${key}`"
-              >
-                <span class="text-muted-foreground">
-                  {{ t(`moshpit.peek.params.${key}`) }}
-                </span>
-                <span
-                  class="max-w-64 truncate text-right font-mono text-base-foreground"
+            <section class="flex flex-col gap-1">
+              <h3 class="text-xs font-medium text-base-foreground">
+                {{ t('moshpit.tournament.winner.paramsTitle') }}
+              </h3>
+              <div class="flex flex-col gap-0.5">
+                <div
+                  v-for="key in PARAM_DIFF_KEY_ORDER"
+                  :key="key"
+                  class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-sm px-2 py-1 text-xs"
+                  :data-testid="`moshpit-tournament-winner-param-${hash}-${key}`"
                 >
-                  {{ formatValue(metadataStore.getParams(hash)?.[key]) }}
-                </span>
+                  <span class="truncate text-muted-foreground">
+                    {{ t(`moshpit.peek.params.${key}`) }}
+                  </span>
+                  <span
+                    class="max-w-full truncate text-right font-mono text-base-foreground"
+                  >
+                    {{ formatValue(metadataStore.getParams(hash)?.[key]) }}
+                  </span>
+                </div>
               </div>
-            </div>
+            </section>
 
-            <h3 class="mt-1 text-xs font-medium text-muted-foreground">
-              {{ t('moshpit.tournament.winner.lorasTitle') }}
-            </h3>
-            <div
-              v-if="(metadataStore.getParams(hash)?.loras.length ?? 0) === 0"
-              class="text-xs text-muted-foreground"
+            <section
+              class="flex flex-col gap-1 border-t border-border-subtle pt-3"
             >
-              {{ t('moshpit.tournament.winner.lorasEmpty') }}
-            </div>
-            <ul v-else class="flex flex-col gap-0.5 text-xs">
-              <li
-                v-for="lora in metadataStore.getParams(hash)?.loras"
-                :key="lora.name"
-                class="grid grid-cols-[1fr_auto] gap-2"
+              <h3 class="text-xs font-medium text-base-foreground">
+                {{ t('moshpit.tournament.winner.lorasTitle') }}
+              </h3>
+              <div
+                v-if="(metadataStore.getParams(hash)?.loras.length ?? 0) === 0"
+                class="px-2 text-xs text-muted-foreground"
               >
-                <span class="truncate font-mono text-base-foreground">
-                  {{ lora.name }}
-                </span>
-                <span class="font-mono text-muted-foreground">
-                  {{ formatValue(lora.weight) }}
-                </span>
-              </li>
-            </ul>
+                {{ t('moshpit.tournament.winner.lorasEmpty') }}
+              </div>
+              <ul v-else class="flex flex-col gap-0.5">
+                <li
+                  v-for="lora in metadataStore.getParams(hash)?.loras"
+                  :key="lora.name"
+                  class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-sm px-2 py-1 text-xs"
+                >
+                  <span class="truncate font-mono text-base-foreground">
+                    {{ lora.name }}
+                  </span>
+                  <span class="font-mono text-muted-foreground">
+                    {{ formatValue(lora.weight) }}
+                  </span>
+                </li>
+              </ul>
+            </section>
           </template>
 
-          <div v-else class="text-xs text-muted-foreground">
+          <div v-else class="px-2 text-xs text-muted-foreground">
             {{ t('moshpit.tournament.winner.metadataUnavailable') }}
           </div>
         </div>
@@ -180,11 +190,11 @@ function onConfirm(): void {
     </div>
 
     <footer
-      class="flex items-center justify-end border-t border-(--interface-stroke) px-6 py-3"
+      class="flex items-center justify-end border-t border-(--interface-stroke) px-4 py-3"
     >
       <button
         type="button"
-        class="rounded-sm bg-interface-panel-surface px-4 py-2 text-sm font-medium text-base-foreground hover:bg-interface-panel-surface/80"
+        class="inline-flex h-8 items-center rounded-sm bg-primary-background px-4 text-xs font-medium text-base-foreground transition-colors hover:bg-primary-background-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
         data-testid="moshpit-tournament-winner-confirm"
         @click="onConfirm"
       >

@@ -104,10 +104,17 @@ const openModel = computed({
         </VisuallyHidden>
 
         <header
-          class="flex items-center justify-between px-4 py-2 text-xs text-muted-foreground"
+          class="flex items-center justify-between gap-4 border-b border-(--interface-stroke) px-4 py-3"
         >
           <span
+            class="text-2xs font-medium tracking-wide text-muted-foreground uppercase"
+            data-testid="moshpit-tournament-overlay-title"
+          >
+            {{ t('moshpit.tournament.dialogTitle') }}
+          </span>
+          <span
             v-if="tournamentStore.currentPair"
+            class="text-xs text-muted-foreground tabular-nums"
             data-testid="moshpit-tournament-overlay-counter"
           >
             {{
@@ -119,6 +126,7 @@ const openModel = computed({
           </span>
           <span
             v-else-if="tournamentStore.isFinished"
+            class="text-xs text-base-foreground"
             data-testid="moshpit-tournament-overlay-complete"
           >
             {{ t('moshpit.tournament.winner.headerComplete') }}
@@ -143,7 +151,7 @@ const openModel = computed({
         </main>
 
         <footer
-          class="flex flex-wrap gap-4 border-t border-(--interface-stroke) px-4 py-2 text-xs text-muted-foreground"
+          class="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-(--interface-stroke) px-4 py-3 text-xs text-muted-foreground"
           data-testid="moshpit-tournament-overlay-legend"
         >
           <template v-if="tournamentStore.isFinished">
@@ -151,13 +159,19 @@ const openModel = computed({
             <span>{{ t('moshpit.tournament.legend.exit') }}</span>
           </template>
           <template v-else>
-            <span>{{ t('moshpit.tournament.legend.pickA') }}</span>
-            <span>{{ t('moshpit.tournament.legend.pickB') }}</span>
-            <span>{{ t('moshpit.tournament.legend.skip') }}</span>
-            <span>{{ t('moshpit.tournament.legend.mode') }}</span>
-            <span>{{ t('moshpit.tournament.legend.flip') }}</span>
-            <span>{{ t('moshpit.tournament.legend.peek') }}</span>
-            <span>{{ t('moshpit.tournament.legend.exit') }}</span>
+            <span class="flex items-center gap-3">
+              <span>{{ t('moshpit.tournament.legend.pickA') }}</span>
+              <span>{{ t('moshpit.tournament.legend.pickB') }}</span>
+              <span>{{ t('moshpit.tournament.legend.skip') }}</span>
+            </span>
+            <span class="flex items-center gap-3">
+              <span>{{ t('moshpit.tournament.legend.mode') }}</span>
+              <span>{{ t('moshpit.tournament.legend.flip') }}</span>
+              <span>{{ t('moshpit.tournament.legend.peek') }}</span>
+            </span>
+            <span class="ml-auto">{{
+              t('moshpit.tournament.legend.exit')
+            }}</span>
           </template>
         </footer>
       </DialogContent>
