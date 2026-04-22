@@ -1,9 +1,17 @@
+---
+status: passed
+phase: 04-lineage-groupings-within-cluster-sort
+verdict: Yes
+signed_off: 2026-04-21
+---
+
 # Phase 4 — Human UAT (v3 Core Value Validation)
 
 **Purpose:** Validate whether lineage-grouped spatial organisation + within-cluster sort makes comparable generations easier to find than a flat parameter-sorted grid. A negative or "sort of" sign-off here pauses Phase 5 per **D-22** — Phase 4 is the v3 pivot's go/no-go milestone.
 
-**Date:** _fill in at sign-off_
-**Tester:** _fill in at sign-off_
+**Date:** 2026-04-21
+**Tester:** willie@reflct.app
+**D-22 Verdict:** **YES** — Phase 4 shipped after inline gap closure on 8 UAT findings (workflow picker filename, cluster overlay alignment, All-workflows entry, workflow gate filtering, depth label overlap, badge click-to-focus, uniform zoom, child cluster inset) and 6 additional settings-panel polish items (unified chip area, chip UI, × affordance, type-group tooltips, sort stability, drop repack tween).
 
 ---
 
@@ -114,4 +122,4 @@ With the filter gate still open:
 
 <!-- Free-form observations. Examples: "workflow labels clip at high zoom", "save-node `(other)` dominates when _meta.title is absent", "prompt normalisation too aggressive — different prompts collapse into one bucket" -->
 
-Signed: **********\_\_\_**********
+Signed: ****\*\*****\_\_\_****\*\*****
