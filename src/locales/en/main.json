@@ -3932,6 +3932,8 @@
     "nodeWidgetDesc": "Current value: {value}",
     "nodeWidgetDescEmpty": "Current widget value",
     "noMatches": "No matches",
+    "selectDirectory": "Select output directory",
+    "removeDirectory": "Remove directory",
     "group": {
       "variable": "Variables",
       "token": "Runtime tokens",

@@ -1,7 +1,10 @@
 import type { LGraphNode } from '@/lib/litegraph/src/LGraphNode'
 import type { ComfyNodeDef } from '@/schemas/nodeDefSchema'
 import { applyTextReplacements } from '@/utils/searchAndReplace'
-import { resolveTemplateVariables } from '@/utils/templateVariableResolver'
+import {
+  resolveDirectoryTokens,
+  resolveTemplateVariables
+} from '@/utils/templateVariableResolver'
 
 import { app } from '../../scripts/app'
 
@@ -44,10 +47,11 @@ app.registerExtension({
           widget.options.templateInput = true
           const node = this as LGraphNode
           widget.serializeValue = () => {
+            const withDir = resolveDirectoryTokens(String(widget.value ?? ''))
             const withTemplateVars = resolveTemplateVariables(
               app.graph,
               node,
-              String(widget.value ?? '')
+              withDir
             )
             return applyTextReplacements(app.graph, withTemplateVars)
           }

@@ -129,6 +129,7 @@ export type TemplateSegment =
       prefix: '@' | '%'
       missing?: boolean
     }
+  | { type: 'directory'; path: string; isAbsolute: boolean }
 
 const RUNTIME_TOKEN_NAMES = new Set([
   'width',
@@ -144,11 +145,47 @@ const RUNTIME_TOKEN_NAMES = new Set([
 
 const NODE_WIDGET_PATTERN = /^[^.%\s][^.%]*\.[^.%\s]+$/
 const DATE_FORMAT_PATTERN = /^date:.+$/
+const DIR_TOKEN_PATTERN = /^dir:(.+)$/
+const LEADING_DIR_TOKEN_PATTERN = /^%dir:[^%]+%/
+const WINDOWS_ABSOLUTE_PATTERN = /^[A-Za-z]:[\\/]/
+
+export function isAbsolutePath(path: string): boolean {
+  if (!path) return false
+  if (path.startsWith('/')) return true
+  if (path.startsWith('~')) return true
+  if (path.startsWith('\\\\')) return true
+  return WINDOWS_ABSOLUTE_PATTERN.test(path)
+}
+
+export function truncateDirectoryPath(path: string, maxLen = 28): string {
+  if (!path) return ''
+  if (path.length <= maxLen) return path
+  const segments = path.split(/[/\\]/).filter(Boolean)
+  if (segments.length <= 2) return path
+  const tail = segments.slice(-2).join('/')
+  return `.../${tail}`
+}
+
+export function setLeadingDirectoryToken(value: string, path: string): string {
+  const rest = value.replace(LEADING_DIR_TOKEN_PATTERN, '')
+  return `%dir:${path}%${rest}`
+}
+
+export function removeLeadingDirectoryToken(value: string): string {
+  return value.replace(LEADING_DIR_TOKEN_PATTERN, '')
+}
+
+export function resolveDirectoryTokens(value: string): string {
+  return value.replace(/%dir:([^%]+)%/g, (_match, path: string) => {
+    return path.endsWith('/') || path.endsWith('\\') ? path : `${path}/`
+  })
+}
 
 function isKnownPercentToken(inner: string): boolean {
   if (RUNTIME_TOKEN_NAMES.has(inner)) return true
   if (DATE_FORMAT_PATTERN.test(inner)) return true
   if (NODE_WIDGET_PATTERN.test(inner)) return true
+  if (DIR_TOKEN_PATTERN.test(inner)) return true
   return false
 }
 
@@ -184,11 +221,22 @@ export function parseTemplateSegments(value: string): TemplateSegment[] {
         value: value.slice(lastIndex, match.index)
       })
     }
-    segments.push(
-      missing
-        ? { type: 'variable', name, prefix, missing: true }
-        : { type: 'variable', name, prefix }
-    )
+
+    const dirMatch = prefix === '%' ? DIR_TOKEN_PATTERN.exec(name) : null
+    if (dirMatch) {
+      const path = dirMatch[1]
+      segments.push({
+        type: 'directory',
+        path,
+        isAbsolute: isAbsolutePath(path)
+      })
+    } else {
+      segments.push(
+        missing
+          ? { type: 'variable', name, prefix, missing: true }
+          : { type: 'variable', name, prefix }
+      )
+    }
     lastIndex = match.index + match[0].length
   }
 

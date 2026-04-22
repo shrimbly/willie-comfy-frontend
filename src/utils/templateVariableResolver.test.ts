@@ -2,9 +2,14 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   getTemplateVariables,
+  isAbsolutePath,
   parseTemplateSegments,
   previewResolvedValue,
-  resolveTemplateVariables
+  removeLeadingDirectoryToken,
+  resolveDirectoryTokens,
+  resolveTemplateVariables,
+  setLeadingDirectoryToken,
+  truncateDirectoryPath
 } from '@/utils/templateVariableResolver'
 
 vi.mock('@/platform/workflow/management/stores/workflowStore', () => ({
@@ -325,6 +330,128 @@ describe('previewResolvedValue', () => {
     )
     expect(result).toBe('a:b')
     mockCustomVariables.value = []
+  })
+})
+
+describe('parseTemplateSegments (directory token)', () => {
+  it('parses %dir:<path>% as a directory segment with isAbsolute true', () => {
+    expect(parseTemplateSegments('%dir:/Users/willie/photos%ComfyUI')).toEqual([
+      { type: 'directory', path: '/Users/willie/photos', isAbsolute: true },
+      { type: 'text', value: 'ComfyUI' }
+    ])
+  })
+
+  it('marks relative paths as not absolute', () => {
+    expect(parseTemplateSegments('%dir:subdir%ComfyUI')).toEqual([
+      { type: 'directory', path: 'subdir', isAbsolute: false },
+      { type: 'text', value: 'ComfyUI' }
+    ])
+  })
+
+  it('recognizes Windows absolute paths', () => {
+    const segs = parseTemplateSegments('%dir:C:\\Users\\me%file')
+    expect(segs[0]).toEqual({
+      type: 'directory',
+      path: 'C:\\Users\\me',
+      isAbsolute: true
+    })
+  })
+
+  it('combines directory token with variables', () => {
+    expect(parseTemplateSegments('%dir:/out%@project/@nodeTitle')).toEqual([
+      { type: 'directory', path: '/out', isAbsolute: true },
+      { type: 'variable', name: 'project', prefix: '@' },
+      { type: 'text', value: '/' },
+      { type: 'variable', name: 'nodeTitle', prefix: '@' }
+    ])
+  })
+})
+
+describe('resolveDirectoryTokens', () => {
+  it('replaces %dir:<path>% with the path + separator', () => {
+    expect(resolveDirectoryTokens('%dir:/a/b%foo')).toBe('/a/b/foo')
+  })
+
+  it('does not double trailing slashes', () => {
+    expect(resolveDirectoryTokens('%dir:/a/b/%foo')).toBe('/a/b/foo')
+  })
+
+  it('leaves strings without the token untouched', () => {
+    expect(resolveDirectoryTokens('@project/file')).toBe('@project/file')
+  })
+
+  it('preserves Windows backslash trailing separator', () => {
+    expect(resolveDirectoryTokens('%dir:C:\\out\\%file')).toBe('C:\\out\\file')
+  })
+})
+
+describe('isAbsolutePath', () => {
+  it('accepts POSIX absolute paths', () => {
+    expect(isAbsolutePath('/Users/willie')).toBe(true)
+  })
+
+  it('accepts home-relative paths', () => {
+    expect(isAbsolutePath('~/pics')).toBe(true)
+  })
+
+  it('accepts Windows drive paths', () => {
+    expect(isAbsolutePath('C:/temp')).toBe(true)
+    expect(isAbsolutePath('D:\\work')).toBe(true)
+  })
+
+  it('accepts UNC paths', () => {
+    expect(isAbsolutePath('\\\\server\\share')).toBe(true)
+  })
+
+  it('rejects relative paths', () => {
+    expect(isAbsolutePath('output/sub')).toBe(false)
+    expect(isAbsolutePath('sub')).toBe(false)
+    expect(isAbsolutePath('')).toBe(false)
+  })
+})
+
+describe('truncateDirectoryPath', () => {
+  it('returns full path when shorter than maxLen', () => {
+    expect(truncateDirectoryPath('/a/b')).toBe('/a/b')
+  })
+
+  it('returns last two segments with .../ prefix when too long', () => {
+    expect(truncateDirectoryPath('/Users/willie/Documents/photos/output')).toBe(
+      '.../photos/output'
+    )
+  })
+
+  it('returns full path when only two segments', () => {
+    const short = '/aaaa/bbbb'
+    expect(truncateDirectoryPath(short, 4)).toBe(short)
+  })
+
+  it('handles Windows backslash segments', () => {
+    expect(truncateDirectoryPath('C:\\Users\\willie\\Documents\\photos')).toBe(
+      '.../Documents/photos'
+    )
+  })
+})
+
+describe('setLeadingDirectoryToken / removeLeadingDirectoryToken', () => {
+  it('prepends a %dir:% token when none present', () => {
+    expect(setLeadingDirectoryToken('ComfyUI', '/tmp/out')).toBe(
+      '%dir:/tmp/out%ComfyUI'
+    )
+  })
+
+  it('replaces an existing leading token', () => {
+    expect(
+      setLeadingDirectoryToken('%dir:/old/path%ComfyUI', '/new/path')
+    ).toBe('%dir:/new/path%ComfyUI')
+  })
+
+  it('removes an existing leading token', () => {
+    expect(removeLeadingDirectoryToken('%dir:/a/b%ComfyUI')).toBe('ComfyUI')
+  })
+
+  it('leaves non-leading dir tokens alone when removing', () => {
+    expect(removeLeadingDirectoryToken('text/%dir:/a%x')).toBe('text/%dir:/a%x')
   })
 })
 
