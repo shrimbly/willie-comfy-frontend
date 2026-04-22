@@ -13,14 +13,11 @@ const imageInstances: Array<{ src: string }> = []
 
 function resetImageSpy() {
   imageInstances.length = 0
-  vi.stubGlobal(
-    'Image',
-    vi.fn().mockImplementation(() => {
-      const inst = { src: '' }
-      imageInstances.push(inst)
-      return inst
-    })
-  )
+  function FakeImage(this: { src: string }) {
+    this.src = ''
+    imageInstances.push(this)
+  }
+  vi.stubGlobal('Image', FakeImage)
 }
 
 describe('moshpitTournamentStore', () => {
@@ -294,10 +291,15 @@ describe('moshpitTournamentStore', () => {
         ),
         'utf8'
       )
-      expect(/\bidb\b/.test(src)).toBe(false)
-      expect(/indexedDB/.test(src)).toBe(false)
-      expect(/thumbRepository/.test(src)).toBe(false)
-      expect(/from '@\/lib\/litegraph/.test(src)).toBe(false)
+      // Strip block + line comments so the doc comment saying
+      // "no thumbRepository imports" doesn't false-positive.
+      const stripped = src
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/^\s*\/\/.*$/gm, '')
+      expect(/from ['"][^'"]*\bidb\b/.test(stripped)).toBe(false)
+      expect(/indexedDB/.test(stripped)).toBe(false)
+      expect(/thumbRepository/.test(stripped)).toBe(false)
+      expect(/from ['"]@\/lib\/litegraph/.test(stripped)).toBe(false)
     })
   })
 
