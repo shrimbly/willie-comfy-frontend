@@ -1,12 +1,82 @@
 /**
  * Phase 5 Plan 03 — Tournament keybindings composable (D-13 / D-16).
  *
- * RED stub — body added in the GREEN commit.
+ * Attaches a scoped keydown listener to the overlay root element and routes
+ * the full tournament keymap to `useMoshpitTournamentStore` actions:
+ *
+ *   ArrowLeft  -> pickWinner('A')
+ *   ArrowRight -> pickWinner('B')
+ *   ArrowDown  -> skip()
+ *   Space      -> toggleFlip()
+ *   [          -> cycleDisplayMode(-1)
+ *   ]          -> cycleDisplayMode(+1)
+ *   m / M      -> togglePeek()
+ *   ,          -> nudgeWipe(event.shiftKey ? -0.2 : -0.05)
+ *   .          -> nudgeWipe(event.shiftKey ? +0.2 : +0.05)
+ *   /          -> resetWipe()
+ *
+ * Esc is intentionally NOT routed here — it's handled by Reka DialogContent's
+ * @escape-key-down in Plan 05 so the focus-trap / aria-modal lifecycle stays
+ * intact.
+ *
+ * Every handled key calls preventDefault() + stopPropagation() so canvas
+ * shortcuts (F / Z / Cmd+A / Space-pan) never fire behind the overlay.
+ *
+ * No-op when tournamentStore.isActive is false — safe to mount early.
  */
+import { useEventListener } from '@vueuse/core'
 import type { Ref } from 'vue'
 
+import { useMoshpitTournamentStore } from '../stores/moshpitTournamentStore'
+
 export function useMoshpitTournamentKeybindings(
-  _rootEl: Ref<HTMLElement | null>
+  rootEl: Ref<HTMLElement | null>
 ): void {
-  // intentionally empty in RED — test spies assert nothing is wired yet.
+  const store = useMoshpitTournamentStore()
+
+  function onKeydown(e: KeyboardEvent): void {
+    if (!store.isActive) return
+    let handled = true
+    switch (e.key) {
+      case 'ArrowLeft':
+        store.pickWinner('A')
+        break
+      case 'ArrowRight':
+        store.pickWinner('B')
+        break
+      case 'ArrowDown':
+        store.skip()
+        break
+      case ' ':
+        store.toggleFlip()
+        break
+      case '[':
+        store.cycleDisplayMode(-1)
+        break
+      case ']':
+        store.cycleDisplayMode(1)
+        break
+      case 'm':
+      case 'M':
+        store.togglePeek()
+        break
+      case ',':
+        store.nudgeWipe(e.shiftKey ? -0.2 : -0.05)
+        break
+      case '.':
+        store.nudgeWipe(e.shiftKey ? 0.2 : 0.05)
+        break
+      case '/':
+        store.resetWipe()
+        break
+      default:
+        handled = false
+    }
+    if (handled) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
+
+  useEventListener(rootEl, 'keydown', onKeydown)
 }

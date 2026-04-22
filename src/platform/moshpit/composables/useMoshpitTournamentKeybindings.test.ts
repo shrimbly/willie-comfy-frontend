@@ -12,11 +12,17 @@ interface MountResult {
 }
 
 function mountHarness(): MountResult {
+  const el: Ref<HTMLElement | null> = ref(null)
   const Harness = defineComponent({
     setup() {
-      const el: Ref<HTMLElement | null> = ref(null)
       useMoshpitTournamentKeybindings(el)
-      return () => h('div', { ref: el, tabindex: -1 })
+      return () =>
+        h('div', {
+          ref: (node: unknown) => {
+            el.value = (node as HTMLElement | null) ?? null
+          },
+          tabindex: -1
+        })
     }
   })
   const wrapper = mount(Harness, { attachTo: document.body })
