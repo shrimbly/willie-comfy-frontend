@@ -86,14 +86,14 @@ function loraStateClass(state: LoraDiffState): string {
   <aside
     :class="
       cn(
-        'absolute top-0 right-0 h-full w-80 overflow-y-auto border-l border-(--interface-stroke) bg-base-background transition-[transform] duration-200 ease-out lg:w-96 xl:w-md',
+        'absolute top-0 right-0 h-full w-72 overflow-y-auto bg-modal-panel-background transition-[transform] duration-200 ease-out',
         store.isPeekOpen ? 'translate-x-0' : 'translate-x-full'
       )
     "
     :aria-hidden="!store.isPeekOpen"
     data-testid="moshpit-metadata-peek-panel"
   >
-    <header class="border-b border-(--interface-stroke) p-4">
+    <header class="border-b border-border-subtle p-4">
       <h2 class="text-sm font-medium text-base-foreground">
         {{ t('moshpit.peek.panelTitle') }}
       </h2>
@@ -140,7 +140,7 @@ function loraStateClass(state: LoraDiffState): string {
         </div>
       </section>
 
-      <section class="border-t border-(--interface-stroke) p-4">
+      <section class="border-t border-border-subtle p-4">
         <h3 class="mb-2 text-xs font-medium text-base-foreground">
           {{ t('moshpit.peek.lora.sectionTitle') }}
         </h3>

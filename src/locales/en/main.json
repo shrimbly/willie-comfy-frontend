@@ -1171,7 +1171,6 @@
       "winner": {
         "title": "Tournament complete",
         "titlePlural": "Tournament complete — top {count}",
-        "headerComplete": "Tournament complete",
         "winsLabel": "{count} win | {count} wins",
         "confirm": "Done",
         "paramsTitle": "Parameters",

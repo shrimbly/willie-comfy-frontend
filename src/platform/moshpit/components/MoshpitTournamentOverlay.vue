@@ -31,6 +31,7 @@ import {
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import Button from '@/components/ui/button/Button.vue'
 import { useMoshpitTournamentKeybindings } from '@/platform/moshpit/composables/useMoshpitTournamentKeybindings'
 import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetadataStore'
 import { useMoshpitTournamentStore } from '@/platform/moshpit/stores/moshpitTournamentStore'
@@ -92,7 +93,7 @@ const openModel = computed({
         data-testid="moshpit-tournament-overlay-backdrop"
       />
       <DialogContent
-        class="fixed inset-6 z-1900 flex flex-col overflow-hidden rounded-lg border border-(--interface-stroke) bg-base-background shadow-2xl outline-none lg:inset-10"
+        class="fixed inset-6 z-1900 flex flex-col overflow-hidden rounded-2xl bg-base-background shadow-2xl outline-none lg:inset-10"
         tabindex="-1"
         data-testid="moshpit-tournament-overlay-content"
         @escape-key-down="onEscape"
@@ -104,15 +105,7 @@ const openModel = computed({
           </DialogDescription>
         </VisuallyHidden>
 
-        <header
-          class="flex items-center justify-between gap-4 border-b border-(--interface-stroke) px-4 py-3"
-        >
-          <span
-            class="text-2xs font-medium tracking-wide text-muted-foreground uppercase"
-            data-testid="moshpit-tournament-overlay-title"
-          >
-            {{ t('moshpit.tournament.dialogTitle') }}
-          </span>
+        <header class="flex items-center justify-between gap-4 px-4 py-3">
           <span
             v-if="tournamentStore.currentPair"
             class="text-xs text-muted-foreground tabular-nums"
@@ -125,13 +118,16 @@ const openModel = computed({
               })
             }}
           </span>
-          <span
-            v-else-if="tournamentStore.isFinished"
-            class="text-xs text-base-foreground"
-            data-testid="moshpit-tournament-overlay-complete"
+          <span v-else aria-hidden="true" />
+          <Button
+            size="lg"
+            class="w-10 p-0"
+            :aria-label="t('g.closeDialog')"
+            data-testid="moshpit-tournament-overlay-close"
+            @click="onEscape"
           >
-            {{ t('moshpit.tournament.winner.headerComplete') }}
-          </span>
+            <i class="pi pi-times" />
+          </Button>
         </header>
 
         <main class="relative flex flex-1 overflow-hidden">
@@ -153,7 +149,7 @@ const openModel = computed({
         </main>
 
         <footer
-          class="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-(--interface-stroke) px-4 py-3 text-xs text-muted-foreground"
+          class="flex flex-wrap items-center gap-x-6 gap-y-2 bg-modal-panel-background px-4 py-3 text-xs text-muted-foreground"
           data-testid="moshpit-tournament-overlay-legend"
         >
           <template v-if="tournamentStore.isFinished">

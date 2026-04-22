@@ -1,3 +1,4 @@
+import userEvent from '@testing-library/user-event'
 import { render, screen } from '@testing-library/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -149,5 +150,25 @@ describe('MoshpitTournamentOverlay — pair counter (D-04)', () => {
     expect(counter.textContent ?? '').toMatch(
       /moshpit\.tournament\.pairCounter/
     )
+  })
+})
+
+describe('MoshpitTournamentOverlay — close button', () => {
+  it('clicking the close button routes through tournamentStore.exit', async () => {
+    const user = userEvent.setup()
+    seedThumbs(['a', 'b', 'c'])
+    const store = useMoshpitTournamentStore()
+    store.enter(['a', 'b', 'c'])
+
+    renderOverlay()
+    await nextTick()
+
+    expect(store.isActive).toBe(true)
+
+    const closeButton = screen.getByTestId('moshpit-tournament-overlay-close')
+    await user.click(closeButton)
+    await nextTick()
+
+    expect(store.isActive).toBe(false)
   })
 })

@@ -71,19 +71,9 @@ const rounds: ComputedRef<TournamentPair[][]> = computed(() => {
   <aside
     v-if="tournamentStore.isActive && !tournamentStore.isFinished"
     :aria-label="t('moshpit.tournament.bracket.title')"
-    class="flex w-50 shrink-0 flex-col overflow-y-auto border-r border-border-default bg-comfy-menu-bg"
+    class="flex w-50 shrink-0 flex-col overflow-y-auto bg-modal-panel-background"
     data-testid="moshpit-bracket-root"
   >
-    <header
-      class="flex items-center justify-between border-b border-border-subtle px-3 py-2"
-    >
-      <span
-        class="text-2xs font-medium tracking-wide text-muted-foreground uppercase"
-      >
-        {{ t('moshpit.tournament.bracket.title') }}
-      </span>
-    </header>
-
     <div
       v-if="tournamentStore.bracketShape === 'singleElim'"
       class="flex gap-2 p-3"
