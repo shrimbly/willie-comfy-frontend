@@ -1178,6 +1178,14 @@
         "lorasTitle": "LoRAs",
         "lorasEmpty": "No LoRAs",
         "metadataUnavailable": "Metadata unavailable"
+      },
+      "bracket": {
+        "title": "Bracket",
+        "round": "Round {n}",
+        "matchup": "Seed {a} vs Seed {b}",
+        "winnerLabel": "Winner: Seed {n}",
+        "currentPair": "Current matchup",
+        "skipped": "Skipped"
       }
     },
     "peek": {
