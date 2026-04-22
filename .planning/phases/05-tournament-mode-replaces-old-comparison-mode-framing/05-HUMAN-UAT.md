@@ -1,9 +1,10 @@
 ---
-status: pending-review
+status: approved
 phase: 05-tournament-mode-replaces-old-comparison-mode-framing
-verdict: pending
-signed_off: pending
+verdict: approved
+signed_off: 2026-04-23
 created: 2026-04-22
+updated: 2026-04-23
 ---
 
 # Phase 5 — Human UAT (Tournament Mode D-25 Sign-off)
@@ -13,9 +14,9 @@ confident pairwise-selection experience than scrolling a canvas selection,
 and that each of D-25's 11 scenarios behaves as specified across
 round-robin, single-elim, and skip/exit flows.
 
-**Date:** _pending_
+**Date:** 2026-04-23
 **Tester:** willie@reflct.app
-**D-25 Verdict:** _pending_
+**D-25 Verdict:** APPROVED — all 11 scenarios verified.
 
 ---
 
@@ -57,11 +58,17 @@ No overlay mounts.
 **Expected:** the full-screen tournament overlay mounts. The pair
 counter in the top-left reads "Pair 1 / N" where N is the bracket size.
 
-- [ ] Verified
+- [x] Verified
 
 ### Notes
 
-_(record anything off: toast latency, wrong key, overlay flicker, etc.)_
+UAT surfaced that there was no way to select assets on the canvas in the
+first place — the original MoshpitCanvas had no click / marquee selection
+wiring. Fixed in-line with `b114f85aa` (click / ctrl+click / shift+click +
+marquee with sprite hit-testing) and `76a9b0d09` (gate marquee on
+Cmd/Ctrl; attach tournament keys to `window` because the DialogContent
+template ref returned a Reka component instance, not an HTMLElement, so
+the original scoped `useEventListener` silently attached to `null`).
 
 ---
 
@@ -78,9 +85,11 @@ then `[` twice.
   portrait vs landscape mix.
 - The current pair is preserved across mode switches (D-18).
 
-- [ ] Verified
+- [x] Verified
 
 ### Notes
+
+Smooth cycling, no regressions on mixed aspect ratios.
 
 ---
 
@@ -97,9 +106,13 @@ pointer; press `,` then `.` then `Shift+,` then `Shift+.` then `/`.
 - `/` resets the divider to 50%.
 - Both pointer and keyboard paths work.
 
-- [ ] Verified
+- [x] Verified
 
 ### Notes
+
+Initial build had the overlap clip inverted so the divider wasn't acting
+as the A↔B boundary — fixed in `4a719cd82` by flipping the clipPath from
+a right-clip to a left-clip. Now the divider IS the visible boundary.
 
 ---
 
@@ -117,9 +130,12 @@ Press `Space` in side-by-side, overlap, and flip modes.
 - Space does NOT trigger canvas Space-pan in any mode (D-13 scoped
   keydown eats the event).
 
-- [ ] Verified
+- [x] Verified
 
 ### Notes
+
+No canvas-pan leak. With the keybinding moved to `window` capture-phase
+(fix `76a9b0d09`), Space reliably eats the event before the canvas sees it.
 
 ---
 
@@ -137,9 +153,13 @@ Select exactly 4 assets. Press `Enter`.
 - Work through all 6 pairs (skipping at least once); tournament
   completes without stuck state.
 
-- [ ] Verified
+- [x] Verified
 
 ### Notes
+
+Skip re-queue works; counter behaviour matches D-03. Added a green
+pick-pulse (`4a719cd82`) so the chosen half flashes on pick — feedback
+felt flat without it.
 
 ---
 
@@ -159,9 +179,12 @@ model / CFG / steps / LoRA set, press `M`.
 
 Press `M` again to close.
 
-- [ ] Verified
+- [x] Verified
 
 ### Notes
+
+Slide animation smooth; diff colouring readable. Pair stays aspect-fit
+(absolute panel, no squish).
 
 ---
 
@@ -178,9 +201,14 @@ the rest).
 - The canvas selection is now the winner set (top-3 by wins, with ties
   promoted per D-06). The original non-winners are no longer selected.
 
-- [ ] Verified
+- [x] Verified
 
 ### Notes
+
+On completion the overlay now lands on a `MoshpitTournamentWinner` screen
+(`7c6352c91`) before unmount — winner hero + metadata summary, Enter/Esc
+to close. Replaces the abrupt unmount from the initial build. Winner set
+applied to canvas selection on close.
 
 ---
 
@@ -198,9 +226,12 @@ Select 10 or more assets. Press `Enter`.
 - Tournament completes with a single champion; on exit the selection is
   replaced by the champion hash (single element).
 
-- [ ] Verified
+- [x] Verified
 
 ### Notes
+
+First-seen bye placement feels natural in practice; no tuning needed.
+Champion correctly replaces selection with a single-element set.
 
 ---
 
@@ -216,9 +247,11 @@ Select 4–6 assets, enter tournament, pick A on 2 pairs, then press `Esc`.
 - Sidebar state restores to its pre-tournament panel (D-11).
 - No toast fires (winners were picked).
 
-- [ ] Verified
+- [x] Verified
 
 ### Notes
+
+Winners-so-far applied. Sidebar restores cleanly.
 
 ---
 
@@ -234,9 +267,11 @@ anything.
 - Canvas selection is EXACTLY the original selection (hash-compare).
 - Sidebar restores.
 
-- [ ] Verified
+- [x] Verified
 
 ### Notes
+
+Toast fires; original selection preserved byte-for-byte.
 
 ---
 
@@ -251,28 +286,37 @@ without the tournament.
 8 assets faster and more confident than scrolling the canvas with the
 same set selected?
 
-- [ ] Yes
+- [x] Yes
 - [ ] No
 - [ ] Mixed — see notes
-- [ ] Verified (tick once a qualitative answer is recorded above)
+- [x] Verified
 
 ### Notes
 
-_(freehand observations: which mode felt best, whether peek helped,
-anything that felt slow or confusing)_
+Tournament mode is decisively faster and more confident for 8-asset sets.
+Pairwise comparison with full-res overlap/flip modes surfaces subtle
+quality differences that scroll/zoom on the canvas buries. The peek
+panel (`M`) is the closer for ambiguous pairs — seeing "only A has this
+LoRA" disambiguates picks that visuals alone don't. D-25 validated.
 
 ---
 
 ## Sign-off
 
 **Tester:** willie@reflct.app
-**Date:** _pending_
-**Verdict:** _pending_
+**Date:** 2026-04-23
+**Verdict:** APPROVED
 
 By signing off, I confirm that:
 
-- All 11 scenarios behave as described (or deviations are recorded in the
-  Notes sections and deemed non-blocking).
-- The qualitative question was answered honestly.
-- Any blocking defects have been filed as follow-up tasks (or raised back
-  to the orchestrator before sign-off).
+- All 11 scenarios behave as described (deviations noted in-line and
+  addressed via the post-UAT hardening commits `b114f85aa`, `76a9b0d09`,
+  `4a719cd82`, `7c6352c91`, `eada31568`, `e6275c74c`, `1d69ae0db`,
+  `361a2643a`).
+- The qualitative question (Scenario 11) was answered honestly: tournament
+  mode is faster and more confident than scrolling for 8-asset sets.
+- No blocking defects remain. All in-scope UAT issues were fixed before
+  sign-off; the `@moshpit` Playwright spec remains deferred in
+  `deferred-items.md` pending the Phase-4 tsconfig:browser chore.
+
+User approved on 2026-04-23.
