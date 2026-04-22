@@ -15,7 +15,7 @@ progress:
 
 # Project State
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-04-23 — Completed quick task 260423-89u: Align Moshpit sidebar and filter UI to native ComfyUI styling
 
 ## Project Reference
 
@@ -127,6 +127,12 @@ Progress: `[██████████] 5 / 7 phases`
 ### Blockers
 
 None.
+
+### Quick Tasks Completed
+
+| #          | Description                                                   | Date       | Commit    | Directory                                                                                                           |
+| ---------- | ------------------------------------------------------------- | ---------- | --------- | ------------------------------------------------------------------------------------------------------------------- |
+| 260423-89u | Align Moshpit sidebar and filter UI to native ComfyUI styling | 2026-04-23 | c6b2c211a | [260423-89u-align-moshpit-sidebar-and-filter-ui-to-n](./quick/260423-89u-align-moshpit-sidebar-and-filter-ui-to-n/) |
 
 ## Session Continuity
 
