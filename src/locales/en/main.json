@@ -1148,6 +1148,50 @@
       "spacingLabel": "Cluster spacing",
       "spacingValue": "{value}px",
       "focusBadgeTooltip": "Focus on {label}"
+    },
+    "tournament": {
+      "dialogTitle": "Tournament mode",
+      "dialogDescription": "Pairwise asset comparison. Use the arrow keys to pick winners.",
+      "needTwoToastSummary": "Select at least 2 assets",
+      "needTwoToastDetail": "Tournament mode compares pairs — select more assets to begin.",
+      "noWinnersToastSummary": "No winners picked",
+      "noWinnersToastDetail": "Your selection is unchanged.",
+      "pairCounter": "Pair {current} / {total}",
+      "assetAlt": "Tournament asset",
+      "legend": {
+        "pickA": "← win A",
+        "pickB": "→ win B",
+        "skip": "↓ skip",
+        "mode": "[ ] mode",
+        "flip": "Space flip",
+        "peek": "M peek",
+        "exit": "Esc exit"
+      }
+    },
+    "peek": {
+      "panelTitle": "Metadata",
+      "loadingMetadata": "Loading metadata…",
+      "params": {
+        "model": "Model",
+        "loras": "LoRAs",
+        "cfg": "CFG",
+        "steps": "Steps",
+        "sampler": "Sampler",
+        "scheduler": "Scheduler",
+        "seed": "Seed",
+        "width": "Width",
+        "height": "Height",
+        "positivePrompt": "Prompt",
+        "negativePrompt": "Negative prompt",
+        "timestamp": "Created",
+        "workflowFingerprint": "Workflow (hash)",
+        "workflowFilename": "Workflow",
+        "saveNodeIdentity": "Save node"
+      },
+      "lora": {
+        "sectionTitle": "LoRAs",
+        "empty": "No LoRAs in either asset"
+      }
     }
   },
   "tabMenu": {
