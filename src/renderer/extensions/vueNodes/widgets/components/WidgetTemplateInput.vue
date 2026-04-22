@@ -194,7 +194,7 @@ import { useCanvasStore } from '@/renderer/core/canvas/canvasStore'
 import { useWidgetValidationStore } from '@/stores/widgetValidationStore'
 import { stripGraphPrefix } from '@/stores/widgetValueStore'
 import type { SimplifiedWidget } from '@/types/simplifiedWidget'
-import { pickDirectory } from '@/utils/directoryPickerUtil'
+import { isElectron, pickDirectory } from '@/utils/directoryPickerUtil'
 import { applyTextReplacements } from '@/utils/searchAndReplace'
 import type { TemplateSegment } from '@/utils/templateVariableResolver'
 import {
@@ -333,14 +333,37 @@ function onInputKeydown(e: KeyboardEvent) {
 
 async function onPickDirectory() {
   if (isReadOnly.value) return
-  try {
-    const result = await pickDirectory()
-    if (!result.path) return
-    modelValue.value = setLeadingDirectoryToken(modelValue.value, result.path)
-  } catch (err) {
-    if (err instanceof Error && /cancel/i.test(err.message)) return
-    console.error('Directory selection failed:', err)
+  const selected = await chooseDirectoryPath()
+  if (!selected) return
+  modelValue.value = setLeadingDirectoryToken(modelValue.value, selected)
+}
+
+async function chooseDirectoryPath(): Promise<string | null> {
+  if (isElectron()) {
+    try {
+      const result = await pickDirectory()
+      return result.path || null
+    } catch (err) {
+      if (err instanceof Error && /cancel/i.test(err.message)) return null
+      console.error('Directory selection failed:', err)
+      return null
+    }
   }
+  // Browsers can't expose absolute paths via the File System Access API,
+  // so prompt the user to paste/type the path instead.
+  const currentLeadingPath = leadingDirectoryPath(modelValue.value)
+  const input = window.prompt(
+    t('templateVariables.pasteDirectoryPath'),
+    currentLeadingPath ?? ''
+  )
+  if (input === null) return null
+  const trimmed = input.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+function leadingDirectoryPath(value: string): string | null {
+  const match = /^%dir:([^%]+)%/.exec(value)
+  return match ? match[1] : null
 }
 
 function removeDirectory() {

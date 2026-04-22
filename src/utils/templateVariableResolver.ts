@@ -166,9 +166,14 @@ export function truncateDirectoryPath(path: string, maxLen = 28): string {
   return `.../${tail}`
 }
 
+function stripTrailingSeparators(path: string): string {
+  return path.replace(/[/\\]+$/, '')
+}
+
 export function setLeadingDirectoryToken(value: string, path: string): string {
+  const cleaned = stripTrailingSeparators(path)
   const rest = value.replace(LEADING_DIR_TOKEN_PATTERN, '')
-  return `%dir:${path}%${rest}`
+  return `%dir:${cleaned}%${rest}`
 }
 
 export function removeLeadingDirectoryToken(value: string): string {
@@ -176,8 +181,8 @@ export function removeLeadingDirectoryToken(value: string): string {
 }
 
 export function resolveDirectoryTokens(value: string): string {
-  return value.replace(/%dir:([^%]+)%/g, (_match, path: string) => {
-    return path.endsWith('/') || path.endsWith('\\') ? path : `${path}/`
+  return value.replace(/%dir:([^%]+)%[/\\]*/g, (_match, path: string) => {
+    return `${stripTrailingSeparators(path)}/`
   })
 }
 

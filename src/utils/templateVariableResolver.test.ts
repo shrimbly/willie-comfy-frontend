@@ -376,12 +376,16 @@ describe('resolveDirectoryTokens', () => {
     expect(resolveDirectoryTokens('%dir:/a/b/%foo')).toBe('/a/b/foo')
   })
 
+  it('absorbs a separator at the start of the following content', () => {
+    expect(resolveDirectoryTokens('%dir:/a/b%/foo')).toBe('/a/b/foo')
+  })
+
   it('leaves strings without the token untouched', () => {
     expect(resolveDirectoryTokens('@project/file')).toBe('@project/file')
   })
 
-  it('preserves Windows backslash trailing separator', () => {
-    expect(resolveDirectoryTokens('%dir:C:\\out\\%file')).toBe('C:\\out\\file')
+  it('normalizes Windows backslash trailing separator', () => {
+    expect(resolveDirectoryTokens('%dir:C:\\out\\%file')).toBe('C:\\out/file')
   })
 })
 
@@ -437,6 +441,15 @@ describe('setLeadingDirectoryToken / removeLeadingDirectoryToken', () => {
   it('prepends a %dir:% token when none present', () => {
     expect(setLeadingDirectoryToken('ComfyUI', '/tmp/out')).toBe(
       '%dir:/tmp/out%ComfyUI'
+    )
+  })
+
+  it('strips trailing separators from the path', () => {
+    expect(setLeadingDirectoryToken('ComfyUI', '/tmp/out/')).toBe(
+      '%dir:/tmp/out%ComfyUI'
+    )
+    expect(setLeadingDirectoryToken('ComfyUI', 'C:\\out\\')).toBe(
+      '%dir:C:\\out%ComfyUI'
     )
   })
 
