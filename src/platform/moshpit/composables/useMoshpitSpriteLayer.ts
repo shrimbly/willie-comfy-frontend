@@ -40,19 +40,15 @@ import { Container, ImageSource, Sprite, Texture } from 'pixi.js'
 import type { Ticker } from 'pixi.js'
 import type { Viewport } from 'pixi-viewport'
 import type { InjectionKey } from 'vue'
-import { onBeforeUnmount, watch, watchEffect } from 'vue'
+import { onBeforeUnmount, watchEffect } from 'vue'
 
 import type { ProcessingQueueState } from '@/platform/moshpit/composables/useMoshpitProcessingQueue'
 import { useMoshpitAssetRegistry } from '@/platform/moshpit/composables/useMoshpitAssetRegistry'
 import { layoutSeedHash } from '@/platform/moshpit/services/contentHash'
 import type { GridSlot } from '@/platform/moshpit/services/layoutMath'
-import {
-  computeJitteredGrid,
-  computePackedGrid
-} from '@/platform/moshpit/services/layoutMath'
+import { computeJitteredGrid } from '@/platform/moshpit/services/layoutMath'
 
 export const DEFAULT_CELL_SIZE = 560
-export const REPACK_DURATION_MS = 300
 
 /**
  * Injection key for passing the Phase 3 filtered-assets layout provider from
@@ -92,9 +88,9 @@ interface SpriteEntry {
   slot: GridSlot
 }
 
-export function useMoshpitSpriteLayer(
-  options: SpriteLayerOptions
-): { destroy(): void } {
+export function useMoshpitSpriteLayer(options: SpriteLayerOptions): {
+  destroy(): void
+} {
   const cellSize = options.cellSize ?? DEFAULT_CELL_SIZE
   const queue = options.queue
   const registry = useMoshpitAssetRegistry()
@@ -136,7 +132,10 @@ export function useMoshpitSpriteLayer(
     }
   }
 
-  function makeSpriteFromTexture(contentHash: string, texture: Texture): Sprite {
+  function makeSpriteFromTexture(
+    contentHash: string,
+    texture: Texture
+  ): Sprite {
     const sprite = new Sprite(texture)
     sprite.anchor.set(0.5)
     sprite.label = `moshpit-sprite:${contentHash}`
@@ -207,66 +206,24 @@ export function useMoshpitSpriteLayer(
     }
   }
 
-  function startRepackTween(): void {
-    const hashes = Array.from(spriteMap.keys()).sort()
-    const packed = computePackedGrid(hashes, cellSize)
-    const packedByHash = new Map(packed.map((p) => [p.hash, p]))
-    const fromByHash = new Map<string, { x: number; y: number }>()
-    for (const [hash, entry] of spriteMap) {
-      fromByHash.set(hash, { x: entry.sprite.x, y: entry.sprite.y })
-    }
-
-    let elapsed = 0
-    const handler = (ticker: Ticker) => {
-      elapsed += ticker.deltaMS
-      const t = Math.min(elapsed / REPACK_DURATION_MS, 1)
-      const eased = 1 - Math.pow(1 - t, 3) // ease-out-cubic
-      for (const [hash, entry] of spriteMap) {
-        const to = packedByHash.get(hash)
-        const from = fromByHash.get(hash)
-        if (!to || !from) continue
-        entry.sprite.x = from.x + (to.worldX - from.x) * eased
-        entry.sprite.y = from.y + (to.worldY - from.y) * eased
-      }
-      if (t >= 1) {
-        // Finalize slots
-        for (const [hash, entry] of spriteMap) {
-          const to = packedByHash.get(hash)
-          if (to) entry.slot = to
-        }
-        options.ticker.remove(handler)
-      }
-    }
-    options.ticker.add(handler)
-  }
-
   // Watch registry for sprite add/remove/thumb-arrival.
   // watchEffect automatically tracks every reactive dep read inside the
   // callback, including `registry.entries.value[i].thumbUrl` (which reads
   // `thumbStore.urlByHash` via the computed chain), so progressive thumb
   // arrival triggers sync even when asset count is unchanged.
+  //
+  // The injected `layoutProvider` (from useMoshpitFilteredAssets) is the
+  // single source of truth for sprite positions — its cluster layout
+  // already sorts by `withinClusterSort`, so there is no post-completion
+  // repack: sprites land on their final slots as soon as their hash enters
+  // the layout, and nothing moves them after that.
   const stopRegistryEffect = watchEffect(() => {
     syncSprites(registry.entries.value)
   })
 
-  // Watch processing completion → fire re-pack tween once per completion
-  let hasRepacked = false
-  const stopCompletionWatch = watch(
-    () => queue.total.value > 0 && queue.done.value === queue.total.value,
-    (complete) => {
-      if (complete && !hasRepacked) {
-        hasRepacked = true
-        startRepackTween()
-      } else if (!complete) {
-        hasRepacked = false
-      }
-    }
-  )
-
   function destroy(): void {
     cancelled = true
     stopRegistryEffect()
-    stopCompletionWatch()
     for (const [, entry] of spriteMap) {
       entry.sprite.destroy()
     }
