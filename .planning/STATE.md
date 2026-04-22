@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-03-PLAN.md
-last_updated: '2026-04-22T03:10:37.788Z'
+stopped_at: Completed 05-04-PLAN.md
+last_updated: '2026-04-22T03:20:06.938Z'
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 41
-  completed_plans: 38
-  percent: 93
+  completed_plans: 39
+  percent: 95
 ---
 
 # Project State
@@ -26,11 +26,11 @@ progress:
 ## Current Position
 
 Phase: 05 (tournament-mode-replaces-old-comparison-mode-framing) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 
 - **Milestone:** v1
 - **Phase:** 5
-- **Plan:** 05-02 complete (metadataDiff pure module + tests)
+- **Plan:** 05-04 complete (MoshpitTournamentAssetFrame + MoshpitTournamentPair)
 - **Status:** Executing Phase 05
 
 Progress: `[█████████░] 3 / 7 phases`
@@ -52,6 +52,7 @@ Progress: `[█████████░] 3 / 7 phases`
 | Phase 05 P01 | ~30min   | 2 tasks | 2 files                |
 | Phase 05 P02 | ~3min    | 2 tasks | 2 files                |
 | Phase 05 P03 | ~7min    | 3 tasks | 4 files                |
+| Phase 05 P04 | ~6min    | 2 tasks | 4 files                |
 
 ## Accumulated Context
 
@@ -111,6 +112,7 @@ Progress: `[█████████░] 3 / 7 phases`
 - [Phase 05]: Phase 05 Plan 01 — tournamentBracket pure module shipped with applyPick/generateNextRound split locked; RED commit requires a stub for ESLint import-x; happy-dom strips file: scheme so pure-module invariant test uses process.cwd().
 - [Phase 05]: Phase 05 Plan 02: metadataDiff pure module — diffParams missing-value semantics treat undefined/null/'' alike; diffLoras duplicate-name = last-weight-wins; sortBy(state,name); 22 tests, 2 fast-check permutation properties (PEEK-03).
 - [Phase 05]: Plan 05-03: tournament store uses injected fullResUrlResolver (not assetsStore direct coupling); currentRoundWinnersInOrder lives as internal Setup-scope ref; preload is uncapped fire-and-forget; D-08 collapses esc+complete into one rule (>=1 win => apply); VNode-prop ref unreliable under happy-dom — tests use callback ref.
+- [Phase 05]: Plan 05-04: Tournament visual primitives shipped — AssetFrame uses Image() preloader + Tailwind opacity transition for crossfade (no JS tween). Pair applies dynamic clip-path via inline :style; divider drag updates store.wipePosition via getBoundingClientRect. Semantic tokens verified vs style.css — use bg-base-background / bg-base-foreground / ring-(--focus-ring) / bg-interface-panel-surface (plan-suggested bg-background / bg-foreground / ring-primary don't exist). TDD RED commits skipped for UI glue per plan — vue/no-unused-properties and testing-library/no-container linters forced single feat: commits with tests-first in working tree.
 
 ### Active Todos
 
@@ -124,8 +126,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T03:10:30.073Z
-**Stopped at:** Completed 05-03-PLAN.md
+**Last session:** 2026-04-22T03:20:06.928Z
+**Stopped at:** Completed 05-04-PLAN.md
 
 **Context for next session:**
 
