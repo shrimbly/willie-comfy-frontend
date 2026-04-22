@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: '2026-04-22T02:58:41.682Z'
+stopped_at: Completed 05-03-PLAN.md
+last_updated: '2026-04-22T03:10:37.788Z'
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 41
-  completed_plans: 37
-  percent: 90
+  completed_plans: 38
+  percent: 93
 ---
 
 # Project State
@@ -51,6 +51,7 @@ Progress: `[█████████░] 3 / 7 phases`
 | Phase 04 P06 | 55min    | 6 tasks | 10 files               |
 | Phase 05 P01 | ~30min   | 2 tasks | 2 files                |
 | Phase 05 P02 | ~3min    | 2 tasks | 2 files                |
+| Phase 05 P03 | ~7min    | 3 tasks | 4 files                |
 
 ## Accumulated Context
 
@@ -109,6 +110,7 @@ Progress: `[█████████░] 3 / 7 phases`
 - [Phase 04]: Plan 04-06 Task 5 (Playwright @moshpit spec) deferred per D-21 — pre-existing typecheck:browser tsconfig mismatch on main blocks browser_tests/ commits. Full rationale + 5-test design logged to deferred-items.md.
 - [Phase 05]: Phase 05 Plan 01 — tournamentBracket pure module shipped with applyPick/generateNextRound split locked; RED commit requires a stub for ESLint import-x; happy-dom strips file: scheme so pure-module invariant test uses process.cwd().
 - [Phase 05]: Phase 05 Plan 02: metadataDiff pure module — diffParams missing-value semantics treat undefined/null/'' alike; diffLoras duplicate-name = last-weight-wins; sortBy(state,name); 22 tests, 2 fast-check permutation properties (PEEK-03).
+- [Phase 05]: Plan 05-03: tournament store uses injected fullResUrlResolver (not assetsStore direct coupling); currentRoundWinnersInOrder lives as internal Setup-scope ref; preload is uncapped fire-and-forget; D-08 collapses esc+complete into one rule (>=1 win => apply); VNode-prop ref unreliable under happy-dom — tests use callback ref.
 
 ### Active Todos
 
@@ -122,8 +124,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T02:58:41.680Z
-**Stopped at:** Completed 05-02-PLAN.md
+**Last session:** 2026-04-22T03:10:30.073Z
+**Stopped at:** Completed 05-03-PLAN.md
 
 **Context for next session:**
 

@@ -79,18 +79,18 @@ SORT-01..05 shipped in Phase 3 but are superseded by lineage groupings. The UI w
 
 ### Tournament Mode _(replaces old Comparison Mode)_
 
-- [ ] **TOUR-01**: User can enter tournament mode from a selection of ≥2 assets via `Enter`
+- [x] **TOUR-01**: User can enter tournament mode from a selection of ≥2 assets via `Enter`
 - [x] **TOUR-02**: User can switch between three display modes via `[` / `]`: side-by-side, overlap (opacity slider / wipe), A/B flip
 - [x] **TOUR-03**: User picks winner of each pair via `←` (left/A) or `→` (right/B); `↓` skips/advances without picking
-- [ ] **TOUR-04**: `Space` triggers an A/B flip toggle in any display mode
+- [x] **TOUR-04**: `Space` triggers an A/B flip toggle in any display mode
 - [x] **TOUR-05**: Tournament is **ephemeral** — no scores, elo, or leaderboards persist across sessions
 - [x] **TOUR-06**: Tournament exit produces a winner set selected on the canvas; user exports or folders them manually
 - [x] **TOUR-07**: User can exit tournament mode via `Esc`, canvas selection preserved
-- [ ] **TOUR-08**: Full-resolution assets load on tournament entry (not on hover, not on high zoom)
+- [x] **TOUR-08**: Full-resolution assets load on tournament entry (not on hover, not on high zoom)
 
 ### Metadata Peek _(replaces auto-open metadata panel)_
 
-- [ ] **PEEK-01**: Tournament mode shows no metadata panel by default — pure pixels for quality judgment
+- [x] **PEEK-01**: Tournament mode shows no metadata panel by default — pure pixels for quality judgment
 - [x] **PEEK-02**: `M` toggles an overlay showing all parameters for both assets; matching parameters render plainly, differing parameters render highlighted
 - [x] **PEEK-03**: List-valued parameters (LoRAs) render as a set diff — name-based, order-insensitive — with added / removed / weight-changed callouts
 
@@ -233,15 +233,15 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | GROUP-09    | 4     | Complete              |
 | GROUP-10    | 4     | Complete              |
 | CSORT-01    | 4     | Complete              |
-| TOUR-01     | 5     | Pending               |
+| TOUR-01     | 5     | Complete              |
 | TOUR-02     | 5     | Complete              |
 | TOUR-03     | 5     | Complete              |
-| TOUR-04     | 5     | Pending               |
+| TOUR-04     | 5     | Complete              |
 | TOUR-05     | 5     | Complete              |
 | TOUR-06     | 5     | Complete              |
 | TOUR-07     | 5     | Complete              |
-| TOUR-08     | 5     | Pending               |
-| PEEK-01     | 5     | Pending               |
+| TOUR-08     | 5     | Complete              |
+| PEEK-01     | 5     | Complete              |
 | PEEK-02     | 5     | Complete              |
 | PEEK-03     | 5     | Complete              |
 | CURATE-01   | 6     | Pending               |

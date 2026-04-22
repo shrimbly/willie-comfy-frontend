@@ -139,7 +139,7 @@
 
 - [x] 05-01-PLAN.md — Pure tournamentBracket.ts (round-robin + single-elim + winner-set) + fast-check property tests (TOUR-02/03/05/06/07)
 - [x] 05-02-PLAN.md — Pure metadataDiff.ts (param diff + LoRA set-diff) + permutation-invariance property test (PEEK-02/03)
-- [ ] 05-03-PLAN.md — moshpitTournamentStore (ephemeral Pinia, no IDB) + useMoshpitTournamentKeybindings scoped keydown (TOUR-01..08, PEEK-01)
+- [x] 05-03-PLAN.md — moshpitTournamentStore (ephemeral Pinia, no IDB) + useMoshpitTournamentKeybindings scoped keydown (TOUR-01..08, PEEK-01)
 - [ ] 05-04-PLAN.md — MoshpitTournamentAssetFrame (thumb→full-res crossfade) + MoshpitTournamentPair (three display modes) (TOUR-02/04/08)
 - [ ] 05-05-PLAN.md — MoshpitMetadataPeekPanel (right-side slide-in diff panel) (PEEK-01/02/03)
 - [ ] 05-06-PLAN.md — MoshpitTournamentOverlay (Reka DialogRoot composition) + MoshpitView Enter gate + i18n + @moshpit Playwright + HUMAN-UAT [human checkpoint]
