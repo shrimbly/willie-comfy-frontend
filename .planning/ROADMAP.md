@@ -142,7 +142,7 @@
 - [x] 05-03-PLAN.md — moshpitTournamentStore (ephemeral Pinia, no IDB) + useMoshpitTournamentKeybindings scoped keydown (TOUR-01..08, PEEK-01)
 - [x] 05-04-PLAN.md — MoshpitTournamentAssetFrame (thumb→full-res crossfade) + MoshpitTournamentPair (three display modes) (TOUR-02/04/08)
 - [x] 05-05-PLAN.md — MoshpitMetadataPeekPanel (right-side slide-in diff panel) (PEEK-01/02/03)
-- [ ] 05-06-PLAN.md — MoshpitTournamentOverlay (Reka DialogRoot composition) + MoshpitView Enter gate + i18n + @moshpit Playwright + HUMAN-UAT [human checkpoint]
+- [x] 05-06-PLAN.md — MoshpitTournamentOverlay (Reka DialogRoot composition) + MoshpitView Enter gate + i18n + @moshpit Playwright + HUMAN-UAT [human checkpoint]
 
 **UI hint**: yes
 

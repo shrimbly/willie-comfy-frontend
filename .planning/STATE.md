@@ -3,37 +3,37 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-05-PLAN.md
-last_updated: '2026-04-22T03:30:26.146Z'
+stopped_at: Completed 05-06-PLAN.md (Phase 05 complete)
+last_updated: '2026-04-23T00:00:00.000Z'
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 41
-  completed_plans: 40
-  percent: 98
+  completed_plans: 41
+  percent: 100
 ---
 
 # Project State
 
-**Last updated:** 2026-04-21
+**Last updated:** 2026-04-23
 
 ## Project Reference
 
 **Project:** Moshpit (ComfyUI Autocanvas)
 **Core Value:** Prove that a lineage-grouped spatial canvas with shortlist-then-tournament curation is a faster, more intuitive way to pick the best generations from a large set.
-**Current Focus:** Phase 05 — tournament-mode-replaces-old-comparison-mode-framing
+**Current Focus:** Phase 06 — Curation (next)
 
 ## Current Position
 
-Phase: 05 (tournament-mode-replaces-old-comparison-mode-framing) — EXECUTING
-Plan: 5 of 6
+Phase: 05 (tournament-mode-replaces-old-comparison-mode-framing) — COMPLETE
+Plan: 6 of 6 complete
 
 - **Milestone:** v1
-- **Phase:** 5
-- **Plan:** 05-05 complete (MoshpitMetadataPeekPanel)
-- **Status:** Executing Phase 05
+- **Phase:** 5 — COMPLETE (all 11 TOUR/PEEK requirements closed, UAT signed off)
+- **Plan:** 05-06 complete (tournament integration + HUMAN-UAT sign-off)
+- **Status:** Phase 05 shipped; Phase 06 (Curation) is next
 
-Progress: `[█████████░] 3 / 7 phases`
+Progress: `[██████████] 5 / 7 phases`
 
 ## Performance Metrics
 
@@ -41,19 +41,20 @@ Progress: `[█████████░] 3 / 7 phases`
 - Plans complete: 34 / 35 (across phases 1–3 + Phase 4 Plans 01–05)
 - Requirements mapped: 74 / 74 (v1 total post-pivot)
 
-| Phase-Plan   | Duration | Tasks   | Files                  |
-| ------------ | -------- | ------- | ---------------------- |
-| 04-01        | ~10 min  | 2       | 4 created + 1 modified |
-| Phase 04 P02 | ~7 min   | 2 tasks | 5 modified files       |
-| Phase 04 P03 | 75 min   | 4 tasks | 13 files               |
-| Phase 04 P04 | ~29 min  | 4 tasks | 16 files               |
-| Phase 04 P05 | ~10min   | 1 tasks | 3 files                |
-| Phase 04 P06 | 55min    | 6 tasks | 10 files               |
-| Phase 05 P01 | ~30min   | 2 tasks | 2 files                |
-| Phase 05 P02 | ~3min    | 2 tasks | 2 files                |
-| Phase 05 P03 | ~7min    | 3 tasks | 4 files                |
-| Phase 05 P04 | ~6min    | 2 tasks | 4 files                |
-| Phase 05 P05 | ~7min    | 1 tasks | 2 files                |
+| Phase-Plan   | Duration | Tasks   | Files                   |
+| ------------ | -------- | ------- | ----------------------- |
+| 04-01        | ~10 min  | 2       | 4 created + 1 modified  |
+| Phase 04 P02 | ~7 min   | 2 tasks | 5 modified files        |
+| Phase 04 P03 | 75 min   | 4 tasks | 13 files                |
+| Phase 04 P04 | ~29 min  | 4 tasks | 16 files                |
+| Phase 04 P05 | ~10min   | 1 tasks | 3 files                 |
+| Phase 04 P06 | 55min    | 6 tasks | 10 files                |
+| Phase 05 P01 | ~30min   | 2 tasks | 2 files                 |
+| Phase 05 P02 | ~3min    | 2 tasks | 2 files                 |
+| Phase 05 P03 | ~7min    | 3 tasks | 4 files                 |
+| Phase 05 P04 | ~6min    | 2 tasks | 4 files                 |
+| Phase 05 P05 | ~7min    | 1 tasks | 2 files                 |
+| Phase 05 P06 | ~95min   | 5 tasks | 6 created + 15 modified |
 
 ## Accumulated Context
 
@@ -115,6 +116,7 @@ Progress: `[█████████░] 3 / 7 phases`
 - [Phase 05]: Plan 05-03: tournament store uses injected fullResUrlResolver (not assetsStore direct coupling); currentRoundWinnersInOrder lives as internal Setup-scope ref; preload is uncapped fire-and-forget; D-08 collapses esc+complete into one rule (>=1 win => apply); VNode-prop ref unreliable under happy-dom — tests use callback ref.
 - [Phase 05]: Plan 05-04: Tournament visual primitives shipped — AssetFrame uses Image() preloader + Tailwind opacity transition for crossfade (no JS tween). Pair applies dynamic clip-path via inline :style; divider drag updates store.wipePosition via getBoundingClientRect. Semantic tokens verified vs style.css — use bg-base-background / bg-base-foreground / ring-(--focus-ring) / bg-interface-panel-surface (plan-suggested bg-background / bg-foreground / ring-primary don't exist). TDD RED commits skipped for UI glue per plan — vue/no-unused-properties and testing-library/no-container linters forced single feat: commits with tests-first in working tree.
 - [Phase 05]: Plan 05-05: MoshpitMetadataPeekPanel shipped — Tailwind transition-[transform] duration-200 ease-out slide gated by store.isPeekOpen (no JS tween); scalar diff rows highlighted bg-node-component-surface; LoRA rows text-success/text-danger/text-warning; i18n via moshpit.peek._ keys; Plan 06 drops moshpit.peek.lora.state_ keys (state conveyed by colour alone).
+- [Phase 05]: Plan 05-06: Phase 05 shipped. Overlay + Enter gate + i18n + UAT signed off 2026-04-23. Post-UAT work in-scope: canvas selection gestures (click/ctrl+click/shift+click/marquee with Cmd/Ctrl gate) added because MoshpitCanvas had none; tournament keybindings moved from DialogContent template-ref (Reka returns component instance, not HTMLElement) to window capture phase gated on isActive; overlap clipPath inverted so divider IS the A↔B seam; pick-pulse feedback (CSS gradient, pickPulseId scalar); winner screen on tournament completion with Enter/Esc/Space ack; modal framing reframed as bounded dialog with stronger backdrop + z-50 above MoshpitLayout. 625/625 moshpit unit tests green, typecheck clean. @moshpit Playwright spec still deferred (Phase 4 tsconfig:browser blocker).
 
 ### Active Todos
 
@@ -128,16 +130,16 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T03:30:15.376Z
-**Stopped at:** Completed 05-05-PLAN.md
+**Last session:** 2026-04-23T00:00:00.000Z
+**Stopped at:** Completed 05-06-PLAN.md (Phase 05 shipped, HUMAN-UAT approved)
 
 **Context for next session:**
 
 - Read `.planning/PROJECT.md` for scope and constraints (v3-pivot-aware).
-- Read `.planning/REQUIREMENTS.md` for the 74 v1 requirements and their phase mappings; note SORT-01/02/03 are deprecated post-ship.
-- Read `.planning/ROADMAP.md` for the reorganised phase structure (Phase 4 = Lineage Groupings, Phase 5 = Tournament Mode, Phase 6 = Curation, Phase 7 = UX).
+- Read `.planning/REQUIREMENTS.md` for the 74 v1 requirements and their phase mappings; note SORT-01/02/03 are deprecated post-ship. TOUR-01..08 and PEEK-01..03 are now closed.
+- Read `.planning/ROADMAP.md` for the reorganised phase structure (Phase 4 = Lineage Groupings ✓, Phase 5 = Tournament Mode ✓, Phase 6 = Curation, Phase 7 = UX).
 - Read `temp/plans/moshpit_prd.md` v3 for the curation pivot reasoning and full product spec.
-- Next step: `/gsd-plan-phase 4` (or `/gsd-discuss-phase 4` first if design questions want surfacing).
+- Next step: `/gsd-plan-phase 6` (Curation — folders, tags, favourites, hide, export) — depends on the winner-set selection primitive demonstrated in Phase 5.
 
 **Open questions carried forward** (from PRD v3 §9):
 
