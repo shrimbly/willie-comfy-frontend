@@ -91,8 +91,8 @@ SORT-01..05 shipped in Phase 3 but are superseded by lineage groupings. The UI w
 ### Metadata Peek _(replaces auto-open metadata panel)_
 
 - [ ] **PEEK-01**: Tournament mode shows no metadata panel by default — pure pixels for quality judgment
-- [ ] **PEEK-02**: `M` toggles an overlay showing all parameters for both assets; matching parameters render plainly, differing parameters render highlighted
-- [ ] **PEEK-03**: List-valued parameters (LoRAs) render as a set diff — name-based, order-insensitive — with added / removed / weight-changed callouts
+- [x] **PEEK-02**: `M` toggles an overlay showing all parameters for both assets; matching parameters render plainly, differing parameters render highlighted
+- [x] **PEEK-03**: List-valued parameters (LoRAs) render as a set diff — name-based, order-insensitive — with added / removed / weight-changed callouts
 
 ### Curation
 
@@ -242,8 +242,8 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | TOUR-07     | 5     | Complete              |
 | TOUR-08     | 5     | Pending               |
 | PEEK-01     | 5     | Pending               |
-| PEEK-02     | 5     | Pending               |
-| PEEK-03     | 5     | Pending               |
+| PEEK-02     | 5     | Complete              |
+| PEEK-03     | 5     | Complete              |
 | CURATE-01   | 6     | Pending               |
 | CURATE-02   | 6     | Pending               |
 | CURATE-03   | 6     | Pending               |

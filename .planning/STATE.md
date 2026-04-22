@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: '2026-04-22T02:53:00.949Z'
+stopped_at: Completed 05-02-PLAN.md
+last_updated: '2026-04-22T02:58:41.682Z'
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 41
-  completed_plans: 36
-  percent: 88
+  completed_plans: 37
+  percent: 90
 ---
 
 # Project State
@@ -26,11 +26,11 @@ progress:
 ## Current Position
 
 Phase: 05 (tournament-mode-replaces-old-comparison-mode-framing) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 
 - **Milestone:** v1
 - **Phase:** 5
-- **Plan:** 05-01 complete (tournamentBracket pure module + tests)
+- **Plan:** 05-02 complete (metadataDiff pure module + tests)
 - **Status:** Executing Phase 05
 
 Progress: `[█████████░] 3 / 7 phases`
@@ -50,6 +50,7 @@ Progress: `[█████████░] 3 / 7 phases`
 | Phase 04 P05 | ~10min   | 1 tasks | 3 files                |
 | Phase 04 P06 | 55min    | 6 tasks | 10 files               |
 | Phase 05 P01 | ~30min   | 2 tasks | 2 files                |
+| Phase 05 P02 | ~3min    | 2 tasks | 2 files                |
 
 ## Accumulated Context
 
@@ -107,6 +108,7 @@ Progress: `[█████████░] 3 / 7 phases`
 - [Phase 04]: Plan 04-06: moshpit.sort.\* i18n block fully removed (12 keys); showHiddenLabel relocated to moshpit.filters.showHiddenLabel; grid-spacing label now lives in moshpit.grouping.spacingLabel + spacingValue.
 - [Phase 04]: Plan 04-06 Task 5 (Playwright @moshpit spec) deferred per D-21 — pre-existing typecheck:browser tsconfig mismatch on main blocks browser_tests/ commits. Full rationale + 5-test design logged to deferred-items.md.
 - [Phase 05]: Phase 05 Plan 01 — tournamentBracket pure module shipped with applyPick/generateNextRound split locked; RED commit requires a stub for ESLint import-x; happy-dom strips file: scheme so pure-module invariant test uses process.cwd().
+- [Phase 05]: Phase 05 Plan 02: metadataDiff pure module — diffParams missing-value semantics treat undefined/null/'' alike; diffLoras duplicate-name = last-weight-wins; sortBy(state,name); 22 tests, 2 fast-check permutation properties (PEEK-03).
 
 ### Active Todos
 
@@ -120,8 +122,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T02:52:52.755Z
-**Stopped at:** Completed 05-01-PLAN.md
+**Last session:** 2026-04-22T02:58:41.680Z
+**Stopped at:** Completed 05-02-PLAN.md
 
 **Context for next session:**
 
