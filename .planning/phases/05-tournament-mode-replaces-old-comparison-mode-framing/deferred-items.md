@@ -61,6 +61,34 @@ chore task. Follow-up path is in Phase 4's deferred-items.md: tighten
 and the declared `.d.ts` paths compile (currently transitively picks up
 `src/composables/` via import-graph resolution).
 
+## Pre-existing test failure — `src/stores/assetsStore.test.ts`
+
+Verified pre-existing by running the failing test against the stashed
+working tree — `expected undefined to be null` on `store.historyError`
+after initial load (line 120). Unrelated to Phase 5 scope (Moshpit
+tournament).
+
+```
+FAIL src/stores/assetsStore.test.ts > assetsStore - Output Files > Initial Load > should load output files via /files/output endpoint
+AssertionError: expected undefined to be null // Object.is equality
+```
+
+Plan 05-06 scope is Moshpit overlay composition + MoshpitView extension
+
+- i18n — does not touch `assetsStore`. Fix belongs to a standalone chore
+  or the asset-platform team.
+
+## Pre-existing lint errors (6 total, 2860 warnings)
+
+Global `pnpm lint` run surfaces 6 `typescript-eslint/no-floating-promises`
+errors across test files that predate Phase 5:
+
+- `src/utils/widgetUtil.test.ts:11:32`
+- `src/composables/useMoshpitCommands.test.ts:40:5 / 51:5 / 62:5`
+- `src/platform/moshpit/services/sortMath.test.ts:117:26`
+
+All pre-existing on HEAD; none introduced by Plan 05-06.
+
 ## Pre-existing i18n unused-key warning (non-blocking)
 
 The repo's i18n-unused-key lint-staged step flags 9 keys under
