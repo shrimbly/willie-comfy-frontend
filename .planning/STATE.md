@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 05-06-PLAN.md (Phase 05 complete)
-last_updated: '2026-04-23T00:00:00.000Z'
+status: planning
+stopped_at: Completed 05-06-PLAN.md (Phase 05 shipped, HUMAN-UAT approved)
+last_updated: '2026-04-22T16:43:28.873Z'
 progress:
   total_phases: 7
   completed_phases: 5
@@ -29,9 +29,9 @@ Phase: 05 (tournament-mode-replaces-old-comparison-mode-framing) — COMPLETE
 Plan: 6 of 6 complete
 
 - **Milestone:** v1
-- **Phase:** 5 — COMPLETE (all 11 TOUR/PEEK requirements closed, UAT signed off)
-- **Plan:** 05-06 complete (tournament integration + HUMAN-UAT sign-off)
-- **Status:** Phase 05 shipped; Phase 06 (Curation) is next
+- **Phase:** 6
+- **Plan:** Not started
+- **Status:** Ready to plan
 
 Progress: `[██████████] 5 / 7 phases`
 
