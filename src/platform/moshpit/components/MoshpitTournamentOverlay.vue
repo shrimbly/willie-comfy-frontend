@@ -87,7 +87,7 @@ const openModel = computed({
   <DialogRoot v-model:open="openModel">
     <DialogPortal>
       <DialogOverlay
-        class="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm"
+        class="fixed inset-0 z-40 bg-black/90 backdrop-blur-md"
         data-testid="moshpit-tournament-overlay-backdrop"
       />
       <DialogContent
