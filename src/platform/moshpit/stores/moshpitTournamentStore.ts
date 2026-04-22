@@ -78,6 +78,12 @@ export const useMoshpitTournamentStore = defineStore(
     const flipShowsB: Ref<boolean> = ref(false)
     const isPeekOpen: Ref<boolean> = ref(false)
     const wipePosition: Ref<number> = ref(0.5)
+    // Transient pick-feedback signals. `lastPickedSide` records which side was
+    // chosen on the most recent pickWinner; `pickPulseId` is a monotonically
+    // increasing counter so the UI can re-trigger a CSS animation on every
+    // pick even when the side is the same.
+    const lastPickedSide: Ref<'A' | 'B' | null> = ref(null)
+    const pickPulseId: Ref<number> = ref(0)
 
     // --- non-reactive session state (restored on exit, NOT part of the
     // public store surface) ---
@@ -118,6 +124,8 @@ export const useMoshpitTournamentStore = defineStore(
       flipShowsB.value = false
       isPeekOpen.value = false
       wipePosition.value = 0.5
+      lastPickedSide.value = null
+      pickPulseId.value = 0
       selectionOnEntry.value = []
       currentRoundWinnersInOrder.value = []
       totalPicksExpected.value = 0
@@ -204,6 +212,11 @@ export const useMoshpitTournamentStore = defineStore(
       if (!isActive.value) return
       const pair = currentPair.value
       if (!pair) return
+
+      // Fire pick-feedback BEFORE advancing so the UI can read side + pulse id
+      // in the same reactive tick the pair transitions.
+      lastPickedSide.value = which
+      pickPulseId.value += 1
 
       const remaining = bracket.value.slice(currentPairIndex.value + 1)
       const update = applyPick(
@@ -332,6 +345,8 @@ export const useMoshpitTournamentStore = defineStore(
       flipShowsB,
       isPeekOpen,
       wipePosition,
+      lastPickedSide,
+      pickPulseId,
       currentPair,
       totalPairs,
       progress,

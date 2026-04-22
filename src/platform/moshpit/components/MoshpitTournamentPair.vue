@@ -53,8 +53,11 @@ function onDividerPointerUp(e: PointerEvent): void {
   target?.releasePointerCapture?.(e.pointerId)
 }
 
+// Divider position IS the AB boundary. A fills the background; B is clipped
+// so it only paints right of the divider. Dragging the divider right reveals
+// more A; dragging left reveals more B.
 const clipStyleForB = computed(() => ({
-  clipPath: `inset(0 ${store.wipePosition * 100}% 0 0)`
+  clipPath: `inset(0 0 0 ${store.wipePosition * 100}%)`
 }))
 
 const dividerStyle = computed(() => ({
@@ -137,6 +140,48 @@ const flipHash = computed(() =>
           :label="store.flipShowsB ? 'B' : 'A'"
         />
       </template>
+
+      <!--
+        Pick-pulse feedback. Re-keyed on every pickPulseId so the CSS
+        animation restarts even when the same side is picked twice in a row.
+        Pointer-events-none so it never blocks the divider or Asset clicks.
+      -->
+      <div
+        v-if="store.lastPickedSide && store.pickPulseId > 0"
+        :key="store.pickPulseId"
+        class="moshpit-pick-pulse pointer-events-none absolute inset-y-0 z-10 w-1/2"
+        :class="store.lastPickedSide === 'A' ? 'left-0' : 'right-0'"
+        data-testid="moshpit-tournament-pair-pick-pulse"
+      />
     </template>
   </div>
 </template>
+
+<style scoped>
+/*
+ * Pick pulse: a brief gradient flash on the winning side. z-10 keeps it
+ * over the asset frames but beneath the divider (z-auto > 10 by DOM order).
+ * The `from-` color side flips via `left-0` / `right-0` placement —
+ * `-l` variant ensures the glow is anchored to the outer edge.
+ */
+.moshpit-pick-pulse {
+  background: linear-gradient(
+    to var(--pulse-direction, right),
+    oklch(0.75 0.15 150 / 0.35),
+    oklch(0.75 0.15 150 / 0)
+  );
+  animation: moshpit-pick-pulse 420ms ease-out forwards;
+}
+.moshpit-pick-pulse.right-0 {
+  --pulse-direction: left;
+}
+
+@keyframes moshpit-pick-pulse {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+</style>

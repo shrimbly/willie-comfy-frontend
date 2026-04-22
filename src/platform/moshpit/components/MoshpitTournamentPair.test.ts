@@ -127,7 +127,7 @@ describe('MoshpitTournamentPair', () => {
       const clippedLayer = screen.getByTestId(
         'moshpit-tournament-pair-clipped'
       ) as HTMLElement
-      expect(clippedLayer.style.clipPath).toBe('inset(0 30% 0 0)')
+      expect(clippedLayer.style.clipPath).toBe('inset(0 0 0 30%)')
 
       const divider = screen.getByTestId(
         'moshpit-tournament-pair-divider'
@@ -233,7 +233,7 @@ describe('MoshpitTournamentPair', () => {
       const clipped = screen.getByTestId(
         'moshpit-tournament-pair-clipped'
       ) as HTMLElement
-      expect(clipped.style.clipPath).toBe('inset(0 30% 0 0)')
+      expect(clipped.style.clipPath).toBe('inset(0 0 0 30%)')
 
       store.setDisplayMode('flip')
       await rerender({ resolveFullResUrl: () => null })
