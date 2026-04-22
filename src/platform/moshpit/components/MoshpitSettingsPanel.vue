@@ -1,7 +1,7 @@
 <template>
   <aside
     data-testid="moshpit-settings-panel"
-    class="flex h-full w-64 flex-col border-r border-(--interface-stroke) bg-node-component-surface"
+    class="flex h-full w-64 flex-col border-r border-(--interface-stroke) bg-comfy-menu-bg"
   >
     <header class="flex items-center justify-between px-3 py-2 text-sm">
       <span>{{ t('moshpit.sidebar.settings') }}</span>

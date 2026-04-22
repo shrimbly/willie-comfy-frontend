@@ -45,7 +45,7 @@
       :class="
         cn(
           'z-1700 max-h-60 w-(--reka-combobox-trigger-width) overflow-y-auto',
-          'rounded-md border border-border-subtle bg-interface-panel-surface shadow-interface'
+          'rounded-md border border-border-subtle bg-comfy-menu-bg shadow-interface'
         )
       "
     >

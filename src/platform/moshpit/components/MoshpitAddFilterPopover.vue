@@ -18,7 +18,7 @@
         :collision-padding="8"
         :class="
           cn(
-            'z-1700 w-56 rounded-md border border-border-subtle bg-interface-panel-surface p-1 shadow-lg',
+            'z-1700 w-56 rounded-md border border-border-subtle bg-comfy-menu-bg p-1 shadow-lg',
             'data-[state=open]:data-[side=bottom]:animate-slideUpAndFade'
           )
         "

@@ -1,7 +1,7 @@
 <template>
   <nav
     data-testid="moshpit-side-rail"
-    class="flex h-full flex-col items-center border-r border-(--interface-stroke) bg-node-component-surface"
+    class="flex h-full flex-col items-center border-r border-(--interface-stroke) bg-comfy-menu-bg"
   >
     <div class="flex flex-col items-center gap-1 p-1">
       <SidebarIcon
