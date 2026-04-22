@@ -24,7 +24,10 @@
         </label>
         <span class="text-2xs text-muted-foreground">({{ opt.count }})</span>
       </li>
-      <li v-if="filteredOptions.length === 0" class="px-2 py-1 text-xs text-muted-foreground">
+      <li
+        v-if="filteredOptions.length === 0"
+        class="px-2 py-1 text-xs text-muted-foreground"
+      >
         {{ t('moshpit.filters.editorSearchValues') }}
       </li>
     </ul>
@@ -36,7 +39,10 @@ import Fuse from 'fuse.js'
 import { computed, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { ChipValue, ParamKey } from '@/platform/moshpit/services/filterTypes'
+import type {
+  ChipValue,
+  ParamKey
+} from '@/platform/moshpit/services/filterTypes'
 import { useMoshpitParamValueOptions } from '@/platform/moshpit/composables/useMoshpitParamValueOptions'
 
 defineOptions({ name: 'MoshpitCategoricalFilterEditor' })

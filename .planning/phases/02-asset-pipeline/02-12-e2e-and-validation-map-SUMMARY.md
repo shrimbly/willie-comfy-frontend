@@ -35,15 +35,15 @@ metrics:
 
 ## Tasks Completed
 
-| Task | Name | Commit | Files |
-|------|------|--------|-------|
-| 1 | Extend MoshpitCanvasHelper + ship asset-pipeline.spec.ts + honest VALIDATION.md | adc2d1516 | browser_tests/fixtures/helpers/MoshpitCanvasHelper.ts, browser_tests/tests/moshpit/asset-pipeline.spec.ts, .planning/phases/02-asset-pipeline/02-VALIDATION.md |
+| Task | Name                                                                            | Commit    | Files                                                                                                                                                          |
+| ---- | ------------------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Extend MoshpitCanvasHelper + ship asset-pipeline.spec.ts + honest VALIDATION.md | adc2d1516 | browser_tests/fixtures/helpers/MoshpitCanvasHelper.ts, browser_tests/tests/moshpit/asset-pipeline.spec.ts, .planning/phases/02-asset-pipeline/02-VALIDATION.md |
 
 ## Tasks Pending (checkpoint)
 
-| Task | Name | Status |
-|------|------|--------|
-| 2 | Human verification — run @moshpit suite against live backend | awaiting human-verify |
+| Task | Name                                                         | Status                |
+| ---- | ------------------------------------------------------------ | --------------------- |
+| 2    | Human verification — run @moshpit suite against live backend | awaiting human-verify |
 
 ## What Was Built
 
@@ -91,19 +91,23 @@ No new network endpoints, auth paths, file access patterns, or schema changes in
 ## Self-Check
 
 **Files created:**
+
 - browser_tests/tests/moshpit/asset-pipeline.spec.ts — EXISTS
 - .planning/phases/02-asset-pipeline/02-12-e2e-and-validation-map-SUMMARY.md — EXISTS (this file)
 
 **Files modified:**
+
 - browser_tests/fixtures/helpers/MoshpitCanvasHelper.ts — MODIFIED (processingPill, excludedCountRow, cancelButton, waitForSpritesCount added)
 - .planning/phases/02-asset-pipeline/02-VALIDATION.md — MODIFIED (14-row map, updated frontmatter)
 
 **Commits:**
+
 - adc2d1516 — feat(02-12): add E2E scaffolds, extend helper, populate validation map
 
 ## Self-Check: PASSED
 
 All files exist, commit is present, acceptance criteria verified:
+
 - test.skip count: 3 (✓)
 - Phase 3 deferral markers: 3 (✓)
 - Helper methods: 4+ (✓: processingPill, excludedCountRow, cancelButton, waitForSpritesCount)

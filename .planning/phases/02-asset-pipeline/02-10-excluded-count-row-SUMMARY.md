@@ -36,9 +36,9 @@ Added the ASSET-06 user-visible signal to `MoshpitSettingsPanel.vue`: a `v-if="e
 
 ## Tasks Completed
 
-| Task | Name | Commit | Files |
-|------|------|--------|-------|
-| 1 | Add excluded-count row + component tests | 927e84e96 | MoshpitSettingsPanel.vue, MoshpitSettingsPanel.test.ts |
+| Task | Name                                     | Commit    | Files                                                  |
+| ---- | ---------------------------------------- | --------- | ------------------------------------------------------ |
+| 1    | Add excluded-count row + component tests | 927e84e96 | MoshpitSettingsPanel.vue, MoshpitSettingsPanel.test.ts |
 
 ## Deviations from Plan
 

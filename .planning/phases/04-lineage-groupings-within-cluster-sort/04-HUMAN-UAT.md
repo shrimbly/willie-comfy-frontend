@@ -122,4 +122,4 @@ With the filter gate still open:
 
 <!-- Free-form observations. Examples: "workflow labels clip at high zoom", "save-node `(other)` dominates when _meta.title is absent", "prompt normalisation too aggressive — different prompts collapse into one bucket" -->
 
-Signed: ****\*\*****\_\_\_****\*\*****
+Signed: \***\*\*\*\*\***\_\_\_\***\*\*\*\*\***

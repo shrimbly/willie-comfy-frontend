@@ -2,7 +2,8 @@
 phase: 04-lineage-groupings-within-cluster-sort
 plan: 01
 subsystem: moshpit
-tags: [clustering, pure-math, worker-safe, fast-check, vitest, grouping, lineage]
+tags:
+  [clustering, pure-math, worker-safe, fast-check, vitest, grouping, lineage]
 
 requires:
   - phase: 03-filter-sort-core-validation
@@ -16,7 +17,14 @@ provides:
   - computeClusterLayout — recursive row-wrapping packer with depth-proportional gap (D-01 / D-03 / D-04)
   - Memoised bucket-key cache (Pitfall 6) keeping 5k × 5-axis recount inside the 100ms math budget (D-05)
   - Vitest + fast-check coverage: 38 groupAxes tests, 13 clusterLayout tests, 5 k × 3-axis perf marker
-affects: [04-02 paramNormalize saveNodeIdentity, 04-03 useMoshpitFilteredAssets refactor, 04-04 moshpitFilterStore, 04-05 cluster overlay, 04-06 grouping toggle UI]
+affects:
+  [
+    04-02 paramNormalize saveNodeIdentity,
+    04-03 useMoshpitFilteredAssets refactor,
+    04-04 moshpitFilterStore,
+    04-05 cluster overlay,
+    04-06 grouping toggle UI
+  ]
 
 tech-stack:
   added: []
@@ -36,17 +44,17 @@ key-files:
     - src/platform/moshpit/services/sortMath.ts (header comment only — D-16 Phase 4 reuse note)
 
 key-decisions:
-  - "Row-wrapping row-major child packing at every depth; `columns = ceil(sqrt(childCount))` at branch levels mirrors the flat-grid leaf packer and keeps the layout deterministic and cheap"
-  - "Child bounds are computed at local origin then translated by `(colX[col], rowY[row])` during parent packing; simpler than threading offsets through recursion and easier to test"
-  - "Row heights / column widths set to the max child dimension per row / column — handles heterogeneous child sizes without special-casing"
-  - "Root node uses depth = -1 sentinel so D-03 gap math (`maxDepth - currentDepth + 1`) lines up naturally"
-  - "Memoisation keyed by `${axis}|${hash}` lives inside computeClusterLayout per call; no module-level cache (would break referential transparency at the edge of a Pinia reactive update)"
-  - "saveNodeIdentity reads via a narrow structural widening on NormalizedParams — lets Plan 01 ship the grouping substrate before Plan 02 bakes the field into NormalizedParamsSchema and the thumb worker"
+  - 'Row-wrapping row-major child packing at every depth; `columns = ceil(sqrt(childCount))` at branch levels mirrors the flat-grid leaf packer and keeps the layout deterministic and cheap'
+  - 'Child bounds are computed at local origin then translated by `(colX[col], rowY[row])` during parent packing; simpler than threading offsets through recursion and easier to test'
+  - 'Row heights / column widths set to the max child dimension per row / column — handles heterogeneous child sizes without special-casing'
+  - 'Root node uses depth = -1 sentinel so D-03 gap math (`maxDepth - currentDepth + 1`) lines up naturally'
+  - 'Memoisation keyed by `${axis}|${hash}` lives inside computeClusterLayout per call; no module-level cache (would break referential transparency at the edge of a Pinia reactive update)'
+  - 'saveNodeIdentity reads via a narrow structural widening on NormalizedParams — lets Plan 01 ship the grouping substrate before Plan 02 bakes the field into NormalizedParamsSchema and the thumb worker'
 
 patterns-established:
-  - "Recursive packer: hash-uniqueness invariant is an explicit fast-check property (Pitfall 2) — every packer change in Phase 4+ carries the same property assertion"
-  - "Perf marker as regression guard: `performance.now()` + `toBeLessThan(100)` at 5k hashes × 3 axes; will run on every CI unit suite"
-  - "Axis extraction lives in groupAxes.ts (pure), cluster math in clusterLayout.ts (pure). UI / store layers call into both with no reverse dependency"
+  - 'Recursive packer: hash-uniqueness invariant is an explicit fast-check property (Pitfall 2) — every packer change in Phase 4+ carries the same property assertion'
+  - 'Perf marker as regression guard: `performance.now()` + `toBeLessThan(100)` at 5k hashes × 3 axes; will run on every CI unit suite'
+  - 'Axis extraction lives in groupAxes.ts (pure), cluster math in clusterLayout.ts (pure). UI / store layers call into both with no reverse dependency'
 
 requirements-completed:
   - GROUP-02
@@ -115,7 +123,12 @@ export interface ClusterNode {
   readonly axis: GroupingAxis | null
   readonly bucketValue: string
   readonly depth: number
-  readonly boundsWorld: { readonly x: number; readonly y: number; readonly w: number; readonly h: number }
+  readonly boundsWorld: {
+    readonly x: number
+    readonly y: number
+    readonly w: number
+    readonly h: number
+  }
   readonly children: readonly ClusterNode[]
   readonly leafHashes: readonly string[]
 }
@@ -129,9 +142,18 @@ export interface ClusterLayoutResult {
 ### `groupAxes.ts`
 
 ```ts
-export const GROUPING_AXES = ['workflow', 'saveNode', 'prompt', 'model', 'type'] as const
+export const GROUPING_AXES = [
+  'workflow',
+  'saveNode',
+  'prompt',
+  'model',
+  'type'
+] as const
 export type GroupingAxis = (typeof GROUPING_AXES)[number]
-export type WithinClusterSortMode = 'newestFirst' | 'oldestFirst' | 'alphabetical'
+export type WithinClusterSortMode =
+  | 'newestFirst'
+  | 'oldestFirst'
+  | 'alphabetical'
 export const WITHIN_CLUSTER_SORT_MODES: readonly WithinClusterSortMode[]
 export const OTHER_BUCKET_KEY: string
 
@@ -145,8 +167,16 @@ export function bucketKey(
   _filenameOfAsset: string | null
 ): string
 export function compareAssetsForWithinCluster(
-  a: { readonly contentHash: string; readonly params: NormalizedParams; readonly filename: string | null },
-  b: { readonly contentHash: string; readonly params: NormalizedParams; readonly filename: string | null },
+  a: {
+    readonly contentHash: string
+    readonly params: NormalizedParams
+    readonly filename: string | null
+  },
+  b: {
+    readonly contentHash: string
+    readonly params: NormalizedParams
+    readonly filename: string | null
+  },
   mode: WithinClusterSortMode
 ): number
 ```
@@ -222,5 +252,6 @@ This matches the Phase 3 extension pattern (`workflowFilename` was added the sam
 - No `vue` / `pinia` / `@/*` imports in either new module — verified via grep
 
 ---
-*Phase: 04-lineage-groupings-within-cluster-sort*
-*Completed: 2026-04-21*
+
+_Phase: 04-lineage-groupings-within-cluster-sort_
+_Completed: 2026-04-21_

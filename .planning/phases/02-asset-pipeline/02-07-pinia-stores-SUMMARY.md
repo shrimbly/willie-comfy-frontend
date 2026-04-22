@@ -1,6 +1,6 @@
 ---
 phase: 02-asset-pipeline
-plan: "07"
+plan: '07'
 subsystem: moshpit-stores
 tags: [pinia, stores, wave-3, thumb, metadata, curation]
 dependency_graph:
@@ -30,12 +30,12 @@ key_files:
     - src/platform/moshpit/stores/moshpitCurationStore.test.ts
   modified: []
 decisions:
-  - "Used ref(new Map()) for all stores — standard Pinia reactive pattern; Map mutates in place and Pinia tracks it correctly"
+  - 'Used ref(new Map()) for all stores — standard Pinia reactive pattern; Map mutates in place and Pinia tracks it correctly'
   - "assetIdToHash exposed as the underlying ref (not just via getter) so consumers' computed() can capture the dependency via .value access"
-  - "moshpitCurationStore is a Phase 2 read-only scaffold; Phase 5 will add toggle actions (favourite, tag, hide, folder) with IDB write-through"
+  - 'moshpitCurationStore is a Phase 2 read-only scaffold; Phase 5 will add toggle actions (favourite, tag, hide, folder) with IDB write-through'
 metrics:
-  duration: "~8 minutes"
-  completed_date: "2026-04-21"
+  duration: '~8 minutes'
+  completed_date: '2026-04-21'
   tasks_completed: 1
   files_created: 6
   files_modified: 0
@@ -47,9 +47,9 @@ Three Pinia setup-API stores for the Moshpit reactive layer: `moshpitThumbStore`
 
 ## Tasks Completed
 
-| Task | Name | Commit | Files |
-|------|------|--------|-------|
-| 1 | Create moshpitThumbStore + moshpitMetadataStore + moshpitCurationStore (with tests) | 5893adcca | 6 files (3 stores + 3 tests) |
+| Task | Name                                                                                | Commit    | Files                        |
+| ---- | ----------------------------------------------------------------------------------- | --------- | ---------------------------- |
+| 1    | Create moshpitThumbStore + moshpitMetadataStore + moshpitCurationStore (with tests) | 5893adcca | 6 files (3 stores + 3 tests) |
 
 ## What Was Built
 
@@ -93,11 +93,11 @@ None — plan executed exactly as written.
 
 ## Threat Mitigations Applied
 
-| Threat | Mitigation |
-|--------|-----------|
-| T-02-07-01: Object URL leakage | `addThumb` revokes prior URL; `reset` revokes all. Both paths covered by unit tests. |
-| T-02-07-02: Metadata mutation | `setMetadata` accepts `Readonly<Record<string, string>>`; TypeScript prevents accidental mutation. |
-| T-02-07-04: assetIdToHash stale-after-reassign | `recordAssetHash` overwrites on re-call; registry reads the reactive ref for latest value. |
+| Threat                                         | Mitigation                                                                                         |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| T-02-07-01: Object URL leakage                 | `addThumb` revokes prior URL; `reset` revokes all. Both paths covered by unit tests.               |
+| T-02-07-02: Metadata mutation                  | `setMetadata` accepts `Readonly<Record<string, string>>`; TypeScript prevents accidental mutation. |
+| T-02-07-04: assetIdToHash stale-after-reassign | `recordAssetHash` overwrites on re-call; registry reads the reactive ref for latest value.         |
 
 ## Known Stubs
 

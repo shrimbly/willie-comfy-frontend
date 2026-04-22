@@ -13,8 +13,8 @@ import { resolve as resolvePath } from 'node:path'
 import * as fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 
-import { PARAM_DIFF_KEY_ORDER, diffLoras, diffParams } from './metadataDiff';
-import type { LoraDiffEntry } from './metadataDiff';
+import { PARAM_DIFF_KEY_ORDER, diffLoras, diffParams } from './metadataDiff'
+import type { LoraDiffEntry } from './metadataDiff'
 import type { NormalizedParams } from './paramNormalize'
 
 function makeParams(

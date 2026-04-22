@@ -35,14 +35,14 @@ key_files:
     - src/composables/useCoreCommands.ts (spread Moshpit commands)
     - src/platform/keybindings/defaults.ts (4 scoped keybindings)
 decisions:
-  - "Marquee commits on pointerup (not pointermove) — avoids live hit-test spam in Phase 1; Phase 2 can switch to live update when hitTest has real data"
-  - "document event listeners added/removed per drag session, not via onMounted/onUnmounted — mirrors the useMarqueeSelection pattern and avoids global listener overhead when not dragging"
-  - "focus-on-click required (RESEARCH Pitfall 2) — tabindex=0 alone does not give focus on pointer interaction without explicit containerEl.value?.focus() in the pointerdown handler"
-  - "ZoomToSelection is a Phase 1 no-op with early-return guard — no bbox computation until Phase 2 supplies sprite geometries"
-  - "Moshpit commands spread into useCoreCommands return — globally registered, DOM-scoped by targetElementId; palette invocation is safe since Moshpit stores have no effect on workflow state"
+  - 'Marquee commits on pointerup (not pointermove) — avoids live hit-test spam in Phase 1; Phase 2 can switch to live update when hitTest has real data'
+  - 'document event listeners added/removed per drag session, not via onMounted/onUnmounted — mirrors the useMarqueeSelection pattern and avoids global listener overhead when not dragging'
+  - 'focus-on-click required (RESEARCH Pitfall 2) — tabindex=0 alone does not give focus on pointer interaction without explicit containerEl.value?.focus() in the pointerdown handler'
+  - 'ZoomToSelection is a Phase 1 no-op with early-return guard — no bbox computation until Phase 2 supplies sprite geometries'
+  - 'Moshpit commands spread into useCoreCommands return — globally registered, DOM-scoped by targetElementId; palette invocation is safe since Moshpit stores have no effect on workflow state'
 metrics:
   duration: ~18m
-  completed: "2026-04-20"
+  completed: '2026-04-20'
   tasks_completed: 3
   files_changed: 8
 requirements: [NAV-02, NAV-03, NAV-04, NAV-05]
@@ -54,11 +54,11 @@ requirements: [NAV-02, NAV-03, NAV-04, NAV-05]
 
 ## Tasks Completed
 
-| Task | Name | Commit | Files |
-|------|------|--------|-------|
-| 1-04-01 | Implement useMoshpitMarquee with modifier semantics + overlay | fd9e99de6 | useMoshpitMarquee.ts + .test.ts, MoshpitMarqueeOverlay.vue |
-| 1-04-02 | Create useMoshpitCommands and register scoped keybindings | ca6f5055d | useMoshpitCommands.ts + .test.ts, defaults.ts, useCoreCommands.ts |
-| 1-04-03 | Wire marquee + overlay into MoshpitView | 06dc63737 | MoshpitView.vue |
+| Task    | Name                                                          | Commit    | Files                                                             |
+| ------- | ------------------------------------------------------------- | --------- | ----------------------------------------------------------------- |
+| 1-04-01 | Implement useMoshpitMarquee with modifier semantics + overlay | fd9e99de6 | useMoshpitMarquee.ts + .test.ts, MoshpitMarqueeOverlay.vue        |
+| 1-04-02 | Create useMoshpitCommands and register scoped keybindings     | ca6f5055d | useMoshpitCommands.ts + .test.ts, defaults.ts, useCoreCommands.ts |
+| 1-04-03 | Wire marquee + overlay into MoshpitView                       | 06dc63737 | MoshpitView.vue                                                   |
 
 ## Final APIs
 
@@ -80,6 +80,7 @@ useMoshpitMarquee(options: {
 ### `useMoshpitCommands` (`src/composables/useMoshpitCommands.ts`)
 
 Returns `ComfyCommand[]` with:
+
 - `Moshpit.Canvas.FitView` → `requestFitView()`
 - `Moshpit.Canvas.ZoomToSelection` → no-op in Phase 1 (empty selection guard)
 - `Moshpit.Canvas.SelectAll` → `selectAll([])` in Phase 1
@@ -87,16 +88,17 @@ Returns `ComfyCommand[]` with:
 
 ### Keybindings (appended to `CORE_KEYBINDINGS`)
 
-| Key | Command | Scope |
-|-----|---------|-------|
-| `f` | Moshpit.Canvas.FitView | moshpit-canvas-container |
-| `z` | Moshpit.Canvas.ZoomToSelection | moshpit-canvas-container |
-| `Ctrl+a` | Moshpit.Canvas.SelectAll | moshpit-canvas-container |
-| `Escape` | Moshpit.Canvas.ClearSelection | moshpit-canvas-container |
+| Key      | Command                        | Scope                    |
+| -------- | ------------------------------ | ------------------------ |
+| `f`      | Moshpit.Canvas.FitView         | moshpit-canvas-container |
+| `z`      | Moshpit.Canvas.ZoomToSelection | moshpit-canvas-container |
+| `Ctrl+a` | Moshpit.Canvas.SelectAll       | moshpit-canvas-container |
+| `Escape` | Moshpit.Canvas.ClearSelection  | moshpit-canvas-container |
 
 ## Keybinding Collision Audit
 
 No collisions found. Research (Pattern 5) confirmed:
+
 - `f` — only used in workflow canvas as a LiteGraph internal; not in CORE_KEYBINDINGS, scoped to graph-canvas-container
 - `z` — not in CORE_KEYBINDINGS at all (Ctrl+Z is undo, handled elsewhere)
 - `Ctrl+a` — exists as `Comfy.Canvas.SelectAll` scoped to `graph-canvas-container`; moshpit binding scoped to `moshpit-canvas-container` — no conflict
@@ -120,11 +122,11 @@ Rect values in `MarqueeRect` are **screen-space, container-local** (relative to 
 
 ## Test Coverage
 
-| File | Tests |
-|------|-------|
-| `useMoshpitMarquee.test.ts` | 12 |
-| `useMoshpitCommands.test.ts` | 6 |
-| **Total (plan 04)** | **18** |
+| File                         | Tests  |
+| ---------------------------- | ------ |
+| `useMoshpitMarquee.test.ts`  | 12     |
+| `useMoshpitCommands.test.ts` | 6      |
+| **Total (plan 04)**          | **18** |
 
 All 18 tests pass. All 43 moshpit-platform tests (plans 03 + 04) pass.
 
@@ -133,6 +135,7 @@ All 18 tests pass. All 43 moshpit-platform tests (plans 03 + 04) pass.
 ### Auto-fixed Issues
 
 **1. [Rule 1 - Bug] `vi.fn()` missing type parameters for useKeyModifier mock**
+
 - **Found during:** Task 1-04-01 (lint check)
 - **Issue:** `vi.fn().mockImplementation(...)` without type parameter triggers `eslint-plugin-vitest(require-mock-type-parameters)` warning
 - **Fix:** Added explicit type parameter `vi.fn<(key: string) => ReturnType<typeof ref>>()`
@@ -140,6 +143,7 @@ All 18 tests pass. All 43 moshpit-platform tests (plans 03 + 04) pass.
 - **Commit:** fd9e99de6
 
 **2. [Rule 1 - Bug] Unused variable `moveEvent` in threshold test**
+
 - **Found during:** Task 1-04-01 (typecheck)
 - **Issue:** `const moveEvent = makePointerEvent(...)` was declared but never dispatched — TS6133 unused variable error
 - **Fix:** Replaced with a direct `document.dispatchEvent(new PointerEvent(...))` call
@@ -147,6 +151,7 @@ All 18 tests pass. All 43 moshpit-platform tests (plans 03 + 04) pass.
 - **Commit:** fd9e99de6
 
 **3. [Rule 1 - Bug] `command.label()` type error — label is `string | (() => string)`**
+
 - **Found during:** Task 1-04-02 (typecheck)
 - **Issue:** `ComfyCommand.label` is typed as `string | (() => string)` — calling `.label()` directly fails TS2722 / TS2349
 - **Fix:** Added type guard in test: `typeof command.label === 'function' ? command.label() : command.label`

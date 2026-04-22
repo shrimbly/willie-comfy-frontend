@@ -1,6 +1,6 @@
 ---
 phase: 03-filter-sort-core-validation
-plan: "10"
+plan: '10'
 subsystem: moshpit-axis-overlay
 tags: [moshpit, axis-overlay, pixi-viewport, html-overlay, injection-key]
 dependency_graph:
@@ -30,12 +30,12 @@ key_files:
     - src/platform/moshpit/components/MoshpitCanvas.vue
 decisions:
   - "shallowRef<Viewport | null> used in MoshpitCanvas instead of ref<Viewport | null> — Vue's ref() deep-unwraps complex class types causing TS2345 assignment mismatch with InjectionKey<Ref<Viewport | null>>; shallowRef preserves the Viewport class type correctly"
-  - "transformTick pattern: void transformTick.value inside xLabelStyle/yLabelStyle registers reactive dependency without assigning an unused variable — avoids no-unused-vars lint errors while still tracking the dep"
-  - "watch with onCleanup handles vp.on/vp.off lifecycle cleanly — no onBeforeUnmount needed for the event listener since watch cleanup fires before the next run and on component teardown"
-  - "global.provide in @testing-library/vue render options is sufficient for injection key stubs — no wrapper component needed"
+  - 'transformTick pattern: void transformTick.value inside xLabelStyle/yLabelStyle registers reactive dependency without assigning an unused variable — avoids no-unused-vars lint errors while still tracking the dep'
+  - 'watch with onCleanup handles vp.on/vp.off lifecycle cleanly — no onBeforeUnmount needed for the event listener since watch cleanup fires before the next run and on component teardown'
+  - 'global.provide in @testing-library/vue render options is sufficient for injection key stubs — no wrapper component needed'
 metrics:
   duration_minutes: 35
-  completed_date: "2026-04-21"
+  completed_date: '2026-04-21'
   tasks_completed: 2
   tasks_total: 2
   files_created: 3
@@ -56,6 +56,7 @@ metrics:
 - `useMoshpitViewport(): Ref<Viewport | null>` — consumer helper that throws if key is missing (clear DX error)
 
 `MoshpitCanvas.vue` modified to:
+
 1. `shallowRef<Viewport | null>(null)` created at setup scope
 2. `provide(MOSHPIT_VIEWPORT_INJECTION_KEY, viewportRef)` called synchronously in setup
 3. `viewportRef.value = viewport` set after `Application.init()` resolves (inside `onMounted`)
@@ -82,9 +83,13 @@ watch(
   () => viewportRef.value,
   (vp, _prevVp, onCleanup) => {
     if (!vp) return
-    const handler = () => { transformTick.value++ }
+    const handler = () => {
+      transformTick.value++
+    }
     vp.on('moved', handler)
-    onCleanup(() => { vp.off('moved', handler) })
+    onCleanup(() => {
+      vp.off('moved', handler)
+    })
   },
   { immediate: true }
 )
@@ -98,6 +103,7 @@ function xLabelStyle(col: ColumnDescriptor): Record<string, string> {
 No debounce or RAF needed: N labels × CSS left/top update is well under 1ms per frame at the 5k-asset budget (T-03-10-02 confirmed acceptable).
 
 **formatLabel** handles:
+
 - `timestamp` → `toLocaleDateString({ month: 'short', day: 'numeric' })` e.g. "Apr 21"
 - `loras` → singular "1 LoRA" / plural "N LoRAs"
 - All other params → raw value string passthrough
@@ -123,18 +129,18 @@ Since `MoshpitCanvas` calls `provide()` synchronously in setup, it makes the key
 
 `MoshpitAxisOverlay.test.ts` — 10 tests:
 
-| Test | Behavior |
-|------|----------|
-| chaos mode → no render | axisMode='chaos' → overlay absent |
-| null viewport → no render | viewport ref null → overlay absent |
-| sortX + viewport → renders | overlay container present |
-| X label count matches columns | `getAllByTestId('moshpit-axis-label-x').length === columns.length` |
-| 2D mode → X and Y labels | both label sets rendered |
-| 1D mode → no Y labels | sortY null → no y labels |
-| timestamp label → localized date | raw epoch → "Apr 21" format (not raw number) |
-| loras singular → "1 LoRA" | count=1 formats correctly |
-| loras plural → "3 LoRAs" | count=3 formats correctly |
-| container has pointer-events-none | classList check |
+| Test                              | Behavior                                                           |
+| --------------------------------- | ------------------------------------------------------------------ |
+| chaos mode → no render            | axisMode='chaos' → overlay absent                                  |
+| null viewport → no render         | viewport ref null → overlay absent                                 |
+| sortX + viewport → renders        | overlay container present                                          |
+| X label count matches columns     | `getAllByTestId('moshpit-axis-label-x').length === columns.length` |
+| 2D mode → X and Y labels          | both label sets rendered                                           |
+| 1D mode → no Y labels             | sortY null → no y labels                                           |
+| timestamp label → localized date  | raw epoch → "Apr 21" format (not raw number)                       |
+| loras singular → "1 LoRA"         | count=1 formats correctly                                          |
+| loras plural → "3 LoRAs"          | count=3 formats correctly                                          |
+| container has pointer-events-none | classList check                                                    |
 
 Test strategy: `vi.mock` stubs `useMoshpitFilteredAssets` at module level with `ref`-backed stubs mutated per test; fake viewport provided via `global.provide` in render options with `{ on: vi.fn(), off: vi.fn(), toScreen: vi.fn().mockReturnValue({ x: 100, y: 50 }) }`.
 
@@ -143,6 +149,7 @@ Test strategy: `vi.mock` stubs `useMoshpitFilteredAssets` at module level with `
 ### Auto-fixed Issues
 
 **1. [Rule 1 - Bug] shallowRef required instead of ref for Viewport injection key**
+
 - **Found during:** Task 1 typecheck
 - **Issue:** `ref<Viewport | null>(null)` creates a deep-reactive type that structurally mismatches `InjectionKey<Ref<Viewport | null>>` — Vue's deep unwrap strips internal pixi-viewport class properties (`_worldTransform`, `_rotation`, etc.), causing TS2345
 - **Fix:** Changed to `shallowRef<Viewport | null>(null)` which preserves the class instance type exactly; also imported `shallowRef` from vue
@@ -150,6 +157,7 @@ Test strategy: `vi.mock` stubs `useMoshpitFilteredAssets` at module level with `
 - **Commit:** `5139d24af`
 
 **2. [Rule 1 - Bug] Dead Wrapper component in test caused TS6133 unused-variable error**
+
 - **Found during:** Task 2 commit hook typecheck
 - **Issue:** `renderWithViewport` contained a `Wrapper = defineComponent(...)` that was defined but never used — injection was correctly done via `global.provide`; `defineComponent` import also became unused
 - **Fix:** Removed `Wrapper` definition and `defineComponent` import from test file

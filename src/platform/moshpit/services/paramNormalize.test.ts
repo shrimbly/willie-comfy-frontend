@@ -206,9 +206,7 @@ describe('normalizeParams', () => {
         { prompt: JSON.stringify(graphWithDuplicates) },
         NOW
       )
-      expect(result.workflowFingerprint).toBe(
-        'CheckpointLoaderSimple|KSampler'
-      )
+      expect(result.workflowFingerprint).toBe('CheckpointLoaderSimple|KSampler')
     })
 
     it('produces identical fingerprint for same class_type set regardless of node IDs or order', () => {
@@ -220,14 +218,8 @@ describe('normalizeParams', () => {
         nodeZ: { class_type: 'CLIPTextEncode', inputs: {} },
         nodeY: { class_type: 'KSampler', inputs: {} }
       }
-      const result1 = normalizeParams(
-        { prompt: JSON.stringify(graph1) },
-        NOW
-      )
-      const result2 = normalizeParams(
-        { prompt: JSON.stringify(graph2) },
-        NOW
-      )
+      const result1 = normalizeParams({ prompt: JSON.stringify(graph1) }, NOW)
+      const result2 = normalizeParams({ prompt: JSON.stringify(graph2) }, NOW)
       expect(result1.workflowFingerprint).toBe(result2.workflowFingerprint)
     })
 

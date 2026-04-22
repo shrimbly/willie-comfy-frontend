@@ -36,13 +36,13 @@ key_files:
   modified:
     - src/views/MoshpitView.vue (replaced placeholder with MoshpitCanvas)
 decisions:
-  - "Used vi.hoisted + class syntax for pixi.js/pixi-viewport mocks — vi.fn().mockImplementation(() => ...) is an arrow function, not a constructor; class syntax satisfies new Application() correctly"
-  - "vi.clearAllMocks() + mockResolvedValue re-applied in beforeEach prevents stale mock state across tests after init mock is cleared"
-  - "Space+drag implemented by dynamic plugin.remove + viewport.drag() reconfiguration per RESEARCH Pitfall 4 — not by forwarding events through useCanvasInput"
-  - "RAF tick loop reads pendingFitView / pendingZoomTarget from store each frame; imperatives are consumed (cleared) by the canvas on read"
+  - 'Used vi.hoisted + class syntax for pixi.js/pixi-viewport mocks — vi.fn().mockImplementation(() => ...) is an arrow function, not a constructor; class syntax satisfies new Application() correctly'
+  - 'vi.clearAllMocks() + mockResolvedValue re-applied in beforeEach prevents stale mock state across tests after init mock is cleared'
+  - 'Space+drag implemented by dynamic plugin.remove + viewport.drag() reconfiguration per RESEARCH Pitfall 4 — not by forwarding events through useCanvasInput'
+  - 'RAF tick loop reads pendingFitView / pendingZoomTarget from store each frame; imperatives are consumed (cleared) by the canvas on read'
 metrics:
   duration: ~32m
-  completed: "2026-04-20"
+  completed: '2026-04-20'
   tasks_completed: 2
   files_changed: 10
 requirements: [SHELL-02, SHELL-03, NAV-01, NAV-02]
@@ -54,10 +54,10 @@ requirements: [SHELL-02, SHELL-03, NAV-01, NAV-02]
 
 ## Tasks Completed
 
-| Task | Name | Commit | Files |
-|------|------|--------|-------|
-| 1-03-01 | Create three Moshpit Pinia stores with unit tests | e72d22a4a | moshpitViewportStore.ts + .test.ts, moshpitSelectionStore.ts + .test.ts, moshpitSidebarStore.ts + .test.ts |
-| 1-03-02 | Create MoshpitCanvas + Pixi adapter; wire into MoshpitView | c7f9fca55 | MoshpitCanvas.vue + .test.ts, useMoshpitCanvasInput.ts, MoshpitView.vue |
+| Task    | Name                                                       | Commit    | Files                                                                                                      |
+| ------- | ---------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------- |
+| 1-03-01 | Create three Moshpit Pinia stores with unit tests          | e72d22a4a | moshpitViewportStore.ts + .test.ts, moshpitSelectionStore.ts + .test.ts, moshpitSidebarStore.ts + .test.ts |
+| 1-03-02 | Create MoshpitCanvas + Pixi adapter; wire into MoshpitView | c7f9fca55 | MoshpitCanvas.vue + .test.ts, useMoshpitCanvasInput.ts, MoshpitView.vue                                    |
 
 ## Final Store APIs
 
@@ -109,13 +109,13 @@ togglePanel(id: string): void
 
 ## Test Coverage
 
-| File | Tests |
-|------|-------|
-| `moshpitViewportStore.test.ts` | 9 |
-| `moshpitSelectionStore.test.ts` | 10 |
-| `moshpitSidebarStore.test.ts` | 9 |
-| `MoshpitCanvas.test.ts` | 3 |
-| **Total** | **31** |
+| File                            | Tests  |
+| ------------------------------- | ------ |
+| `moshpitViewportStore.test.ts`  | 9      |
+| `moshpitSelectionStore.test.ts` | 10     |
+| `moshpitSidebarStore.test.ts`   | 9      |
+| `MoshpitCanvas.test.ts`         | 3      |
+| **Total**                       | **31** |
 
 All 31 tests pass. Store tests cover all behavior bullets from the plan. Canvas tests cover mount-without-throw, init options, and destroy-on-unmount.
 
@@ -131,6 +131,7 @@ No version deviation from Plan 01-02 research.
 ### Auto-fixed Issues
 
 **1. [Rule 1 - Bug] Arrow function mock can't be used as constructor**
+
 - **Found during:** Task 1-03-02 (MoshpitCanvas.test.ts)
 - **Issue:** `vi.fn().mockImplementation(() => ({...}))` creates an arrow function; `new Application()` in the component fails with "is not a constructor" — arrow functions cannot be used with `new`
 - **Fix:** Switched to `class MockApplication { ... }` and `class MockViewport { ... }` syntax inside `vi.mock` factories; class syntax produces proper constructors
@@ -138,6 +139,7 @@ No version deviation from Plan 01-02 research.
 - **Commit:** c7f9fca55
 
 **2. [Rule 2 - Missing critical functionality] vi.fn() type parameters required by oxlint**
+
 - **Found during:** Task 1-03-02 (lint check)
 - **Issue:** `eslint-plugin-vitest(require-mock-type-parameters)` flags `vi.fn()` without type parameters as warnings; clean lint requires 0 warnings
 - **Fix:** Added explicit type parameters: `vi.fn<() => void>()`, `vi.fn<() => Promise<void>>()`, `vi.fn<() => this>()`
@@ -145,6 +147,7 @@ No version deviation from Plan 01-02 research.
 - **Commit:** c7f9fca55
 
 **3. [Rule 2 - Missing critical functionality] Inline type import style**
+
 - **Found during:** Task 1-03-01 + 1-03-02 (oxlint runs)
 - **Issue:** `import { useCanvasInput, type CanvasInputNavigator }` violates `consistent-type-specifier-style: prefer-top-level` — must use separate `import type` statement
 - **Fix:** Split into `import type { CanvasInputNavigator }` + `import { useCanvasInput }` in both affected files

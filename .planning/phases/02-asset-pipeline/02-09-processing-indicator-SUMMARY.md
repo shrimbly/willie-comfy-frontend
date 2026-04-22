@@ -1,6 +1,6 @@
 ---
 phase: 02-asset-pipeline
-plan: "09"
+plan: '09'
 subsystem: moshpit-ui
 tags: [ui, pill, overlay, a11y, i18n, wave-4]
 dependency_graph:
@@ -36,13 +36,14 @@ metrics:
 
 # Phase 02 Plan 09: Processing Indicator Summary
 
-**One-liner:** Bottom-left processing pill with aria-live progress bar, 600ms+200ms completion fade, cancel wired to queue composable, all six moshpit.assets.* i18n keys.
+**One-liner:** Bottom-left processing pill with aria-live progress bar, 600ms+200ms completion fade, cancel wired to queue composable, all six moshpit.assets.\* i18n keys.
 
 ## What Was Built
 
 ### Task 1 — i18n keys (commit: `4acfa0d72`)
 
 Added six keys under `moshpit.assets.*` in `src/locales/en/main.json`:
+
 - `processing` — "Processing {done} / {total}"
 - `cancel` — "Cancel processing"
 - `excludedCount` — ICU plural for excluded asset count
@@ -53,6 +54,7 @@ Added six keys under `moshpit.assets.*` in `src/locales/en/main.json`:
 ### Task 2 — MoshpitProcessingIndicator.vue + stories (commit: `a74cb4cd6`)
 
 Pill component per 02-UI-SPEC:
+
 - `role="status" aria-live="polite" aria-atomic="false"` on wrapper
 - `role="progressbar"` with `aria-valuenow/min/max` on the bar
 - `size-8` (32×32px) cancel button with `aria-label` from i18n, `icon-[lucide--x] size-4`
@@ -76,6 +78,7 @@ Pill component per 02-UI-SPEC:
 ### Auto-fixed Issues
 
 **1. [Rule 1 - Bug] Test file missing i18n plugin**
+
 - **Found during:** Task 2
 - **Issue:** The Wave-0 RED test file used `global: { plugins: [createPinia()] }` without `createI18n`. The component calls `useI18n()` which throws "Need to install with `app.use` function" when mounted without the i18n plugin.
 - **Fix:** Added `import { createI18n } from 'vue-i18n'`, imported `enMessages` from the locale file, constructed an `i18n` instance, and added it to the `mountPill` global plugins array. Pattern matches `MoshpitSettingsPanel.test.ts` exactly.
@@ -83,6 +86,7 @@ Pill component per 02-UI-SPEC:
 - **Commit:** `a74cb4cd6`
 
 **2. [Rule 1 - Minor] setTimeout type annotation**
+
 - **Found during:** Task 2
 - **Issue:** `window.setTimeout` return type is `number` in DOM but `NodeJS.Timeout` in Node — using `window.setTimeout` directly could cause type issues in the test environment.
 - **Fix:** Used `ReturnType<typeof setTimeout>` for `holdTimer` and `unmountTimer` to be environment-agnostic, and called `setTimeout` without `window.` prefix.
@@ -96,12 +100,14 @@ None — all data flows are wired. The pill renders live `done`/`total` values f
 ## Self-Check
 
 **Files exist:**
+
 - `src/platform/moshpit/components/MoshpitProcessingIndicator.vue` — FOUND
 - `src/platform/moshpit/components/MoshpitProcessingIndicator.stories.ts` — FOUND
 - `src/locales/en/main.json` contains `moshpit.assets.processing` — FOUND
 - `src/views/layouts/MoshpitLayout.vue` contains `MoshpitProcessingIndicator` — FOUND
 
 **Commits exist:**
+
 - `4acfa0d72` — i18n keys
 - `a74cb4cd6` — component + stories + test fix
 - `9e972ea2e` — layout wiring

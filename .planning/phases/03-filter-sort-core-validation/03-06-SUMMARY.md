@@ -1,6 +1,6 @@
 ---
 phase: 03-filter-sort-core-validation
-plan: "06"
+plan: '06'
 subsystem: moshpit/filter-store+composable
 tags: [moshpit, pinia-store, composable, filter-integration, sprite-layer]
 dependency_graph:
@@ -37,15 +37,15 @@ key_files:
     - src/platform/moshpit/composables/useMoshpitSpriteLayer.ts (layoutProvider added to SpriteLayerOptions)
 decisions:
   - "moshpitFilterStore extends the Wave 2 stub (Plan 03-07) — same store ID 'moshpitFilter', same workflow/timeRange/isGated shape, adds chips/sortX/sortY/gridSpacing/showHidden"
-  - "D-12 OR-merge: categorical and resolution chips with same param merge values; numeric/text/boolean chips with same param fall back to append (replace-not-merge semantics)"
-  - "gridSpacing clamped [200, 1200] at setGridSpacing action boundary; DEFAULT_CELL_SIZE (560) is the initial value"
-  - "useMoshpitFilteredAssets calls Date.now() inline for nowMs (acceptable for production; filter tests use store-level mocking)"
-  - "applyFilterChips walks paramsByHash (all known params) then intersects with registrySet (only assets currently in registry) — handles race where params arrive before registry or vice versa"
+  - 'D-12 OR-merge: categorical and resolution chips with same param merge values; numeric/text/boolean chips with same param fall back to append (replace-not-merge semantics)'
+  - 'gridSpacing clamped [200, 1200] at setGridSpacing action boundary; DEFAULT_CELL_SIZE (560) is the initial value'
+  - 'useMoshpitFilteredAssets calls Date.now() inline for nowMs (acceptable for production; filter tests use store-level mocking)'
+  - 'applyFilterChips walks paramsByHash (all known params) then intersects with registrySet (only assets currently in registry) — handles race where params arrive before registry or vice versa'
   - "Chaos seed key is 'filtered' (not activeFilterId) — layout is stable per filter composition, not tied to worker filter cycle"
-  - "layoutProvider on SpriteLayerOptions is purely additive — absent in existing Phase 2 usage, so no callers need updating"
+  - 'layoutProvider on SpriteLayerOptions is purely additive — absent in existing Phase 2 usage, so no callers need updating'
 metrics:
   duration_minutes: 45
-  completed_date: "2026-04-21"
+  completed_date: '2026-04-21'
   tasks_completed: 2
   tasks_total: 2
   files_created: 4
@@ -63,6 +63,7 @@ metrics:
 Extended the Wave 2 stub from Plan 03-07 (which only had `workflow`, `timeRange`, `isGated`, `setWorkflow`, `setTimeRange`, `reset`) with the full Phase 3 surface:
 
 **New state refs:**
+
 - `chips: ref<FilterChip[]>([])` — active filter chips, mutated only through actions
 - `sortX: ref<ParamKey | null>(null)` — X-axis sort parameter
 - `sortY: ref<ParamKey | null>(null)` — Y-axis sort parameter (2D mode)
@@ -70,6 +71,7 @@ Extended the Wave 2 stub from Plan 03-07 (which only had `workflow`, `timeRange`
 - `showHidden: ref(false)` — admits hidden-curated assets when true (FILTER-11)
 
 **New actions:**
+
 - `addChip(chip)` — appends or OR-merges; D-12 semantics
 - `removeChip(id)` — removes by ID (FILTER-10)
 - `updateChip(id, value)` — replaces chip value in-place
@@ -79,12 +81,12 @@ Extended the Wave 2 stub from Plan 03-07 (which only had `workflow`, `timeRange`
 
 **D-12 OR-merge behaviour (concrete test cases):**
 
-| Scenario | Result |
-|----------|--------|
+| Scenario                                                                                              | Result                                      |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------- |
 | `addChip({param:'sampler', values:['euler']})` then `addChip({param:'sampler', values:['dpmpp_2m']})` | 1 chip with `values: ['euler', 'dpmpp_2m']` |
-| `addChip({param:'sampler'})` then `addChip({param:'model'})` | 2 chips (different params, no merge) |
-| `addChip({param:'cfg', kind:'categorical'})` then `addChip({param:'cfg', kind:'numeric'})` | 2 chips (incompatible kinds, no merge) |
-| `addChip({id:'x'})` then `addChip({id:'x'})` | 1 chip (duplicate ID rejected) |
+| `addChip({param:'sampler'})` then `addChip({param:'model'})`                                          | 2 chips (different params, no merge)        |
+| `addChip({param:'cfg', kind:'categorical'})` then `addChip({param:'cfg', kind:'numeric'})`            | 2 chips (incompatible kinds, no merge)      |
+| `addChip({id:'x'})` then `addChip({id:'x'})`                                                          | 1 chip (duplicate ID rejected)              |
 
 ### `src/platform/moshpit/composables/useMoshpitFilteredAssets.ts`
 
@@ -164,11 +166,12 @@ useMoshpitSpriteLayer({
   viewport,
   ticker,
   queue,
-  layoutProvider: () => filteredAssets.entries.value.map((e) => ({
-    hash: e.contentHash,
-    worldX: e.worldX,
-    worldY: e.worldY
-  }))
+  layoutProvider: () =>
+    filteredAssets.entries.value.map((e) => ({
+      hash: e.contentHash,
+      worldX: e.worldX,
+      worldY: e.worldY
+    }))
 })
 ```
 
@@ -178,36 +181,37 @@ The `layoutProvider` is called inside `watchEffect(() => syncSprites(...))` so e
 
 ### moshpitFilterStore.test.ts — 24 tests
 
-| Group | Tests |
-|-------|-------|
-| initial state | workflow null, timeRange preset 'all', chips empty, sortX/Y null, showHidden false, isGated false |
-| setWorkflow (FILTER-01) | sets value, isGated flips true, setWorkflow(null) re-closes gate |
-| addChip | appends chip, rejects duplicate ID, D-12 OR-merge categorical, no merge on different param, no merge on incompatible kind |
-| removeChip (FILTER-10) | removes by ID, no-op on unknown ID |
-| updateChip | replaces value, preserves id+param |
-| setSortX/setSortY | accepts ParamKey, accepts null |
-| setGridSpacing (SORT-04) | clamps below 200 → 200, clamps above 1200 → 1200, accepts in-range |
-| setShowHidden (FILTER-11) | flips flag |
-| reset | restores all fields to initial |
+| Group                     | Tests                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| initial state             | workflow null, timeRange preset 'all', chips empty, sortX/Y null, showHidden false, isGated false                         |
+| setWorkflow (FILTER-01)   | sets value, isGated flips true, setWorkflow(null) re-closes gate                                                          |
+| addChip                   | appends chip, rejects duplicate ID, D-12 OR-merge categorical, no merge on different param, no merge on incompatible kind |
+| removeChip (FILTER-10)    | removes by ID, no-op on unknown ID                                                                                        |
+| updateChip                | replaces value, preserves id+param                                                                                        |
+| setSortX/setSortY         | accepts ParamKey, accepts null                                                                                            |
+| setGridSpacing (SORT-04)  | clamps below 200 → 200, clamps above 1200 → 1200, accepts in-range                                                        |
+| setShowHidden (FILTER-11) | flips flag                                                                                                                |
+| reset                     | restores all fields to initial                                                                                            |
 
 ### useMoshpitFilteredAssets.test.ts — 14 tests
 
-| Group | Tests |
-|-------|-------|
-| axisMode | 'chaos' when sortX null, '1d' when sortX set + sortY null, '2d' when both set |
-| FILTER-01 gate | entries empty when no workflow, non-empty after setWorkflow |
-| FILTER-11 showHidden | hidden assets excluded by default, admitted when showHidden=true |
-| FILTER-08 subtractive | chip addition reduces entries |
-| chaos layout | entries have finite worldX/worldY, columns empty in chaos mode |
-| SORT-01 1D layout | sortX produces columns, numeric column order correct |
-| SORT-03 missing param | assets lacking sortX absent from entries |
-| SORT-02 2D layout | both columns and rows produced, rows empty in 1D mode |
+| Group                 | Tests                                                                         |
+| --------------------- | ----------------------------------------------------------------------------- |
+| axisMode              | 'chaos' when sortX null, '1d' when sortX set + sortY null, '2d' when both set |
+| FILTER-01 gate        | entries empty when no workflow, non-empty after setWorkflow                   |
+| FILTER-11 showHidden  | hidden assets excluded by default, admitted when showHidden=true              |
+| FILTER-08 subtractive | chip addition reduces entries                                                 |
+| chaos layout          | entries have finite worldX/worldY, columns empty in chaos mode                |
+| SORT-01 1D layout     | sortX produces columns, numeric column order correct                          |
+| SORT-03 missing param | assets lacking sortX absent from entries                                      |
+| SORT-02 2D layout     | both columns and rows produced, rows empty in 1D mode                         |
 
 ## Deviations from Plan
 
 ### Auto-fixed Issues
 
 **1. [Rule 1 - Bug] seedCuration helper used private store ref access**
+
 - **Found during:** Task 2 test run
 - **Issue:** Test helper `seedCuration` attempted `curationStore['curationByHash'].set(...)` which fails — Pinia stores don't expose raw refs by bracket notation
 - **Fix:** Replaced with public `curationStore.load(AssetMetaRecord)` API, constructing a minimal `AssetMetaRecord` with the desired `curation` field

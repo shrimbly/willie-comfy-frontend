@@ -82,9 +82,9 @@ None — plan executed exactly as written.
 
 ## Commits
 
-| Task | Name | Commit | Files |
-| ---- | ---- | ------ | ----- |
-| 1 | Implement layoutMath.ts | d56f09581 | src/platform/moshpit/services/layoutMath.ts |
+| Task | Name                    | Commit    | Files                                       |
+| ---- | ----------------------- | --------- | ------------------------------------------- |
+| 1    | Implement layoutMath.ts | d56f09581 | src/platform/moshpit/services/layoutMath.ts |
 
 ## Known Stubs
 

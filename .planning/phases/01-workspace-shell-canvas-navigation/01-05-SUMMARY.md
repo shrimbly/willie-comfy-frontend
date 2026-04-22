@@ -51,11 +51,11 @@ requirements: [SHELL-04, SHELL-05]
 
 ## Tasks Completed
 
-| Task | Name | Commit | Files |
-|------|------|--------|-------|
+| Task    | Name                                                         | Commit    | Files                                                            |
+| ------- | ------------------------------------------------------------ | --------- | ---------------------------------------------------------------- |
 | 1-05-01 | MoshpitSideRail, MoshpitSettingsPanel, MoshpitLayout wire-up | 57f304cbb | MoshpitSideRail.vue, MoshpitSettingsPanel.vue, MoshpitLayout.vue |
-| 1-05-02 | Storybook stories for MoshpitSideRail and MoshpitLayout | 59998fb49 | MoshpitSideRail.stories.ts, MoshpitLayout.stories.ts |
-| 1-05-03 | MoshpitCanvasHelper + @moshpit E2E spec (SHELL-05 proof) | 94eb841d9 | MoshpitCanvasHelper.ts, moshpit-shell.spec.ts |
+| 1-05-02 | Storybook stories for MoshpitSideRail and MoshpitLayout      | 59998fb49 | MoshpitSideRail.stories.ts, MoshpitLayout.stories.ts             |
+| 1-05-03 | MoshpitCanvasHelper + @moshpit E2E spec (SHELL-05 proof)     | 94eb841d9 | MoshpitCanvasHelper.ts, moshpit-shell.spec.ts                    |
 
 ## Component APIs
 
@@ -91,8 +91,8 @@ requirements: [SHELL-04, SHELL-05]
 The SHELL-05 E2E test uses:
 
 ```typescript
-window.app?.graph?.nodes?.length  // node count
-window.app?.graph?._version       // mutation version counter
+window.app?.graph?.nodes?.length // node count
+window.app?.graph?._version // mutation version counter
 ```
 
 Both values are read before and after the `/moshpit` round-trip. If keep-alive is misconfigured and GraphView is unmounted/remounted, `onAdded` callbacks re-fire for all nodes, incrementing `_version`, causing the test to fail loudly.

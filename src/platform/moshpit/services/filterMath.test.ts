@@ -220,7 +220,11 @@ describe('matchesChip', () => {
       const p = params({ cfg: 7.0 })
       const c = curation({})
       expect(
-        matchesChip(p, c, chip('cfg', { kind: 'numeric', min: 6, max: 8, exact: null }))
+        matchesChip(
+          p,
+          c,
+          chip('cfg', { kind: 'numeric', min: 6, max: 8, exact: null })
+        )
       ).toBe(true)
     })
 
@@ -228,7 +232,11 @@ describe('matchesChip', () => {
       const p = params({ cfg: 6 })
       const c = curation({})
       expect(
-        matchesChip(p, c, chip('cfg', { kind: 'numeric', min: 6, max: 8, exact: null }))
+        matchesChip(
+          p,
+          c,
+          chip('cfg', { kind: 'numeric', min: 6, max: 8, exact: null })
+        )
       ).toBe(true)
     })
 
@@ -236,7 +244,11 @@ describe('matchesChip', () => {
       const p = params({ cfg: 8 })
       const c = curation({})
       expect(
-        matchesChip(p, c, chip('cfg', { kind: 'numeric', min: 6, max: 8, exact: null }))
+        matchesChip(
+          p,
+          c,
+          chip('cfg', { kind: 'numeric', min: 6, max: 8, exact: null })
+        )
       ).toBe(true)
     })
 
@@ -244,7 +256,11 @@ describe('matchesChip', () => {
       const p = params({ cfg: 5.0 })
       const c = curation({})
       expect(
-        matchesChip(p, c, chip('cfg', { kind: 'numeric', min: 6, max: 8, exact: null }))
+        matchesChip(
+          p,
+          c,
+          chip('cfg', { kind: 'numeric', min: 6, max: 8, exact: null })
+        )
       ).toBe(false)
     })
 
@@ -252,7 +268,11 @@ describe('matchesChip', () => {
       const p = params({ cfg: 9.0 })
       const c = curation({})
       expect(
-        matchesChip(p, c, chip('cfg', { kind: 'numeric', min: 6, max: 8, exact: null }))
+        matchesChip(
+          p,
+          c,
+          chip('cfg', { kind: 'numeric', min: 6, max: 8, exact: null })
+        )
       ).toBe(false)
     })
 
@@ -260,7 +280,11 @@ describe('matchesChip', () => {
       const p = params({ steps: 20 })
       const c = curation({})
       expect(
-        matchesChip(p, c, chip('steps', { kind: 'numeric', min: null, max: null, exact: 20 }))
+        matchesChip(
+          p,
+          c,
+          chip('steps', { kind: 'numeric', min: null, max: null, exact: 20 })
+        )
       ).toBe(true)
     })
 
@@ -573,7 +597,11 @@ describe('matchesChip', () => {
       const p = params({ cfg: undefined })
       const c = curation({})
       expect(
-        matchesChip(p, c, chip('cfg', { kind: 'numeric', min: 6, max: 8, exact: null }))
+        matchesChip(
+          p,
+          c,
+          chip('cfg', { kind: 'numeric', min: 6, max: 8, exact: null })
+        )
       ).toBe(false)
     })
 
@@ -650,41 +678,41 @@ describe('matchesTimeRange (FILTER-06)', () => {
 
     it('excludes timestamp more than 24h ago', () => {
       const range: TimeRange = { preset: 'today', from: null, to: null }
-      expect(
-        matchesTimeRange(NOW_MS - 2 * 86_400_000, range, NOW_MS)
-      ).toBe(false)
+      expect(matchesTimeRange(NOW_MS - 2 * 86_400_000, range, NOW_MS)).toBe(
+        false
+      )
     })
   })
 
   describe('preset: thisWeek', () => {
     it('admits timestamp within the last 7 days', () => {
       const range: TimeRange = { preset: 'thisWeek', from: null, to: null }
-      expect(
-        matchesTimeRange(NOW_MS - 3 * 86_400_000, range, NOW_MS)
-      ).toBe(true)
+      expect(matchesTimeRange(NOW_MS - 3 * 86_400_000, range, NOW_MS)).toBe(
+        true
+      )
     })
 
     it('excludes timestamp more than 7 days ago', () => {
       const range: TimeRange = { preset: 'thisWeek', from: null, to: null }
-      expect(
-        matchesTimeRange(NOW_MS - 8 * 86_400_000, range, NOW_MS)
-      ).toBe(false)
+      expect(matchesTimeRange(NOW_MS - 8 * 86_400_000, range, NOW_MS)).toBe(
+        false
+      )
     })
   })
 
   describe('preset: thisMonth', () => {
     it('admits timestamp within the last 30 days', () => {
       const range: TimeRange = { preset: 'thisMonth', from: null, to: null }
-      expect(
-        matchesTimeRange(NOW_MS - 15 * 86_400_000, range, NOW_MS)
-      ).toBe(true)
+      expect(matchesTimeRange(NOW_MS - 15 * 86_400_000, range, NOW_MS)).toBe(
+        true
+      )
     })
 
     it('excludes timestamp more than 30 days ago', () => {
       const range: TimeRange = { preset: 'thisMonth', from: null, to: null }
-      expect(
-        matchesTimeRange(NOW_MS - 32 * 86_400_000, range, NOW_MS)
-      ).toBe(false)
+      expect(matchesTimeRange(NOW_MS - 32 * 86_400_000, range, NOW_MS)).toBe(
+        false
+      )
     })
   })
 
@@ -781,9 +809,7 @@ describe('applyFilterChips — integration', () => {
       assets.map(({ hash, p }) => [hash, p])
     )
     const hashToCuration = new Map<string, CurationRecord>(
-      assets
-        .filter((a) => a.c !== undefined)
-        .map(({ hash, c }) => [hash, c!])
+      assets.filter((a) => a.c !== undefined).map(({ hash, c }) => [hash, c!])
     )
     return { hashToParams, hashToCuration }
   }

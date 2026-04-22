@@ -3,6 +3,7 @@
 **Purpose:** Validate whether spatial-sort-by-parameter is a valuable interaction for reasoning about generation output. A negative or "sort of" sign-off here pauses the roadmap per D-22.
 
 **Prerequisites:**
+
 - Real ComfyUI backend running (conda env `comfyui` per project memory)
 - At least 30 PNG outputs from a single workflow where CFG varies across a deliberate sweep (suggested: CFG 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 with fixed seed/sampler/steps, ~3 samples per CFG)
 

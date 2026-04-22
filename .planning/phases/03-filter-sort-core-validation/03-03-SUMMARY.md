@@ -1,41 +1,41 @@
 ---
 phase: 03-filter-sort-core-validation
-plan: "03"
+plan: '03'
 subsystem: moshpit-sort-math
 tags: [moshpit, sort, layout, pure-math, grid-snap, tdd]
 dependency_graph:
   requires:
-    - "03-02: filterTypes.ts (ParamKey)"
-    - "03-01: paramNormalize.ts (NormalizedParams)"
-    - "02-xx: layoutMath.ts (GridSlot)"
+    - '03-02: filterTypes.ts (ParamKey)'
+    - '03-01: paramNormalize.ts (NormalizedParams)'
+    - '02-xx: layoutMath.ts (GridSlot)'
   provides:
-    - "sortMath.ts: computeSortedLayout1D, computeSortedLayout2D"
-    - "SortedGridSlot, ColumnDescriptor, RowDescriptor types"
-    - "SORTABLE_PARAM_KEYS canonical list for sort UI"
+    - 'sortMath.ts: computeSortedLayout1D, computeSortedLayout2D'
+    - 'SortedGridSlot, ColumnDescriptor, RowDescriptor types'
+    - 'SORTABLE_PARAM_KEYS canonical list for sort UI'
   affects:
-    - "03-06: useMoshpitFilteredAssets (consumes computeSortedLayout1D/2D)"
-    - "03-08: MoshpitAxisOverlay (consumes ColumnDescriptor[], RowDescriptor[])"
+    - '03-06: useMoshpitFilteredAssets (consumes computeSortedLayout1D/2D)'
+    - '03-08: MoshpitAxisOverlay (consumes ColumnDescriptor[], RowDescriptor[])'
 tech_stack:
   added: []
   patterns:
-    - "TDD red-green cycle (failing test → implementation)"
-    - "Row-band accumulation for 2D same-cell stacking"
-    - "Column-per-unique-value bucketing (D-16)"
-    - "Numeric vs categorical sort ordering in compareGroupKeys"
+    - 'TDD red-green cycle (failing test → implementation)'
+    - 'Row-band accumulation for 2D same-cell stacking'
+    - 'Column-per-unique-value bucketing (D-16)'
+    - 'Numeric vs categorical sort ordering in compareGroupKeys'
 key_files:
   created:
     - src/platform/moshpit/services/sortMath.ts
     - src/platform/moshpit/services/sortMath.test.ts
   modified: []
 decisions:
-  - "Row-band accumulation chosen for 2D stacking to guarantee SORT-05 literal (no sub-cell offsets)"
-  - "extractSortValue uses switch on ParamKey with non-finite number guard (threat T-03-03-02)"
-  - "loras sort by count (length) — count is always defined so 0-LoRA assets are NOT excluded"
-  - "compareGroupKeys: numeric sort if both keys parse as Number.isFinite, else alphabetic"
-  - "workflowFilename + workflowFingerprint shape sourced from actual paramNormalize.ts (Zod-inferred)"
+  - 'Row-band accumulation chosen for 2D stacking to guarantee SORT-05 literal (no sub-cell offsets)'
+  - 'extractSortValue uses switch on ParamKey with non-finite number guard (threat T-03-03-02)'
+  - 'loras sort by count (length) — count is always defined so 0-LoRA assets are NOT excluded'
+  - 'compareGroupKeys: numeric sort if both keys parse as Number.isFinite, else alphabetic'
+  - 'workflowFilename + workflowFingerprint shape sourced from actual paramNormalize.ts (Zod-inferred)'
 metrics:
-  duration: "~10 minutes"
-  completed: "2026-04-20"
+  duration: '~10 minutes'
+  completed: '2026-04-20'
   tasks_completed: 2
   files_changed: 2
 ---
@@ -63,22 +63,22 @@ Implements the complete sort layout engine for the Moshpit canvas:
 ```typescript
 // Every slot — worldX and worldY are exact multiples of gridSpacing
 interface SortedGridSlot extends GridSlot {
-  readonly columnIndex: number  // 0-based
-  readonly rowIndex: number     // 0-based within the column (1D) or cell (2D)
+  readonly columnIndex: number // 0-based
+  readonly rowIndex: number // 0-based within the column (1D) or cell (2D)
 }
 
 // One per unique sortX value — for axis-label overlay
 interface ColumnDescriptor {
-  readonly paramValue: string   // serialized value label (e.g. "7", "euler_a")
+  readonly paramValue: string // serialized value label (e.g. "7", "euler_a")
   readonly columnIndex: number
-  readonly worldX: number       // = columnIndex * gridSpacing
+  readonly worldX: number // = columnIndex * gridSpacing
 }
 
 // One per unique sortY value — for 2D axis-label overlay
 interface RowDescriptor {
   readonly paramValue: string
   readonly rowIndex: number
-  readonly worldY: number       // = rowStart[rowIndex] — NOT naïve rowIndex * gridSpacing!
+  readonly worldY: number // = rowStart[rowIndex] — NOT naïve rowIndex * gridSpacing!
 }
 ```
 
@@ -87,6 +87,7 @@ interface RowDescriptor {
 ### `src/platform/moshpit/services/sortMath.test.ts`
 
 33 tests across 17 describe blocks covering:
+
 - SORT-01: Column bucketing, numeric ordering, categorical ordering, vertical stacking
 - SORT-02: 2D scatter layout, row-band accumulation test cases A, B, C
 - SORT-03: Missing-param exclusion on both axes
@@ -100,6 +101,7 @@ interface RowDescriptor {
 ### `extractSortValue`
 
 The `switch` on `ParamKey` handles each case explicitly:
+
 - `loras` → `params.loras.length` (always a number, even 0; 0-LoRA assets are valid)
 - Numeric fields (`cfg`, `steps`, `seed`, `width`, `height`, `timestamp`) → `Number.isFinite` guard before returning (threat T-03-03-02: non-finite numbers treated as undefined)
 - String fields (`model`, `sampler`, `scheduler`) → returned as-is
@@ -108,6 +110,7 @@ The `switch` on `ParamKey` handles each case explicitly:
 ### `compareGroupKeys`
 
 Two serialized bucket keys are compared numerically if both `Number.isFinite(Number(key))`, otherwise alphabetically. This correctly handles:
+
 - CFG values: `"10"`, `"2"`, `"7"` sort as `2, 7, 10` (numeric)
 - Sampler names: `"euler_a"`, `"dpmpp_2m"`, `"euler"` sort as `dpmpp_2m, euler, euler_a` (alphabetic)
 
@@ -116,6 +119,7 @@ Two serialized bucket keys are compared numerically if both `Number.isFinite(Num
 ### Auto-fixed Issues
 
 **1. [Rule 2 - Adaptation] Updated makeParams helper to match actual NormalizedParams shape**
+
 - **Found during:** Task 2 typecheck
 - **Issue:** The plan's example `makeParams` used `workflowFingerprint: undefined`, but the actual `NormalizedParams` (Zod-inferred from `paramNormalize.ts`) has `workflowFingerprint: string` (required) and `workflowFilename: string | null` (required)
 - **Fix:** Updated `makeParams` default values to `workflowFingerprint: ''` and `workflowFilename: null`

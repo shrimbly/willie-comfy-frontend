@@ -15,7 +15,9 @@ const i18n = createI18n({
   messages: { en: enMessages }
 })
 
-function makeParams(overrides: Partial<NormalizedParams> = {}): NormalizedParams {
+function makeParams(
+  overrides: Partial<NormalizedParams> = {}
+): NormalizedParams {
   return {
     model: undefined,
     loras: [],

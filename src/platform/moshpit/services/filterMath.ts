@@ -139,9 +139,7 @@ function matchesCategoricalChip(
   // LoRA: name-only match, any weight (D-04), OR within chip
   if (param === 'loras') {
     if (params.loras.length === 0) return false
-    return val.values.some((name) =>
-      params.loras.some((l) => l.name === name)
-    )
+    return val.values.some((name) => params.loras.some((l) => l.name === name))
   }
 
   // Tags: read from curation, OR within chip

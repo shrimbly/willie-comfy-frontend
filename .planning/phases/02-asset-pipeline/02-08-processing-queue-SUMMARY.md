@@ -1,15 +1,22 @@
 ---
 phase: 02-asset-pipeline
-plan: "08"
+plan: '08'
 subsystem: moshpit/composables
 tags: [composable, queue, pinia, wave-3, tdd]
 dependency_graph:
   requires: [02-04, 02-06, 02-07]
-  provides: [useMoshpitProcessingQueue, useMoshpitAssetRegistry, ProcessingQueueState, three-pinia-stores]
+  provides:
+    [
+      useMoshpitProcessingQueue,
+      useMoshpitAssetRegistry,
+      ProcessingQueueState,
+      three-pinia-stores
+    ]
   affects: [02-11-sprite-layer, 02-10-settings-panel]
 tech_stack:
   added: []
-  patterns: [injectable-bridge, storeToRefs-for-map-reactivity, fake-worker-pattern]
+  patterns:
+    [injectable-bridge, storeToRefs-for-map-reactivity, fake-worker-pattern]
 key_files:
   created:
     - src/platform/moshpit/composables/useMoshpitProcessingQueue.ts
@@ -27,9 +34,9 @@ key_files:
     - src/platform/moshpit/services/workerBridge.test.ts (add assetId to enqueue + thumbReady fixtures)
     - src/platform/moshpit/composables/useMoshpitProcessingQueue.test.ts (Wave-0 RED → GREEN + OSS-path integration test)
 decisions:
-  - "storeToRefs() required to recover Ref<Map> from Pinia auto-unwrapping — metaStore.assetIdToHash.value would be undefined without it"
-  - "EnqueueAssetInput and ThumbReadyMessage extended with assetId field (touches plan 05/06 files); existing tests updated to include assetId"
-  - "Three Pinia stores created in this plan (plan 07 parallel dep) — will be replaced by plan 07 outputs after merge"
+  - 'storeToRefs() required to recover Ref<Map> from Pinia auto-unwrapping — metaStore.assetIdToHash.value would be undefined without it'
+  - 'EnqueueAssetInput and ThumbReadyMessage extended with assetId field (touches plan 05/06 files); existing tests updated to include assetId'
+  - 'Three Pinia stores created in this plan (plan 07 parallel dep) — will be replaced by plan 07 outputs after merge'
 metrics:
   duration: ~25min
   completed: 2026-04-21
@@ -44,9 +51,9 @@ metrics:
 
 ## Tasks Completed
 
-| Task | Name | Commit | Tests |
-|------|------|--------|-------|
-| 1 | useMoshpitProcessingQueue + useMoshpitAssetRegistry + stores | e559cbc53 | 14/14 |
+| Task | Name                                                         | Commit    | Tests |
+| ---- | ------------------------------------------------------------ | --------- | ----- |
+| 1    | useMoshpitProcessingQueue + useMoshpitAssetRegistry + stores | e559cbc53 | 14/14 |
 
 ## What Was Built
 
@@ -69,6 +76,7 @@ metrics:
 ### Three Pinia Stores (Plan 07 parallel dep)
 
 Created as a parallel dependency since plan 07 runs concurrently:
+
 - `moshpitThumbStore` — `Map<hash, objectURL>` with revoke-on-replace and reset
 - `moshpitMetadataStore` — `Map<hash, meta>` + `excludedCount` + `assetIdToHash` OSS bridge map
 - `moshpitCurationStore` — Phase-2 scaffold: `Map<hash, CurationRecord>` load/get/reset
@@ -79,13 +87,13 @@ Created as a parallel dependency since plan 07 runs concurrently:
 
 ## Test Coverage
 
-| File | Tests | Status |
-|------|-------|--------|
-| useMoshpitProcessingQueue.test.ts | 4 (3 Wave-0 + 1 OSS integration) | All GREEN |
-| moshpitThumbStore.test.ts | 3 | All GREEN |
-| moshpitMetadataStore.test.ts | 4 | All GREEN |
-| moshpitCurationStore.test.ts | 3 | All GREEN |
-| **Total** | **14** | **14/14 GREEN** |
+| File                              | Tests                            | Status          |
+| --------------------------------- | -------------------------------- | --------------- |
+| useMoshpitProcessingQueue.test.ts | 4 (3 Wave-0 + 1 OSS integration) | All GREEN       |
+| moshpitThumbStore.test.ts         | 3                                | All GREEN       |
+| moshpitMetadataStore.test.ts      | 4                                | All GREEN       |
+| moshpitCurationStore.test.ts      | 3                                | All GREEN       |
+| **Total**                         | **14**                           | **14/14 GREEN** |
 
 All Wave-0 `computeQueueDelta` cases turn GREEN. OSS-path integration test (non-skipped) verifies end-to-end reactivity: `setFilter` → `fireThumbReady` → `metaStore.getHashForAssetId` returns hash → `useMoshpitAssetRegistry().entries.value` contains the entry.
 
@@ -96,18 +104,21 @@ No `it.skip` — all tests fully implemented.
 ### Auto-fixed Issues
 
 **1. [Rule 3 - Blocking] Plan 05/06 EnqueueAssetInput and ThumbReadyMessage lacked assetId**
+
 - **Found during:** Task 1 — composable calls `bridge.enqueue({ ..., assetId: view.id })` but the type had no `assetId` field
 - **Fix:** Added `readonly assetId: string` to `EnqueueAssetInput` and `ThumbReadyMessage` in `workerMessages.ts`; echoed the field through `thumbWorker.ts processAsset`; updated three test fixtures (`thumbWorker.test.ts`, `workerBridge.test.ts`)
 - **Files modified:** `workerMessages.ts`, `thumbWorker.ts`, `thumbWorker.test.ts`, `workerBridge.test.ts`
 - **Commit:** e559cbc53
 
 **2. [Rule 2 - Missing] Three Pinia stores (plan 07 parallel dep) not present in worktree**
+
 - **Found during:** Task 1 — imports `@/platform/moshpit/stores/moshpit{Thumb,Metadata,Curation}Store` which plan 07 creates concurrently
 - **Fix:** Created all three stores + their test files inline (exact interface contract from plan 07 PLAN.md)
 - **Files created:** `moshpitThumbStore.ts/.test.ts`, `moshpitMetadataStore.ts/.test.ts`, `moshpitCurationStore.ts/.test.ts`
 - **Commit:** e559cbc53
 
 **3. [Rule 1 - Bug] Pinia auto-unwrap broke `assetIdToHash.value` in registry computed**
+
 - **Found during:** Task 1 — `metaStore.assetIdToHash.value` returned `undefined` because Pinia auto-unwraps `ref` on store instances
 - **Fix:** Used `storeToRefs(metaStore)` to recover the actual `Ref<Map>` before reading `.value` in the computed
 - **Files modified:** `useMoshpitAssetRegistry.ts`
@@ -124,6 +135,7 @@ None — all data flows are wired. The three Pinia stores are Phase-2 scaffolds 
 ## Pre-existing Typecheck Errors (Out of Scope)
 
 Two errors existed on the base branch before this plan and are unrelated to files touched here:
+
 - `MoshpitProcessingIndicator.test.ts` — references `.vue` component not yet created (different plan)
 - `useMinimap.test.ts(854)` — comparison type overlap in minimap resize listener
 

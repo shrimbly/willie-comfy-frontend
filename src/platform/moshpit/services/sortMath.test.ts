@@ -32,9 +32,7 @@ function makeParams(overrides: Partial<NormalizedParams>): NormalizedParams {
 function paramsMap(
   entries: Record<string, Partial<NormalizedParams>>
 ): Map<string, NormalizedParams> {
-  return new Map(
-    Object.entries(entries).map(([k, v]) => [k, makeParams(v)])
-  )
+  return new Map(Object.entries(entries).map(([k, v]) => [k, makeParams(v)]))
 }
 
 // ---------------------------------------------------------------------------
@@ -88,7 +86,12 @@ describe('computeSortedLayout1D', () => {
         c: { cfg: 7 },
         d: { cfg: 8 }
       })
-      const { slots, columns } = computeSortedLayout1D(hashes, params, 'cfg', 100)
+      const { slots, columns } = computeSortedLayout1D(
+        hashes,
+        params,
+        'cfg',
+        100
+      )
       expect(columns).toHaveLength(3) // 6, 7, 8
       expect(slots).toHaveLength(4)
     })
@@ -220,7 +223,12 @@ describe('computeSortedLayout1D', () => {
         c: { cfg: 7 }
       })
       const gridSpacing = 100
-      const { slots } = computeSortedLayout1D(hashes, params, 'cfg', gridSpacing)
+      const { slots } = computeSortedLayout1D(
+        hashes,
+        params,
+        'cfg',
+        gridSpacing
+      )
       const sortedByRow = [...slots].sort((x, y) => x.rowIndex - y.rowIndex)
       expect(sortedByRow[0].worldY).toBe(0)
       expect(sortedByRow[1].worldY).toBe(100)
@@ -236,7 +244,12 @@ describe('computeSortedLayout1D', () => {
         d: { cfg: 8 }
       })
       const gridSpacing = 150
-      const { slots } = computeSortedLayout1D(hashes, params, 'cfg', gridSpacing)
+      const { slots } = computeSortedLayout1D(
+        hashes,
+        params,
+        'cfg',
+        gridSpacing
+      )
       for (const slot of slots) {
         expect(slot.worldY % gridSpacing).toBe(0)
       }

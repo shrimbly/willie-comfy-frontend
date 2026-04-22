@@ -26,7 +26,9 @@ describe('MoshpitTextFilterEditor', () => {
   it('renders textarea with i18n substring hint placeholder', () => {
     mountEditor()
     expect(
-      screen.getByPlaceholderText(enMessages.moshpit.filters.editorSubstringHint)
+      screen.getByPlaceholderText(
+        enMessages.moshpit.filters.editorSubstringHint
+      )
     ).toBeInTheDocument()
   })
 

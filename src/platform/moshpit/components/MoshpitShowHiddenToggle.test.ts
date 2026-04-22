@@ -71,7 +71,9 @@ describe('MoshpitShowHiddenToggle', () => {
 
   it('label element is associated with the toggle via wrapping', () => {
     renderComponent()
-    expect(screen.getByTestId('moshpit-show-hidden-label').tagName.toLowerCase()).toBe('label')
+    expect(
+      screen.getByTestId('moshpit-show-hidden-label').tagName.toLowerCase()
+    ).toBe('label')
     expect(screen.getByTestId('moshpit-show-hidden-toggle')).toBeTruthy()
   })
 })

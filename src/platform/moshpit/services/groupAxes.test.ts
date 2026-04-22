@@ -116,9 +116,7 @@ describe('deriveTypeBucket (D-09)', () => {
   })
 
   it('returns (other) when width is undefined', () => {
-    expect(deriveTypeBucket({ width: undefined, height: 1024 })).toBe(
-      '(other)'
-    )
+    expect(deriveTypeBucket({ width: undefined, height: 1024 })).toBe('(other)')
   })
 
   it('returns (other) when width is 0 (falsy)', () => {
@@ -126,9 +124,7 @@ describe('deriveTypeBucket (D-09)', () => {
   })
 
   it('returns (other) when height is undefined', () => {
-    expect(deriveTypeBucket({ width: 1024, height: undefined })).toBe(
-      '(other)'
-    )
+    expect(deriveTypeBucket({ width: 1024, height: undefined })).toBe('(other)')
   })
 
   it('returns (other) when height is 0', () => {
@@ -136,9 +132,7 @@ describe('deriveTypeBucket (D-09)', () => {
   })
 
   it('returns (other) when a dimension is non-finite', () => {
-    expect(deriveTypeBucket({ width: Infinity, height: 1024 })).toBe(
-      '(other)'
-    )
+    expect(deriveTypeBucket({ width: Infinity, height: 1024 })).toBe('(other)')
     expect(deriveTypeBucket({ width: 1024, height: Number.NaN })).toBe(
       '(other)'
     )
@@ -279,9 +273,7 @@ describe('compareAssetsForWithinCluster (CSORT-01)', () => {
       params: makeParams(),
       filename: 'banana.png'
     }
-    expect(
-      compareAssetsForWithinCluster(a, b, 'alphabetical')
-    ).toBeLessThan(0)
+    expect(compareAssetsForWithinCluster(a, b, 'alphabetical')).toBeLessThan(0)
   })
 
   it('alphabetical: missing filename sorts after non-missing', () => {
@@ -295,9 +287,7 @@ describe('compareAssetsForWithinCluster (CSORT-01)', () => {
       params: makeParams(),
       filename: null
     }
-    expect(
-      compareAssetsForWithinCluster(a, b, 'alphabetical')
-    ).toBeLessThan(0)
+    expect(compareAssetsForWithinCluster(a, b, 'alphabetical')).toBeLessThan(0)
   })
 
   it('alphabetical: both filenames null -> contentHash tiebreak', () => {
@@ -311,9 +301,7 @@ describe('compareAssetsForWithinCluster (CSORT-01)', () => {
       params: makeParams(),
       filename: null
     }
-    expect(
-      compareAssetsForWithinCluster(a, b, 'alphabetical')
-    ).toBeLessThan(0)
+    expect(compareAssetsForWithinCluster(a, b, 'alphabetical')).toBeLessThan(0)
   })
 
   it('alphabetical: equal filename breaks tie on contentHash', () => {
@@ -327,9 +315,7 @@ describe('compareAssetsForWithinCluster (CSORT-01)', () => {
       params: makeParams(),
       filename: 'same.png'
     }
-    expect(
-      compareAssetsForWithinCluster(a, b, 'alphabetical')
-    ).toBeLessThan(0)
+    expect(compareAssetsForWithinCluster(a, b, 'alphabetical')).toBeLessThan(0)
   })
 
   it('produces a total deterministic order (property test)', () => {
@@ -345,10 +331,9 @@ describe('compareAssetsForWithinCluster (CSORT-01)', () => {
       .record({
         contentHash: fc.string({ minLength: 1, maxLength: 8 }),
         timestamp: fc.integer({ min: 0, max: 1_000_000 }),
-        filename: fc.option(
-          fc.string({ minLength: 1, maxLength: 12 }),
-          { nil: null }
-        )
+        filename: fc.option(fc.string({ minLength: 1, maxLength: 12 }), {
+          nil: null
+        })
       })
       .map<AssetRecord>((r) => ({
         contentHash: r.contentHash,

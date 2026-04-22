@@ -1,6 +1,6 @@
 ---
 phase: 02-asset-pipeline
-plan: "02"
+plan: '02'
 subsystem: moshpit/services
 tags: [pure-functions, hashing, content-addressing, prng, wave-1, leaf-module]
 dependency_graph:
@@ -25,7 +25,7 @@ decisions:
   - "Applied >>> 0 to final mulberry32 XOR expression to force unsigned 32-bit — without this the function returns negative values for many seeds (bug in the plan's template code)"
 metrics:
   duration_minutes: 8
-  completed_date: "2026-04-21"
+  completed_date: '2026-04-21'
   tasks_completed: 1
   tasks_total: 1
   files_created: 1
@@ -41,20 +41,20 @@ One-liner: Pure leaf module providing FNV-1a layout seed, mulberry32 PRNG, layou
 
 `src/platform/moshpit/services/contentHash.ts` — an 85-line TypeScript file with exactly four named exports:
 
-| Export | Type | Purpose |
-|---|---|---|
-| `fnv1a(str)` | `(string) => number` | 32-bit FNV-1a hash; deterministic layout seed |
-| `mulberry32(seed)` | `(number) => () => number` | Seeded PRNG; floats in [0, 1) |
-| `layoutSeedHash(filterKey, sortedAssetHashes)` | `(string, readonly string[]) => number` | Stable integer seed for jittered-grid layout |
-| `sha256Hex(buffer)` | `(ArrayBuffer) => Promise<string>` | 64-char lowercase hex SHA-256 via crypto.subtle |
+| Export                                         | Type                                    | Purpose                                         |
+| ---------------------------------------------- | --------------------------------------- | ----------------------------------------------- |
+| `fnv1a(str)`                                   | `(string) => number`                    | 32-bit FNV-1a hash; deterministic layout seed   |
+| `mulberry32(seed)`                             | `(number) => () => number`              | Seeded PRNG; floats in [0, 1)                   |
+| `layoutSeedHash(filterKey, sortedAssetHashes)` | `(string, readonly string[]) => number` | Stable integer seed for jittered-grid layout    |
+| `sha256Hex(buffer)`                            | `(ArrayBuffer) => Promise<string>`      | 64-char lowercase hex SHA-256 via crypto.subtle |
 
 The file has zero imports — making it safe to import from a Vite `?worker` bundle without pulling Vue or Pinia into the worker chunk.
 
 ## Task Completion
 
-| Task | Name | Commit | Files |
-|---|---|---|---|
-| 1 | Implement contentHash.ts — four pure utilities | a4db04d6c | src/platform/moshpit/services/contentHash.ts |
+| Task | Name                                           | Commit    | Files                                        |
+| ---- | ---------------------------------------------- | --------- | -------------------------------------------- |
+| 1    | Implement contentHash.ts — four pure utilities | a4db04d6c | src/platform/moshpit/services/contentHash.ts |
 
 ## Verification Results
 
@@ -92,6 +92,7 @@ None. The module is complete and fully functional.
 ## Threat Flags
 
 No new security surface introduced. This module:
+
 - Contains no network endpoints
 - Contains no file access
 - Processes no user input directly

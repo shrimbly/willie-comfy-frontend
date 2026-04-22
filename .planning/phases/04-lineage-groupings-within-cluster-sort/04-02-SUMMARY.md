@@ -2,7 +2,16 @@
 phase: 04-lineage-groupings-within-cluster-sort
 plan: 02
 subsystem: moshpit
-tags: [indexeddb, migration, params, save-node-identity, worker-safe, vitest, fake-indexeddb]
+tags:
+  [
+    indexeddb,
+    migration,
+    params,
+    save-node-identity,
+    worker-safe,
+    vitest,
+    fake-indexeddb
+  ]
 
 requires:
   - phase: 03-filter-sort-core-validation
@@ -17,7 +26,12 @@ provides:
   - MOSHPIT_DB_VERSION = 3
   - v2→v3 upgrade branch: cursor-based re-derivation of saveNodeIdentity with per-record try/catch + aggregate skip log
   - Regression coverage: 6 new v2→v3 tests + 4 new paramNormalize behaviour tests (from Plan 04-02 Task 1)
-affects: [04-03 useMoshpitFilteredAssets (will read real saveNodeIdentity from params), 04-04 moshpitFilterStore (saveNode axis wiring), 04-05 cluster overlay (saveNode bucket labels)]
+affects:
+  [
+    04-03 useMoshpitFilteredAssets (will read real saveNodeIdentity from params),
+    04-04 moshpitFilterStore (saveNode axis wiring),
+    04-05 cluster overlay (saveNode bucket labels)
+  ]
 
 tech-stack:
   added: []
@@ -37,15 +51,15 @@ key-files:
     - .planning/phases/04-lineage-groupings-within-cluster-sort/deferred-items.md (marked pre-existing thumbRepository typecheck errors resolved)
 
 key-decisions:
-  - "Spread-replace saveNodeIdentity on v2→v3 (vs. full re-parse) when rec.params exists — cheaper and preserves any Phase 3 field values that would otherwise be recomputed. Falls through to full normalizeParams only when rec.params is absent (defensive path for intermediate writes)"
-  - "Malformed prompt JSON is NOT a throw — normalizeParams already returns fallback emptyParams on bad JSON, so such records simply migrate with saveNodeIdentity: null. The per-record try/catch exists to catch structural failures (e.g. rec.metadata itself being null/undefined), which is the only path the aggregate-skip counter actually fires on"
-  - "Resolved the pre-existing thumbRepository.ts TS2339/TS2698/TS2339 errors inline because the new v2→v3 branch touches the same cursor shape and would regress typecheck otherwise. Narrow structural cast documented in deferred-items.md update"
-  - "No new module imports in thumbRepository.ts. The NormalizedParams type import is added via a dedicated `import type` statement to satisfy the consistent-type-specifier-style rule"
+  - 'Spread-replace saveNodeIdentity on v2→v3 (vs. full re-parse) when rec.params exists — cheaper and preserves any Phase 3 field values that would otherwise be recomputed. Falls through to full normalizeParams only when rec.params is absent (defensive path for intermediate writes)'
+  - 'Malformed prompt JSON is NOT a throw — normalizeParams already returns fallback emptyParams on bad JSON, so such records simply migrate with saveNodeIdentity: null. The per-record try/catch exists to catch structural failures (e.g. rec.metadata itself being null/undefined), which is the only path the aggregate-skip counter actually fires on'
+  - 'Resolved the pre-existing thumbRepository.ts TS2339/TS2698/TS2339 errors inline because the new v2→v3 branch touches the same cursor shape and would regress typecheck otherwise. Narrow structural cast documented in deferred-items.md update'
+  - 'No new module imports in thumbRepository.ts. The NormalizedParams type import is added via a dedicated `import type` statement to satisfy the consistent-type-specifier-style rule'
 
 patterns-established:
   - "IDB upgrade branches are additive and independent. Each new version's branch reads its own inputs from cursor values via explicit narrowing — it does NOT rely on the current TS AssetMetaRecord shape being backwards-compatible with older on-disk shapes"
-  - "Aggregate skip logging (one warn at end of migration, one error per record) keeps the per-record signal useful for diagnosis and the aggregate signal visible in prod logs without spam"
-  - "saveNodeIdentity extensibility: SAVE_NODE_CLASS_TYPES is exported so future plans (custom save nodes) can either union-extend it or fall through to the (other) bucket without code changes"
+  - 'Aggregate skip logging (one warn at end of migration, one error per record) keeps the per-record signal useful for diagnosis and the aggregate signal visible in prod logs without spam'
+  - 'saveNodeIdentity extensibility: SAVE_NODE_CLASS_TYPES is exported so future plans (custom save nodes) can either union-extend it or fall through to the (other) bucket without code changes'
 
 requirements-completed:
   - GROUP-04
@@ -134,14 +148,14 @@ export function openMoshpitDB(): Promise<IDBPDatabase<MoshpitDB>>
 
 ## v2→v3 Migration Behaviour (D-11)
 
-| Starting state                          | Result at open                                                                     |
-| --------------------------------------- | ---------------------------------------------------------------------------------- |
-| Fresh DB (no file)                      | Creates stores at v3. No migration runs. No logs.                                  |
-| v2 DB with N records (all valid)        | N updates via cursor. Each `params.saveNodeIdentity` re-derived from `rec.metadata`. No logs. |
-| v2 DB with K malformed-JSON records     | `normalizeParams` returns fallback, `saveNodeIdentity: null` — migration succeeds. |
+| Starting state                                                   | Result at open                                                                                                             |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Fresh DB (no file)                                               | Creates stores at v3. No migration runs. No logs.                                                                          |
+| v2 DB with N records (all valid)                                 | N updates via cursor. Each `params.saveNodeIdentity` re-derived from `rec.metadata`. No logs.                              |
+| v2 DB with K malformed-JSON records                              | `normalizeParams` returns fallback, `saveNodeIdentity: null` — migration succeeds.                                         |
 | v2 DB with K structurally broken records (e.g. `metadata: null`) | `try/catch` fires K times (`console.error`), aggregate `console.warn` emitted once with skip count. Transaction continues. |
-| v3 DB re-opened                         | `cachedDB` returns cached promise. No upgrade hook fires.                          |
-| v1 DB (no v2 ever ran)                  | Both `oldVersion < 2` and `oldVersion < 3` branches run in sequence in the same transaction. |
+| v3 DB re-opened                                                  | `cachedDB` returns cached promise. No upgrade hook fires.                                                                  |
+| v1 DB (no v2 ever ran)                                           | Both `oldVersion < 2` and `oldVersion < 3` branches run in sequence in the same transaction.                               |
 
 ## Threat Flags
 

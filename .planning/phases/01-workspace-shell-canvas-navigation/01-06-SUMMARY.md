@@ -6,7 +6,11 @@ tags: [gap-closure, pan-zoom, parity, architecture-cleanup]
 dependency_graph:
   requires: [01-01, 01-02, 01-03, 01-04, 01-05]
   provides: [SHELL-03-gap-closure]
-  affects: [src/platform/moshpit/composables, src/platform/moshpit/components/MoshpitCanvas.vue]
+  affects:
+    [
+      src/platform/moshpit/composables,
+      src/platform/moshpit/components/MoshpitCanvas.vue
+    ]
 tech_stack:
   added: []
   patterns: [pixi-viewport plugin equivalence, void side-effect composable]
@@ -61,14 +65,14 @@ Commit: `6418b8d32`
 
 ### Automated gates
 
-| Gate | Command | Result |
-| --- | --- | --- |
-| Typecheck | `pnpm typecheck` | **PASS** (exit 0) |
-| Lint (touched files, ESLint direct) | `npx eslint src/platform/moshpit/composables/useMoshpitSpacePan.ts src/platform/moshpit/components/MoshpitCanvas.vue src/platform/moshpit/components/MoshpitCanvas.test.ts` | **PASS** (exit 0) |
-| Lint (touched files, oxlint direct) | `npx oxlint --type-aware <same files>` | **PASS** (0 warnings, 0 errors) |
-| Unit tests (moshpit + canvas + renderer/canvas) | `pnpm test:unit src/platform/moshpit src/composables/canvas src/renderer/core/canvas --reporter=dot` | **PASS** (10 test files, **118 tests green**) |
-| Deleted-file referential integrity | `grep -rn "useMoshpitCanvasInput" src/` | **CLEAN** (no references remain) |
-| No dead-API in new composable | `grep -E "^import|from '@/composables" src/platform/moshpit/composables/useMoshpitSpacePan.ts` | imports only `@vueuse/core`, `pixi-viewport`, `vue` — no `useCanvasInput` / `CanvasInputNavigator` wiring |
+| Gate                                            | Command                                                                                                                                                                     | Result                                                                       |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Typecheck                                       | `pnpm typecheck`                                                                                                                                                            | **PASS** (exit 0)                                                            |
+| Lint (touched files, ESLint direct)             | `npx eslint src/platform/moshpit/composables/useMoshpitSpacePan.ts src/platform/moshpit/components/MoshpitCanvas.vue src/platform/moshpit/components/MoshpitCanvas.test.ts` | **PASS** (exit 0)                                                            |
+| Lint (touched files, oxlint direct)             | `npx oxlint --type-aware <same files>`                                                                                                                                      | **PASS** (0 warnings, 0 errors)                                              |
+| Unit tests (moshpit + canvas + renderer/canvas) | `pnpm test:unit src/platform/moshpit src/composables/canvas src/renderer/core/canvas --reporter=dot`                                                                        | **PASS** (10 test files, **118 tests green**)                                |
+| Deleted-file referential integrity              | `grep -rn "useMoshpitCanvasInput" src/`                                                                                                                                     | **CLEAN** (no references remain)                                             |
+| No dead-API in new composable                   | `grep -E "^import                                                                                                                                                           | from '@/composables" src/platform/moshpit/composables/useMoshpitSpacePan.ts` | imports only `@vueuse/core`, `pixi-viewport`, `vue` — no `useCanvasInput` / `CanvasInputNavigator` wiring |
 
 ### Test suite detail
 
@@ -93,13 +97,13 @@ The new `useMoshpitSpacePan.ts` is NOT flagged by knip (it is imported by `Moshp
 
 None for Task 1-06-01 or Task 1-06-02. The plan was executed exactly as written.
 
-**One plan-internal inconsistency noted, not altered:** the plan's Step 1 content contains three doc-comment references to `useCanvasInput` (in the JSDoc block explaining *why* the composable does not touch it), while the plan's acceptance criterion `grep -q "useCanvasInput" ... returns NOTHING` would flag those comment mentions. The `must_haves.truths` entry is worded as "no `useCanvasInput` / `CanvasInputNavigator` **wiring**" — referring to code wiring, not documentation. The file was created with the comment content exactly as the plan's Step 1 dictates (which is the higher-specificity instruction), and the real intent — no imports, no `CanvasInputNavigator` construction, no `useCanvasInput(...)` call — is fully satisfied. Confirmed by `grep -E "^import|from '@/composables"` on the file: only `@vueuse/core`, `pixi-viewport`, `vue` are imported.
+**One plan-internal inconsistency noted, not altered:** the plan's Step 1 content contains three doc-comment references to `useCanvasInput` (in the JSDoc block explaining _why_ the composable does not touch it), while the plan's acceptance criterion `grep -q "useCanvasInput" ... returns NOTHING` would flag those comment mentions. The `must_haves.truths` entry is worded as "no `useCanvasInput` / `CanvasInputNavigator` **wiring**" — referring to code wiring, not documentation. The file was created with the comment content exactly as the plan's Step 1 dictates (which is the higher-specificity instruction), and the real intent — no imports, no `CanvasInputNavigator` construction, no `useCanvasInput(...)` call — is fully satisfied. Confirmed by `grep -E "^import|from '@/composables"` on the file: only `@vueuse/core`, `pixi-viewport`, `vue` are imported.
 
 ## Commits
 
-| Hash | Message |
-| --- | --- |
-| `aa143badf` | refactor(01-06): rename useMoshpitCanvasInput to useMoshpitSpacePan |
+| Hash        | Message                                                                     |
+| ----------- | --------------------------------------------------------------------------- |
+| `aa143badf` | refactor(01-06): rename useMoshpitCanvasInput to useMoshpitSpacePan         |
 | `6418b8d32` | docs(01-06): record SC-2 gap closure in CONTEXT.md D-07 and VERIFICATION.md |
 
 ## Next-Operator Note (Outstanding Manual Gate)

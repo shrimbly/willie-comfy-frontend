@@ -8,15 +8,20 @@ const mockCtrl = ref(false)
 const mockMeta = ref(false)
 
 vi.mock('@vueuse/core', async () => {
-  const actual = await vi.importActual<typeof import('@vueuse/core')>('@vueuse/core')
+  const actual = (await vi.importActual('@vueuse/core')) as Record<
+    string,
+    unknown
+  >
   return {
     ...actual,
-    useKeyModifier: vi.fn<(key: string) => ReturnType<typeof ref>>().mockImplementation((key: string) => {
-      if (key === 'Shift') return mockShift
-      if (key === 'Control') return mockCtrl
-      if (key === 'Meta') return mockMeta
-      return ref(false)
-    })
+    useKeyModifier: vi
+      .fn<(key: string) => ReturnType<typeof ref>>()
+      .mockImplementation((key: string) => {
+        if (key === 'Shift') return mockShift
+        if (key === 'Control') return mockCtrl
+        if (key === 'Meta') return mockMeta
+        return ref(false)
+      })
   }
 })
 
@@ -82,7 +87,9 @@ describe('useMoshpitMarquee', () => {
       hitTest: () => []
     })
 
-    onPointerDown(makePointerEvent('pointerdown', { button: 0, clientX: 10, clientY: 20 }))
+    onPointerDown(
+      makePointerEvent('pointerdown', { button: 0, clientX: 10, clientY: 20 })
+    )
     expect(isDragging.value).toBe(false)
   })
 
@@ -93,7 +100,9 @@ describe('useMoshpitMarquee', () => {
       hitTest: () => []
     })
 
-    onPointerDown(makePointerEvent('pointerdown', { button: 1, clientX: 10, clientY: 20 }))
+    onPointerDown(
+      makePointerEvent('pointerdown', { button: 1, clientX: 10, clientY: 20 })
+    )
     expect(isDragging.value).toBe(false)
   })
 
@@ -104,7 +113,9 @@ describe('useMoshpitMarquee', () => {
       hitTest: () => []
     })
 
-    onPointerDown(makePointerEvent('pointerdown', { button: 2, clientX: 10, clientY: 20 }))
+    onPointerDown(
+      makePointerEvent('pointerdown', { button: 2, clientX: 10, clientY: 20 })
+    )
     expect(isDragging.value).toBe(false)
   })
 
@@ -115,9 +126,23 @@ describe('useMoshpitMarquee', () => {
       hitTest: () => []
     })
 
-    onPointerDown(makePointerEvent('pointerdown', { button: 0, clientX: 100, clientY: 100, pointerId: 1 }))
+    onPointerDown(
+      makePointerEvent('pointerdown', {
+        button: 0,
+        clientX: 100,
+        clientY: 100,
+        pointerId: 1
+      })
+    )
     // simulate pointermove with 3px movement (under threshold — wasDragged returns false)
-    document.dispatchEvent(new PointerEvent('pointermove', { clientX: 103, clientY: 100, pointerId: 1, bubbles: true }))
+    document.dispatchEvent(
+      new PointerEvent('pointermove', {
+        clientX: 103,
+        clientY: 100,
+        pointerId: 1,
+        bubbles: true
+      })
+    )
     // isDragging should still be false (we use the guard internally)
     expect(isDragging.value).toBe(false)
   })
@@ -129,7 +154,14 @@ describe('useMoshpitMarquee', () => {
       hitTest: () => []
     })
 
-    onPointerDown(makePointerEvent('pointerdown', { button: 0, clientX: 100, clientY: 100, pointerId: 1 }))
+    onPointerDown(
+      makePointerEvent('pointerdown', {
+        button: 0,
+        clientX: 100,
+        clientY: 100,
+        pointerId: 1
+      })
+    )
 
     // Simulate a real pointermove event dispatched to document
     const moveEvt = new PointerEvent('pointermove', {
@@ -157,7 +189,14 @@ describe('useMoshpitMarquee', () => {
     const selection = useMoshpitSelectionStore()
     const setSelectionSpy = vi.spyOn(selection, 'setSelection')
 
-    onPointerDown(makePointerEvent('pointerdown', { button: 0, clientX: 100, clientY: 100, pointerId: 1 }))
+    onPointerDown(
+      makePointerEvent('pointerdown', {
+        button: 0,
+        clientX: 100,
+        clientY: 100,
+        pointerId: 1
+      })
+    )
     // pointerup without significant movement
     const upEvt = new PointerEvent('pointerup', {
       clientX: 101,
@@ -172,7 +211,9 @@ describe('useMoshpitMarquee', () => {
 
   it('pointerup after drag with no modifier: calls setSelection with hitTest results', () => {
     const containerEl = makeContainer()
-    const hitTestFn = vi.fn<() => string[]>().mockReturnValue(['asset-1', 'asset-2'])
+    const hitTestFn = vi
+      .fn<() => string[]>()
+      .mockReturnValue(['asset-1', 'asset-2'])
     const { onPointerDown } = useMoshpitMarquee({
       containerEl,
       hitTest: hitTestFn
@@ -180,10 +221,31 @@ describe('useMoshpitMarquee', () => {
     const selection = useMoshpitSelectionStore()
     const setSelectionSpy = vi.spyOn(selection, 'setSelection')
 
-    onPointerDown(makePointerEvent('pointerdown', { button: 0, clientX: 100, clientY: 100, pointerId: 1 }))
+    onPointerDown(
+      makePointerEvent('pointerdown', {
+        button: 0,
+        clientX: 100,
+        clientY: 100,
+        pointerId: 1
+      })
+    )
     // Move past threshold
-    document.dispatchEvent(new PointerEvent('pointermove', { clientX: 160, clientY: 160, pointerId: 1, bubbles: true }))
-    document.dispatchEvent(new PointerEvent('pointerup', { clientX: 160, clientY: 160, pointerId: 1, bubbles: true }))
+    document.dispatchEvent(
+      new PointerEvent('pointermove', {
+        clientX: 160,
+        clientY: 160,
+        pointerId: 1,
+        bubbles: true
+      })
+    )
+    document.dispatchEvent(
+      new PointerEvent('pointerup', {
+        clientX: 160,
+        clientY: 160,
+        pointerId: 1,
+        bubbles: true
+      })
+    )
 
     expect(setSelectionSpy).toHaveBeenCalledWith(['asset-1', 'asset-2'])
   })
@@ -202,9 +264,30 @@ describe('useMoshpitMarquee', () => {
     const setSelectionSpy = vi.spyOn(selection, 'setSelection')
     mockShift.value = true
 
-    onPointerDown(makePointerEvent('pointerdown', { button: 0, clientX: 100, clientY: 100, pointerId: 1 }))
-    document.dispatchEvent(new PointerEvent('pointermove', { clientX: 160, clientY: 160, pointerId: 1, bubbles: true }))
-    document.dispatchEvent(new PointerEvent('pointerup', { clientX: 160, clientY: 160, pointerId: 1, bubbles: true }))
+    onPointerDown(
+      makePointerEvent('pointerdown', {
+        button: 0,
+        clientX: 100,
+        clientY: 100,
+        pointerId: 1
+      })
+    )
+    document.dispatchEvent(
+      new PointerEvent('pointermove', {
+        clientX: 160,
+        clientY: 160,
+        pointerId: 1,
+        bubbles: true
+      })
+    )
+    document.dispatchEvent(
+      new PointerEvent('pointerup', {
+        clientX: 160,
+        clientY: 160,
+        pointerId: 1,
+        bubbles: true
+      })
+    )
 
     // Should contain pre-drag + hitTest results merged
     expect(setSelectionSpy).toHaveBeenCalledWith(
@@ -218,7 +301,9 @@ describe('useMoshpitMarquee', () => {
     const containerEl = makeContainer()
     // pre-drag: ['asset-1', 'asset-2'], hit: ['asset-2', 'asset-3']
     // XOR result: ['asset-1', 'asset-3'] (asset-2 removed, asset-3 added)
-    const hitTestFn = vi.fn<() => string[]>().mockReturnValue(['asset-2', 'asset-3'])
+    const hitTestFn = vi
+      .fn<() => string[]>()
+      .mockReturnValue(['asset-2', 'asset-3'])
     const { onPointerDown } = useMoshpitMarquee({
       containerEl,
       hitTest: hitTestFn
@@ -229,9 +314,30 @@ describe('useMoshpitMarquee', () => {
     const setSelectionSpy = vi.spyOn(selection, 'setSelection')
     mockCtrl.value = true
 
-    onPointerDown(makePointerEvent('pointerdown', { button: 0, clientX: 100, clientY: 100, pointerId: 1 }))
-    document.dispatchEvent(new PointerEvent('pointermove', { clientX: 160, clientY: 160, pointerId: 1, bubbles: true }))
-    document.dispatchEvent(new PointerEvent('pointerup', { clientX: 160, clientY: 160, pointerId: 1, bubbles: true }))
+    onPointerDown(
+      makePointerEvent('pointerdown', {
+        button: 0,
+        clientX: 100,
+        clientY: 100,
+        pointerId: 1
+      })
+    )
+    document.dispatchEvent(
+      new PointerEvent('pointermove', {
+        clientX: 160,
+        clientY: 160,
+        pointerId: 1,
+        bubbles: true
+      })
+    )
+    document.dispatchEvent(
+      new PointerEvent('pointerup', {
+        clientX: 160,
+        clientY: 160,
+        pointerId: 1,
+        bubbles: true
+      })
+    )
 
     expect(setSelectionSpy).toHaveBeenCalledWith(
       expect.arrayContaining(['asset-1', 'asset-3'])
@@ -251,8 +357,22 @@ describe('useMoshpitMarquee', () => {
     const selection = useMoshpitSelectionStore()
     const setSelectionSpy = vi.spyOn(selection, 'setSelection')
 
-    onPointerDown(makePointerEvent('pointerdown', { button: 0, clientX: 100, clientY: 100, pointerId: 1 }))
-    document.dispatchEvent(new PointerEvent('pointermove', { clientX: 160, clientY: 160, pointerId: 1, bubbles: true }))
+    onPointerDown(
+      makePointerEvent('pointerdown', {
+        button: 0,
+        clientX: 100,
+        clientY: 100,
+        pointerId: 1
+      })
+    )
+    document.dispatchEvent(
+      new PointerEvent('pointermove', {
+        clientX: 160,
+        clientY: 160,
+        pointerId: 1,
+        bubbles: true
+      })
+    )
 
     expect(isDragging.value).toBe(true)
 
@@ -272,9 +392,30 @@ describe('useMoshpitMarquee', () => {
     const selection = useMoshpitSelectionStore()
     const setSelectionSpy = vi.spyOn(selection, 'setSelection')
 
-    onPointerDown(makePointerEvent('pointerdown', { button: 0, clientX: 100, clientY: 100, pointerId: 1 }))
-    document.dispatchEvent(new PointerEvent('pointermove', { clientX: 160, clientY: 160, pointerId: 1, bubbles: true }))
-    document.dispatchEvent(new PointerEvent('pointerup', { clientX: 160, clientY: 160, pointerId: 1, bubbles: true }))
+    onPointerDown(
+      makePointerEvent('pointerdown', {
+        button: 0,
+        clientX: 100,
+        clientY: 100,
+        pointerId: 1
+      })
+    )
+    document.dispatchEvent(
+      new PointerEvent('pointermove', {
+        clientX: 160,
+        clientY: 160,
+        pointerId: 1,
+        bubbles: true
+      })
+    )
+    document.dispatchEvent(
+      new PointerEvent('pointerup', {
+        clientX: 160,
+        clientY: 160,
+        pointerId: 1,
+        bubbles: true
+      })
+    )
 
     expect(setSelectionSpy).toHaveBeenCalledWith([])
   })

@@ -1,6 +1,6 @@
 ---
 phase: 03-filter-sort-core-validation
-plan: "07"
+plan: '07'
 subsystem: moshpit/filter-ui
 tags: [moshpit, filter-gate, ui, i18n, reka-ui, composable]
 dependency_graph:
@@ -48,7 +48,7 @@ decisions:
   - ignore-filter on ComboboxRoot + isOpen ref — Reka's built-in filter hides items when ComboboxInput is empty; ignore-filter ensures all options render without needing search input text
 metrics:
   duration_minutes: 45
-  completed_date: "2026-04-21"
+  completed_date: '2026-04-21'
   tasks_completed: 2
   tasks_total: 2
   files_created: 7
@@ -125,6 +125,7 @@ The ICU plural is the exclusive path for option label rendering:
 ### Auto-fixed Issues
 
 **1. [Rule 2 - Missing functionality] paramsByHash not present on moshpitMetadataStore**
+
 - **Found during:** Task 1 — composable needed `metaStore.paramsByHash.get(hash)`
 - **Issue:** Plan specified `metaStore.paramsByHash` but moshpitMetadataStore only stored raw `Record<string, string>` in `metaByHash`, with no parsed NormalizedParams map
 - **Fix:** Added `paramsByHash: ComputedRef<ReadonlyMap<string, NormalizedParams>>` as a computed on the store, derived from `metaByHash` via `normalizeParams`
@@ -132,6 +133,7 @@ The ICU plural is the exclusive path for option label rendering:
 - **Commit:** `06be455ee`
 
 **2. [Rule 2 - Missing functionality] moshpitFilterStore did not exist for Wave 2 components**
+
 - **Found during:** Task 2 — SFCs need `filterStore.setWorkflow` / `filterStore.setTimeRange`
 - **Issue:** moshpitFilterStore is planned for Wave 4 (Plan 03-06); this Wave 2 plan needs the interface
 - **Fix:** Created minimal stub `moshpitFilterStore.ts` with `workflow`, `timeRange`, `isGated`, `setWorkflow`, `setTimeRange`, `reset`. Plan 03-06 will extend.
@@ -139,6 +141,7 @@ The ICU plural is the exclusive path for option label rendering:
 - **Commit:** `06be455ee`
 
 **3. [Rule 1 - Bug] workflowOptionCount i18n key used `{count, number}` ICU format incompatible with vue-i18n pipe plural**
+
 - **Found during:** Task 2 test run — vue-i18n message compiler threw "Unterminated closing brace" on `{count, number}` inside parentheses
 - **Issue:** `{count, number}` is ICU message format; vue-i18n pipe-plural uses simple `{count}` interpolation
 - **Fix:** Changed key value from `"{name} ({count, number} asset) | {name} ({count, number} assets)"` to `"{name} ({count} asset) | {name} ({count} assets)"`
@@ -146,6 +149,7 @@ The ICU plural is the exclusive path for option label rendering:
 - **Commit:** `32ea9e2ff`
 
 **4. [Rule 1 - Bug] Reka ComboboxRoot without ignore-filter hides all items when search input is empty**
+
 - **Found during:** Task 2 test run — `findByText('cfg_sweep (1 asset)')` timed out after combobox opened
 - **Issue:** Reka's default filter behavior removes all items when `ComboboxInput` value is empty string (no search text)
 - **Fix:** Added `ignore-filter` prop to `ComboboxRoot`; custom filtering via `ComboboxInput` text still works visually but Reka doesn't hide items pre-emptively

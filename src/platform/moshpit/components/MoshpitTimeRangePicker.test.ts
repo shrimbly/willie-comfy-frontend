@@ -28,24 +28,32 @@ describe('MoshpitTimeRangePicker', () => {
   it('renders 5 preset pills with accessible names matching i18n labels', () => {
     mountPicker()
     const f = enMessages.moshpit.filters
-    expect(screen.getByRole('radio', { name: f.timeRangeToday })).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: f.timeRangeThisWeek })).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: f.timeRangeThisMonth })).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: f.timeRangeAllTime })).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: f.timeRangeCustom })).toBeInTheDocument()
+    expect(
+      screen.getByRole('radio', { name: f.timeRangeToday })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('radio', { name: f.timeRangeThisWeek })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('radio', { name: f.timeRangeThisMonth })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('radio', { name: f.timeRangeAllTime })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('radio', { name: f.timeRangeCustom })
+    ).toBeInTheDocument()
   })
 
   it('default preset "all" has aria-checked="true"; others have aria-checked="false"', () => {
     mountPicker()
     const f = enMessages.moshpit.filters
-    expect(screen.getByRole('radio', { name: f.timeRangeAllTime })).toHaveAttribute(
-      'aria-checked',
-      'true'
-    )
-    expect(screen.getByRole('radio', { name: f.timeRangeToday })).toHaveAttribute(
-      'aria-checked',
-      'false'
-    )
+    expect(
+      screen.getByRole('radio', { name: f.timeRangeAllTime })
+    ).toHaveAttribute('aria-checked', 'true')
+    expect(
+      screen.getByRole('radio', { name: f.timeRangeToday })
+    ).toHaveAttribute('aria-checked', 'false')
   })
 
   it('clicking "Today" calls setTimeRange with { preset: "today", from: null, to: null }', async () => {
@@ -56,7 +64,11 @@ describe('MoshpitTimeRangePicker', () => {
 
     await user.click(screen.getByRole('radio', { name: f.timeRangeToday }))
 
-    expect(filterStore.timeRange).toEqual({ preset: 'today', from: null, to: null })
+    expect(filterStore.timeRange).toEqual({
+      preset: 'today',
+      from: null,
+      to: null
+    })
   })
 
   it('clicking "Custom…" reveals the From and To date inputs', async () => {
@@ -65,7 +77,9 @@ describe('MoshpitTimeRangePicker', () => {
     const f = enMessages.moshpit.filters
 
     // Before clicking Custom, date inputs should not exist
-    expect(screen.queryByRole('textbox', { name: f.timeRangeFrom })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('textbox', { name: f.timeRangeFrom })
+    ).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('radio', { name: f.timeRangeCustom }))
 

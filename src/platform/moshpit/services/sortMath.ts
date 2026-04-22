@@ -145,7 +145,10 @@ export function computeSortedLayout1D(
   paramsByHash: ReadonlyMap<string, NormalizedParams>,
   sortX: ParamKey,
   gridSpacing: number
-): { readonly slots: readonly SortedGridSlot[]; readonly columns: readonly ColumnDescriptor[] } {
+): {
+  readonly slots: readonly SortedGridSlot[]
+  readonly columns: readonly ColumnDescriptor[]
+} {
   const groups = new Map<string, string[]>()
 
   for (const hash of visibleHashes) {

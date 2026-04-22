@@ -11,8 +11,9 @@ Wire the full filter→sort loop on top of the Phase 2 asset pipeline. Ship the 
 **Requirements in-scope:** FILTER-01..11, SORT-01..05.
 
 **Out of scope:**
+
 - Comparison entry (Phase 4) — filter/sort UI does not open compare.
-- Curation mutations (Phase 5) — Phase 3 *reads* `moshpitCurationStore` for favourite/tag/hidden filters but does not mutate.
+- Curation mutations (Phase 5) — Phase 3 _reads_ `moshpitCurationStore` for favourite/tag/hidden filters but does not mutate.
 - Polished empty states for mid-session zero-match, all-hidden, and full-workflow perf — Phase 7 owns those. Phase 3 ships the "pick a workflow + time range" gate state only.
 - Imported / user-uploaded assets; semantic prompt search; saved presets; multi-workflow selection.
 
@@ -109,6 +110,7 @@ None — no pending todos matched Phase 3 scope.
 </decisions>
 
 <canonical_refs>
+
 ## Canonical References
 
 **Downstream agents MUST read these before planning or implementing.**
@@ -175,6 +177,7 @@ None — no pending todos matched Phase 3 scope.
 </canonical_refs>
 
 <code_context>
+
 ## Existing Code Insights
 
 ### Reusable Assets
@@ -252,5 +255,5 @@ None — no pending todos matched Phase 3 scope.
 
 ---
 
-*Phase: 03-filter-sort-core-validation*
-*Context gathered: 2026-04-21*
+_Phase: 03-filter-sort-core-validation_
+_Context gathered: 2026-04-21_

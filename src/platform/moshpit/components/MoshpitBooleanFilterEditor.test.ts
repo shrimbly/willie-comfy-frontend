@@ -25,9 +25,7 @@ describe('MoshpitBooleanFilterEditor', () => {
 
   it('renders a checkbox with the i18n favourite label', () => {
     mountEditor()
-    expect(
-      screen.getByRole('checkbox')
-    ).toBeInTheDocument()
+    expect(screen.getByRole('checkbox')).toBeInTheDocument()
     expect(
       screen.getByText(enMessages.moshpit.filters.editorFavouriteLabel)
     ).toBeInTheDocument()

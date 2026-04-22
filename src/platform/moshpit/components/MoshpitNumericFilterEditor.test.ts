@@ -26,21 +26,29 @@ describe('MoshpitNumericFilterEditor', () => {
   it('renders an exact-value toggle checkbox with i18n label', () => {
     mountEditor()
     expect(
-      screen.getByRole('checkbox', { name: enMessages.moshpit.filters.editorExact })
+      screen.getByRole('checkbox', {
+        name: enMessages.moshpit.filters.editorExact
+      })
     ).toBeInTheDocument()
   })
 
   it('shows min/max range inputs when exact toggle is unchecked (default)', () => {
     mountEditor()
-    expect(screen.getByPlaceholderText(enMessages.moshpit.filters.editorMin)).toBeInTheDocument()
-    expect(screen.getByPlaceholderText(enMessages.moshpit.filters.editorMax)).toBeInTheDocument()
+    expect(
+      screen.getByPlaceholderText(enMessages.moshpit.filters.editorMin)
+    ).toBeInTheDocument()
+    expect(
+      screen.getByPlaceholderText(enMessages.moshpit.filters.editorMax)
+    ).toBeInTheDocument()
   })
 
   it('hides range inputs and shows single exact input when exact toggle is checked', async () => {
     const user = userEvent.setup()
     mountEditor()
 
-    const toggle = screen.getByRole('checkbox', { name: enMessages.moshpit.filters.editorExact })
+    const toggle = screen.getByRole('checkbox', {
+      name: enMessages.moshpit.filters.editorExact
+    })
     await user.click(toggle)
 
     // Range inputs gone, single exact input visible
@@ -59,7 +67,9 @@ describe('MoshpitNumericFilterEditor', () => {
       global: { plugins: [createPinia(), i18n] }
     })
 
-    const minInput = screen.getByPlaceholderText(enMessages.moshpit.filters.editorMin)
+    const minInput = screen.getByPlaceholderText(
+      enMessages.moshpit.filters.editorMin
+    )
     await user.type(minInput, '6')
 
     // Should emit update:modelValue with numeric range
@@ -76,15 +86,24 @@ describe('MoshpitNumericFilterEditor', () => {
       global: { plugins: [createPinia(), i18n] }
     })
 
-    const toggle = screen.getByRole('checkbox', { name: enMessages.moshpit.filters.editorExact })
+    const toggle = screen.getByRole('checkbox', {
+      name: enMessages.moshpit.filters.editorExact
+    })
     await user.click(toggle)
 
-    const exactInput = screen.getByPlaceholderText(enMessages.moshpit.filters.editorExact)
+    const exactInput = screen.getByPlaceholderText(
+      enMessages.moshpit.filters.editorExact
+    )
     await user.type(exactInput, '20')
 
     const updates = emitted<unknown[]>('update:modelValue')
     const lastUpdate = updates![updates!.length - 1][0]
-    expect(lastUpdate).toMatchObject({ kind: 'numeric', exact: 20, min: null, max: null })
+    expect(lastUpdate).toMatchObject({
+      kind: 'numeric',
+      exact: 20,
+      min: null,
+      max: null
+    })
   })
 
   it('emits null when both min/max are empty', async () => {
@@ -95,7 +114,9 @@ describe('MoshpitNumericFilterEditor', () => {
     })
 
     // Type then clear min
-    const minInput = screen.getByPlaceholderText(enMessages.moshpit.filters.editorMin)
+    const minInput = screen.getByPlaceholderText(
+      enMessages.moshpit.filters.editorMin
+    )
     await user.type(minInput, '6')
     await user.clear(minInput)
 

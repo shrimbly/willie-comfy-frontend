@@ -1,6 +1,6 @@
 ---
 phase: 03-filter-sort-core-validation
-plan: "01"
+plan: '01'
 subsystem: moshpit/services
 tags: [moshpit, filter, param-extraction, worker, zod, tdd]
 dependency_graph:
@@ -34,7 +34,7 @@ decisions:
   - OQ-3 resolved: workflow picker displayName uses workflowFilename when non-null, falls back to 'unnamed-' + workflowFingerprint
 metrics:
   duration_minutes: 25
-  completed_date: "2026-04-20"
+  completed_date: '2026-04-20'
   tasks_completed: 2
   tasks_total: 2
   files_created: 2
@@ -56,6 +56,7 @@ A pure TypeScript leaf module `paramNormalize.ts` that:
 5. Is fully worker-safe — no Vue, Pinia, or DOM imports; sole runtime dep is `zod`
 
 The TDD test suite (`paramNormalize.test.ts`) covers 32 test cases across:
+
 - Empty/malformed metadata handling
 - KSampler field extraction (cfg, steps, sampler, scheduler, seed)
 - CheckpointLoaderSimple model extraction
@@ -120,6 +121,7 @@ Per D-04, `loras.length` is the sort axis for LoRA count. The `loras` array in `
 **Open Question 3** asked: how does the workflow picker show a human-recognizable label when no workflow filename is embedded in the PNG metadata?
 
 **Resolution implemented here:**
+
 - `workflowFilename`: derived from the PNG output filename stem (stripped of path, extension, and ComfyUI counter suffix `_NNNNN_`). Example: `my_cfg_sweep_00042_.png` → `'my_cfg_sweep'`. This is `null` when the source filename is unavailable.
 - `workflowFingerprint`: always a string (may be empty); sorted unique class_type set pipe-joined. Example: `'CheckpointLoaderSimple|KSampler'`. Deterministic for the same workflow topology regardless of node ID assignments or ordering.
 - **Picker displayName logic (Plan 03-07):** Use `workflowFilename` when non-null; otherwise fall back to `'unnamed-' + workflowFingerprint`.
@@ -128,10 +130,10 @@ Per D-04, `loras.length` is the sort axis for LoRA count. The `loras` array in `
 
 The D-05 shape in CONTEXT.md lists 12 core fields. This plan adds two derived identification fields per the plan's `deviation_note`:
 
-| Field | Type | Always defined? | Source |
-|-------|------|-----------------|--------|
-| `workflowFingerprint` | `string` | Yes (empty string if no prompt) | Sorted unique class_types from prompt graph |
-| `workflowFilename` | `string \| null` | Yes (null if no sourceFilename) | PNG output filename stem heuristic |
+| Field                 | Type             | Always defined?                 | Source                                      |
+| --------------------- | ---------------- | ------------------------------- | ------------------------------------------- |
+| `workflowFingerprint` | `string`         | Yes (empty string if no prompt) | Sorted unique class_types from prompt graph |
+| `workflowFilename`    | `string \| null` | Yes (null if no sourceFilename) | PNG output filename stem heuristic          |
 
 Both fields are included in `NormalizedParamsSchema` and validated by Zod.
 

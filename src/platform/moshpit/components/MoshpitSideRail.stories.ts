@@ -23,7 +23,8 @@ export const PanelOpen: Story = {
       store.openPanel(MOSHPIT_SETTINGS_PANEL_ID)
       return {}
     },
-    template: '<div style="height: 400px; display: flex;"><MoshpitSideRail /></div>'
+    template:
+      '<div style="height: 400px; display: flex;"><MoshpitSideRail /></div>'
   })
 }
 
@@ -35,6 +36,7 @@ export const PanelCollapsed: Story = {
       store.closePanel()
       return {}
     },
-    template: '<div style="height: 400px; display: flex;"><MoshpitSideRail /></div>'
+    template:
+      '<div style="height: 400px; display: flex;"><MoshpitSideRail /></div>'
   })
 }

@@ -24,11 +24,19 @@ type RegistryEntry = {
 }
 
 function makeEntry(contentHash: string): RegistryEntry {
-  return { id: contentHash, contentHash, thumbUrl: undefined, hasMetadata: true }
+  return {
+    id: contentHash,
+    contentHash,
+    thumbUrl: undefined,
+    hasMetadata: true
+  }
 }
 
 // Build a raw metadata record that produces a known workflowFilename and fingerprint.
-function makeMeta(classType: string, sourceFilename: string | null): Record<string, string> {
+function makeMeta(
+  classType: string,
+  sourceFilename: string | null
+): Record<string, string> {
   const prompt = JSON.stringify({ n1: { class_type: classType, inputs: {} } })
   const meta: Record<string, string> = { prompt }
   if (sourceFilename !== null) meta['source_filename'] = sourceFilename

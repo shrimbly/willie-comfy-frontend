@@ -15,6 +15,7 @@ completed: '2026-04-21T05:30:00Z'
 PixiJS sprite layer wired under the Moshpit viewport. Reactive `AssetEntry[]` from `useMoshpitAssetRegistry` drives sprite add/remove. On processing completion, sprites tween from jittered grid → packed grid over 300ms ease-out-cubic via the app Ticker.
 
 ### Files
+
 - `src/platform/moshpit/composables/useMoshpitSpriteLayer.ts` — new, 224 lines. Owns the sprite `Container`, `Map<contentHash, Sprite>`, and the re-pack tween. `watchEffect` so progressive thumb arrival triggers sync (Blocker 2 guard).
 - `src/platform/moshpit/composables/useMoshpitProcessingQueue.ts` — added `MOSHPIT_QUEUE_INJECTION_KEY: InjectionKey<ProcessingQueueState>` and tightened contract docs (Blocker 1 guard — single queue owner).
 - `src/views/layouts/MoshpitLayout.vue` — `provide(MOSHPIT_QUEUE_INJECTION_KEY, queue)` so MoshpitCanvas can inject the single queue instance without prop-drilling through MoshpitView.
@@ -22,12 +23,14 @@ PixiJS sprite layer wired under the Moshpit viewport. Reactive `AssetEntry[]` fr
 - `src/platform/moshpit/components/MoshpitCanvas.test.ts` — fakeQueue + inject mock to keep Phase 1 tests green.
 
 ### Key design decisions
+
 - **Provide/inject over prop-drilling** — `MoshpitView` has its own marquee + sidebar logic that made prop threading awkward. The injection key is explicit and documented.
 - **`watchEffect` (not `watch` on length)** — thumbReady events often don't change asset count; reading `entry.thumbUrl` inside the callback captures `thumbStore.urlByHash` reactivity so sprites appear as thumbs land.
 - **Texture config** — `autoGenerateMipmaps: true`, `autoGarbageCollect: true`, container `cullable: true`. Matches plan intent for far-zoom LOD and off-screen sprite skip.
 - **Re-pack fires once per completion** — `hasRepacked` flag resets when `complete` flips back to `false`; `complete` is computed from `queue.total > 0 && queue.done === queue.total`.
 
 ### Commits
+
 - `4d5541e40` feat(02-11): implement useMoshpitSpriteLayer composable
 - `1afd1fdeb` feat(02-11): wire sprite layer into canvas via provide/inject queue
 

@@ -46,7 +46,12 @@ describe('moshpitMetadataStore', () => {
 
   it('setParams + getParams round-trips NormalizedParams by contentHash', () => {
     const store = useMoshpitMetadataStore()
-    const params = { ...emptyParams(1000), cfg: 7.5, steps: 25, model: 'v1-5.safetensors' }
+    const params = {
+      ...emptyParams(1000),
+      cfg: 7.5,
+      steps: 25,
+      model: 'v1-5.safetensors'
+    }
     store.setParams('hash-X', params)
     expect(store.getParams('hash-X')).toEqual(params)
   })

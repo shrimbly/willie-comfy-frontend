@@ -34,7 +34,9 @@
       class="flex flex-col gap-1"
     >
       <label class="flex items-center gap-2">
-        <span class="w-10 text-2xs tracking-wide text-muted-foreground uppercase">
+        <span
+          class="w-10 text-2xs tracking-wide text-muted-foreground uppercase"
+        >
           {{ t('moshpit.filters.timeRangeFrom') }}
         </span>
         <input
@@ -47,7 +49,9 @@
       </label>
 
       <label class="flex items-center gap-2">
-        <span class="w-10 text-2xs tracking-wide text-muted-foreground uppercase">
+        <span
+          class="w-10 text-2xs tracking-wide text-muted-foreground uppercase"
+        >
           {{ t('moshpit.filters.timeRangeTo') }}
         </span>
         <input

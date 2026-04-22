@@ -1,11 +1,7 @@
 <template>
   <div class="flex flex-col gap-2" data-testid="moshpit-boolean-editor">
     <label class="flex items-center gap-2 text-xs">
-      <input
-        v-model="checked"
-        type="checkbox"
-        class="size-3.5"
-      />
+      <input v-model="checked" type="checkbox" class="size-3.5" />
       <span>{{ t('moshpit.filters.editorFavouriteLabel') }}</span>
     </label>
   </div>
@@ -15,7 +11,10 @@
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { ChipValue, ParamKey } from '@/platform/moshpit/services/filterTypes'
+import type {
+  ChipValue,
+  ParamKey
+} from '@/platform/moshpit/services/filterTypes'
 
 defineOptions({ name: 'MoshpitBooleanFilterEditor' })
 

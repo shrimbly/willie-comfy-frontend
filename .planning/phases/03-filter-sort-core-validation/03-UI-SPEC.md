@@ -18,13 +18,13 @@ created: 2026-04-21
 
 ## Design System
 
-| Property          | Value                                                                                                                                 |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Tool              | none — no shadcn; Tailwind 4 + existing semantic tokens                                                                               |
-| Preset            | not applicable                                                                                                                        |
-| Component library | Reka UI (ComboboxRoot for workflow picker; PopoverRoot for add-filter picker; SliderRoot for grid-spacing control)                     |
-| Icon library      | Iconify via `icon-[lucide--*]` (unplugin-icons — `lucide--plus`, `lucide--x`, `lucide--chevron-down`, `lucide--grid-2x2`)             |
-| Font              | System font stack (inherited from ComfyUI shell — no new font)                                                                        |
+| Property          | Value                                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Tool              | none — no shadcn; Tailwind 4 + existing semantic tokens                                                                   |
+| Preset            | not applicable                                                                                                            |
+| Component library | Reka UI (ComboboxRoot for workflow picker; PopoverRoot for add-filter picker; SliderRoot for grid-spacing control)        |
+| Icon library      | Iconify via `icon-[lucide--*]` (unplugin-icons — `lucide--plus`, `lucide--x`, `lucide--chevron-down`, `lucide--grid-2x2`) |
+| Font              | System font stack (inherited from ComfyUI shell — no new font)                                                            |
 
 **Source:** Phase 2 design contract `02-UI-SPEC.md`; RESEARCH.md §Standard Stack; existing Moshpit components.
 
@@ -34,15 +34,15 @@ created: 2026-04-21
 
 8-point base scale, multiples of 4px. All values map to existing Tailwind 4 utility classes.
 
-| Token | Value                | Usage                                                                                              |
-| ----- | -------------------- | -------------------------------------------------------------------------------------------------- |
-| xs    | 4px (`p-1`, `gap-1`) | Gap between chip label and remove icon; gap between filter section label and controls              |
-| sm    | 8px (`p-2`, `gap-2`) | Internal chip padding; gap between sort X and Y picker; internal popover item padding              |
-| md    | 12px (`px-3`, `py-2`)| Settings panel horizontal padding (inherits existing `px-3 py-2` pattern from Phase 2)            |
-| lg    | 16px (`gap-4`)       | Gap between Settings panel sections (filter gate, chip rail, sort controls, footer controls)       |
-| xl    | 24px (`py-6`)        | Canvas empty-state vertical centering offset                                                       |
-| 2xl   | 32px                 | Not used in Phase 3 surfaces                                                                       |
-| 3xl   | 64px                 | Not used in Phase 3 surfaces                                                                       |
+| Token | Value                 | Usage                                                                                        |
+| ----- | --------------------- | -------------------------------------------------------------------------------------------- |
+| xs    | 4px (`p-1`, `gap-1`)  | Gap between chip label and remove icon; gap between filter section label and controls        |
+| sm    | 8px (`p-2`, `gap-2`)  | Internal chip padding; gap between sort X and Y picker; internal popover item padding        |
+| md    | 12px (`px-3`, `py-2`) | Settings panel horizontal padding (inherits existing `px-3 py-2` pattern from Phase 2)       |
+| lg    | 16px (`gap-4`)        | Gap between Settings panel sections (filter gate, chip rail, sort controls, footer controls) |
+| xl    | 24px (`py-6`)         | Canvas empty-state vertical centering offset                                                 |
+| 2xl   | 32px                  | Not used in Phase 3 surfaces                                                                 |
+| 3xl   | 64px                  | Not used in Phase 3 surfaces                                                                 |
 
 Exceptions:
 
@@ -57,12 +57,12 @@ Exceptions:
 
 Four roles, two weights — all from existing Tailwind 4 scale. Extends Phase 2 vocabulary (body 12px, caption 10px).
 
-| Role           | Size              | Weight         | Line Height | Usage                                                                                      |
-| -------------- | ----------------- | -------------- | ----------- | ------------------------------------------------------------------------------------------ |
-| Body / Label   | 12px (`text-xs`)  | 400 (regular)  | 1.5         | Filter chip text; sort picker labels; grid-spacing footer row label; "Show hidden" toggle label |
-| Section header | 10px (`text-2xs`) | 500 (medium)   | 1.6         | Settings panel section titles: "Filter", "Sort", "Grid spacing" — uppercase, letter-spacing tight |
-| Axis label     | 12px (`text-xs`)  | 500 (medium)   | 1.4         | Canvas axis overlay column/row headers — e.g., "CFG 7.5", "euler" — must be legible at min zoom |
-| Workflow count | 12px (`text-xs`)  | 400 (regular)  | 1.5         | Count suffix in workflow picker option: " (1,247 assets)" in `text-muted-foreground`       |
+| Role           | Size              | Weight        | Line Height | Usage                                                                                             |
+| -------------- | ----------------- | ------------- | ----------- | ------------------------------------------------------------------------------------------------- |
+| Body / Label   | 12px (`text-xs`)  | 400 (regular) | 1.5         | Filter chip text; sort picker labels; grid-spacing footer row label; "Show hidden" toggle label   |
+| Section header | 10px (`text-2xs`) | 500 (medium)  | 1.6         | Settings panel section titles: "Filter", "Sort", "Grid spacing" — uppercase, letter-spacing tight |
+| Axis label     | 12px (`text-xs`)  | 500 (medium)  | 1.4         | Canvas axis overlay column/row headers — e.g., "CFG 7.5", "euler" — must be legible at min zoom   |
+| Workflow count | 12px (`text-xs`)  | 400 (regular) | 1.5         | Count suffix in workflow picker option: " (1,247 assets)" in `text-muted-foreground`              |
 
 **Notes:**
 
@@ -80,12 +80,12 @@ Phase 3 adds no new color tokens. All new chrome maps to existing semantic token
 
 ### Color contract (60/30/10)
 
-| Role              | Tailwind / CSS token                  | Usage                                                                                                             |
-| ----------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Dominant (60%)    | `bg-interface-panel-surface`          | Settings panel body, popover backgrounds, workflow picker dropdown                                                |
-| Secondary (30%)   | `bg-secondary-background`             | Filter chip pill background at rest; sort picker trigger at rest; section dividers; slider track                  |
-| Accent (10%)      | `bg-primary-background`               | Active filter chips (chips with a value set — not the "+ Add filter" button); sort axis label overlay background  |
-| Destructive       | `text-destructive-background`         | Not used in Phase 3 — no destructive actions                                                                      |
+| Role            | Tailwind / CSS token          | Usage                                                                                                            |
+| --------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Dominant (60%)  | `bg-interface-panel-surface`  | Settings panel body, popover backgrounds, workflow picker dropdown                                               |
+| Secondary (30%) | `bg-secondary-background`     | Filter chip pill background at rest; sort picker trigger at rest; section dividers; slider track                 |
+| Accent (10%)    | `bg-primary-background`       | Active filter chips (chips with a value set — not the "+ Add filter" button); sort axis label overlay background |
+| Destructive     | `text-destructive-background` | Not used in Phase 3 — no destructive actions                                                                     |
 
 **Accent reserved for:**
 
@@ -99,30 +99,30 @@ No other elements use the accent token in Phase 3.
 
 #### Filter chip pill (active — has a value set)
 
-| State       | Background                       | Text                   | Remove icon             | Border              |
-| ----------- | -------------------------------- | ---------------------- | ----------------------- | ------------------- |
-| Default     | `bg-secondary-background`        | `text-base-foreground` | `text-muted-foreground` | none                |
-| Hover       | `hover:bg-secondary-background-hover` | `text-base-foreground` | `hover:text-base-foreground` | none           |
-| Focus ring  | —                                | —                      | `focus-visible:ring-2`  | —                   |
+| State      | Background                            | Text                   | Remove icon                  | Border |
+| ---------- | ------------------------------------- | ---------------------- | ---------------------------- | ------ |
+| Default    | `bg-secondary-background`             | `text-base-foreground` | `text-muted-foreground`      | none   |
+| Hover      | `hover:bg-secondary-background-hover` | `text-base-foreground` | `hover:text-base-foreground` | none   |
+| Focus ring | —                                     | —                      | `focus-visible:ring-2`       | —      |
 
 **Note on chip color choice:** Phase 2 uses `bg-interface-panel-surface` for the processing pill (it sits on the canvas). Phase 3 filter chips live inside the Settings panel (which is already `bg-node-component-surface`). Using `bg-secondary-background` for chips creates the necessary figure/ground separation within the panel without reaching for the accent color. Reserve accent (`bg-secondary-background-selected` or `bg-primary-background`) for when a chip is in an edited/errored state, or for the active sort axis pill — both are higher-signal UI moments.
 
 #### "+ Add filter" button
 
-| State   | Background           | Text                    |
-| ------- | -------------------- | ----------------------- |
-| Default | transparent          | `text-muted-foreground` |
-| Hover   | `bg-secondary-background` | `text-base-foreground` |
+| State   | Background                | Text                    |
+| ------- | ------------------------- | ----------------------- |
+| Default | transparent               | `text-muted-foreground` |
+| Hover   | `bg-secondary-background` | `text-base-foreground`  |
 
 Uses `variant="muted-textonly"` from existing `button.variants.ts`.
 
 #### Workflow picker trigger
 
-| State    | Background                  | Text                   | Border               |
-| -------- | --------------------------- | ---------------------- | -------------------- |
-| Empty    | `bg-secondary-background`   | `text-muted-foreground`| `border-border-subtle` |
-| Filled   | `bg-secondary-background`   | `text-base-foreground` | `border-border-subtle` |
-| Open     | `bg-secondary-background-hover` | `text-base-foreground` | `border-border-default` |
+| State  | Background                      | Text                    | Border                  |
+| ------ | ------------------------------- | ----------------------- | ----------------------- |
+| Empty  | `bg-secondary-background`       | `text-muted-foreground` | `border-border-subtle`  |
+| Filled | `bg-secondary-background`       | `text-base-foreground`  | `border-border-subtle`  |
+| Open   | `bg-secondary-background-hover` | `text-base-foreground`  | `border-border-default` |
 
 #### Sort axis picker
 
@@ -130,8 +130,8 @@ Same visual treatment as workflow picker trigger. When a sort axis is active (va
 
 #### Canvas axis overlay labels
 
-| State   | Background              | Text                   | Border                  |
-| ------- | ----------------------- | ---------------------- | ----------------------- |
+| State   | Background                   | Text                   | Border                    |
+| ------- | ---------------------------- | ---------------------- | ------------------------- |
 | Default | `bg-interface-panel-surface` | `text-base-foreground` | `border-interface-stroke` |
 
 Labels are pill-shaped (`rounded-full`) to distinguish them from canvas sprite content.
@@ -263,9 +263,16 @@ count suffix:
   </ComboboxAnchor>
   <ComboboxContent :id="listboxId" role="listbox" ...>
     <ComboboxInput :aria-label="t('moshpit.filters.workflowPickerSearch')" />
-    <ComboboxItem v-for="opt in options" :key="opt.name" :value="opt.name" role="option">
+    <ComboboxItem
+      v-for="opt in options"
+      :key="opt.name"
+      :value="opt.name"
+      role="option"
+    >
       {{ opt.name }}
-      <span aria-hidden="true" class="text-muted-foreground"> ({{ formatCount(opt.count) }})</span>
+      <span aria-hidden="true" class="text-muted-foreground">
+        ({{ formatCount(opt.count) }})</span
+      >
     </ComboboxItem>
   </ComboboxContent>
 </ComboboxRoot>
@@ -375,16 +382,16 @@ chip pill:
 
 #### Chip value summary format
 
-| Chip type   | Example value           | Displayed as                     |
-| ----------- | ----------------------- | -------------------------------- |
-| Categorical | model: `["sd_xl.ckpt"]` | `sd_xl.ckpt`                     |
-| Categorical multi-value | sampler: `["euler", "dpmpp_2m"]` | `euler +1` |
-| Numeric range | CFG: `{ min: 6, max: 8 }` | `6–8`                        |
-| Numeric exact | steps: `{ exact: 20 }` | `= 20`                           |
-| Text        | prompt: `"masterpiece"` | `"masterpiece"`                  |
-| Resolution  | single: `[512, 512]`    | `512×512`                        |
-| Resolution  | multi: `[[512,512],[768,768]]` | `512×512 +1`             |
-| Boolean     | favourite: `true`       | `Favourite`                      |
+| Chip type               | Example value                    | Displayed as    |
+| ----------------------- | -------------------------------- | --------------- |
+| Categorical             | model: `["sd_xl.ckpt"]`          | `sd_xl.ckpt`    |
+| Categorical multi-value | sampler: `["euler", "dpmpp_2m"]` | `euler +1`      |
+| Numeric range           | CFG: `{ min: 6, max: 8 }`        | `6–8`           |
+| Numeric exact           | steps: `{ exact: 20 }`           | `= 20`          |
+| Text                    | prompt: `"masterpiece"`          | `"masterpiece"` |
+| Resolution              | single: `[512, 512]`             | `512×512`       |
+| Resolution              | multi: `[[512,512],[768,768]]`   | `512×512 +1`    |
+| Boolean                 | favourite: `true`                | `Favourite`     |
 
 Label uses the parameter's display name (see i18n keys below), truncated at 10 characters if needed. Full value shown in tooltip (`v-tooltip.top`).
 
@@ -720,15 +727,15 @@ body: text-xs text-muted-foreground text-center leading-relaxed
 
 All new Phase 3 animations are additive to the Phase 2 vocabulary. No new easing curves.
 
-| Event                              | Duration | Easing          | Mechanism                                                                                  |
-| ---------------------------------- | -------- | --------------- | ------------------------------------------------------------------------------------------ |
-| Filter chip add                    | 300ms    | ease-out-cubic  | Sprite layer tween (Phase 2 primitive) — canvas sprites move; chip appears instantly in panel |
-| Filter chip remove                 | 300ms    | ease-out-cubic  | Sprites tween back to visible positions; chip disappears instantly                           |
-| Sort axis set / change             | 300ms    | ease-out-cubic  | Sprites tween to sorted column positions; axis overlay labels fade in 150ms                  |
-| Sort cleared (return to chaos)     | 300ms    | ease-out-cubic  | Sprites tween back to jittered grid; axis overlay labels fade out 150ms                      |
-| Grid spacing change                | 300ms    | ease-out-cubic  | Sprites tween to new spacing — same path as sort layout recompute                            |
-| Axis overlay label appear/disappear| 150ms    | ease-out        | `transition-opacity duration-150` on `MoshpitAxisOverlay` `v-if` root                      |
-| Popover open                       | as-is    | existing Reka UI| `data-[state=open]:animate-slideUpAndFade` from existing Popover.vue                        |
+| Event                               | Duration | Easing           | Mechanism                                                                                     |
+| ----------------------------------- | -------- | ---------------- | --------------------------------------------------------------------------------------------- |
+| Filter chip add                     | 300ms    | ease-out-cubic   | Sprite layer tween (Phase 2 primitive) — canvas sprites move; chip appears instantly in panel |
+| Filter chip remove                  | 300ms    | ease-out-cubic   | Sprites tween back to visible positions; chip disappears instantly                            |
+| Sort axis set / change              | 300ms    | ease-out-cubic   | Sprites tween to sorted column positions; axis overlay labels fade in 150ms                   |
+| Sort cleared (return to chaos)      | 300ms    | ease-out-cubic   | Sprites tween back to jittered grid; axis overlay labels fade out 150ms                       |
+| Grid spacing change                 | 300ms    | ease-out-cubic   | Sprites tween to new spacing — same path as sort layout recompute                             |
+| Axis overlay label appear/disappear | 150ms    | ease-out         | `transition-opacity duration-150` on `MoshpitAxisOverlay` `v-if` root                         |
+| Popover open                        | as-is    | existing Reka UI | `data-[state=open]:animate-slideUpAndFade` from existing Popover.vue                          |
 
 **Rule:** All sprite position changes use the 300ms ease-out-cubic tween path in `useMoshpitSpriteLayer`. UI chrome (chips, labels, popover) uses standard CSS transitions. No new Ticker-driven HTML animations.
 
@@ -764,15 +771,15 @@ The PixiJS canvas remains `aria-hidden="true"`. All filter, sort, and grid-spaci
 
 ### Screen reader announcements
 
-| Action                         | Announcement                                                                     |
-| ------------------------------ | -------------------------------------------------------------------------------- |
-| Workflow selected              | Combobox native announcement via `aria-selected` on ComboboxItem                |
-| Filter chip added              | `aria-live="polite"` region in chip row: "CFG filter added. 3 filters active."  |
-| Filter chip removed            | Same region: "CFG filter removed. 2 filters active."                            |
-| Sort axis set                  | `aria-live="polite"` in sort controls: "Sorting by CFG on X-axis."             |
-| Sort cleared                   | Same region: "Sort cleared."                                                    |
-| Canvas populates               | Not announced — canvas is visual-only surface                                   |
-| Grid spacing changed           | Slider's `aria-valuetext` updated: "Grid spacing: 560 pixels"                  |
+| Action               | Announcement                                                                   |
+| -------------------- | ------------------------------------------------------------------------------ |
+| Workflow selected    | Combobox native announcement via `aria-selected` on ComboboxItem               |
+| Filter chip added    | `aria-live="polite"` region in chip row: "CFG filter added. 3 filters active." |
+| Filter chip removed  | Same region: "CFG filter removed. 2 filters active."                           |
+| Sort axis set        | `aria-live="polite"` in sort controls: "Sorting by CFG on X-axis."             |
+| Sort cleared         | Same region: "Sort cleared."                                                   |
+| Canvas populates     | Not announced — canvas is visual-only surface                                  |
+| Grid spacing changed | Slider's `aria-valuetext` updated: "Grid spacing: 560 pixels"                  |
 
 `aria-live` regions are `role="status" aria-live="polite"` — one in MoshpitFilterChipRow, one in MoshpitSortControls.
 
@@ -808,75 +815,75 @@ Settings panel open: canvas area = `100vw − 40px − 256px`. At 1280px minimum
 
 #### Filter gate section
 
-| i18n Key                                  | English copy                                                                                              | Notes                                      |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| `moshpit.filters.sectionLabel`            | `"Filter"`                                                                                                | Settings panel section header              |
-| `moshpit.filters.workflowPickerLabel`     | `"Workflow"`                                                                                               | Combobox aria-label                        |
-| `moshpit.filters.workflowPickerPlaceholder`| `"Select a workflow…"`                                                                                   | Placeholder when no workflow selected      |
-| `moshpit.filters.workflowPickerSearch`    | `"Search workflows…"`                                                                                     | Search input placeholder in dropdown       |
-| `moshpit.filters.workflowOptionCount`     | `"{name} ({count, number} asset) \| {name} ({count, number} assets)"`                                    | ICU plural for asset count in option       |
-| `moshpit.filters.timeRangeLabel`          | `"Time range"`                                                                                            | Row label above preset pills               |
-| `moshpit.filters.timeRangeToday`          | `"Today"`                                                                                                 | Preset pill                                |
-| `moshpit.filters.timeRangeThisWeek`       | `"This week"`                                                                                             | Preset pill                                |
-| `moshpit.filters.timeRangeThisMonth`      | `"This month"`                                                                                            | Preset pill                                |
-| `moshpit.filters.timeRangeAllTime`        | `"All time"`                                                                                              | Preset pill (default)                      |
-| `moshpit.filters.timeRangeCustom`         | `"Custom…"`                                                                                               | Preset pill that opens date inputs         |
-| `moshpit.filters.timeRangeFrom`           | `"From"`                                                                                                  | Custom range start label                   |
-| `moshpit.filters.timeRangeTo`             | `"To"`                                                                                                    | Custom range end label                     |
+| i18n Key                                    | English copy                                                          | Notes                                 |
+| ------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------- |
+| `moshpit.filters.sectionLabel`              | `"Filter"`                                                            | Settings panel section header         |
+| `moshpit.filters.workflowPickerLabel`       | `"Workflow"`                                                          | Combobox aria-label                   |
+| `moshpit.filters.workflowPickerPlaceholder` | `"Select a workflow…"`                                                | Placeholder when no workflow selected |
+| `moshpit.filters.workflowPickerSearch`      | `"Search workflows…"`                                                 | Search input placeholder in dropdown  |
+| `moshpit.filters.workflowOptionCount`       | `"{name} ({count, number} asset) \| {name} ({count, number} assets)"` | ICU plural for asset count in option  |
+| `moshpit.filters.timeRangeLabel`            | `"Time range"`                                                        | Row label above preset pills          |
+| `moshpit.filters.timeRangeToday`            | `"Today"`                                                             | Preset pill                           |
+| `moshpit.filters.timeRangeThisWeek`         | `"This week"`                                                         | Preset pill                           |
+| `moshpit.filters.timeRangeThisMonth`        | `"This month"`                                                        | Preset pill                           |
+| `moshpit.filters.timeRangeAllTime`          | `"All time"`                                                          | Preset pill (default)                 |
+| `moshpit.filters.timeRangeCustom`           | `"Custom…"`                                                           | Preset pill that opens date inputs    |
+| `moshpit.filters.timeRangeFrom`             | `"From"`                                                              | Custom range start label              |
+| `moshpit.filters.timeRangeTo`               | `"To"`                                                                | Custom range end label                |
 
 #### Filter chip section
 
-| i18n Key                                  | English copy                                                                                              | Notes                                      |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| `moshpit.filters.addFilter`               | `"Add filter"`                                                                                            | "+ Add filter" button label                |
-| `moshpit.filters.searchParams`            | `"Search parameters…"`                                                                                    | Popover Step 1 search input placeholder    |
-| `moshpit.filters.removeChip`             | `"Remove {param} filter"`                                                                                 | Chip × button aria-label                   |
-| `moshpit.filters.chipCount`               | `"{count} filter active \| {count} filters active"`                                                      | aria-live announcement after chip change   |
-| `moshpit.filters.paramModel`              | `"Model"`                                                                                                 | Parameter display name                     |
-| `moshpit.filters.paramLoras`              | `"LoRA"`                                                                                                  | Parameter display name                     |
-| `moshpit.filters.paramCfg`                | `"CFG"`                                                                                                   | Parameter display name                     |
-| `moshpit.filters.paramSteps`              | `"Steps"`                                                                                                 | Parameter display name                     |
-| `moshpit.filters.paramSampler`            | `"Sampler"`                                                                                               | Parameter display name                     |
-| `moshpit.filters.paramScheduler`          | `"Scheduler"`                                                                                             | Parameter display name                     |
-| `moshpit.filters.paramSeed`               | `"Seed"`                                                                                                  | Parameter display name                     |
-| `moshpit.filters.paramPrompt`             | `"Prompt"`                                                                                                | Parameter display name                     |
-| `moshpit.filters.paramNegativePrompt`     | `"Negative prompt"`                                                                                       | Parameter display name                     |
-| `moshpit.filters.paramResolution`         | `"Resolution"`                                                                                            | Parameter display name                     |
-| `moshpit.filters.paramGenerationTime`     | `"Generation time"`                                                                                       | Parameter display name                     |
-| `moshpit.filters.paramTags`               | `"Tags"`                                                                                                  | Parameter display name                     |
-| `moshpit.filters.paramFavourite`          | `"Favourite"`                                                                                             | Parameter display name                     |
-| `moshpit.filters.editorApply`             | `"Apply filter"`                                                                                          | Value editor Apply button                  |
-| `moshpit.filters.editorBack`              | `"Back"`                                                                                                  | ← Back button in Step 2 editor             |
-| `moshpit.filters.editorMin`               | `"Min"`                                                                                                   | Numeric range min input placeholder        |
-| `moshpit.filters.editorMax`               | `"Max"`                                                                                                   | Numeric range max input placeholder        |
-| `moshpit.filters.editorExact`             | `"Exact value"`                                                                                           | Numeric exact toggle label                 |
-| `moshpit.filters.editorSubstringHint`     | `"Substring match, case-insensitive"`                                                                     | Text editor input placeholder              |
-| `moshpit.filters.editorSearchValues`      | `"Search values…"`                                                                                        | Categorical value search placeholder       |
-| `moshpit.filters.editorFavouriteLabel`    | `"Only favourited assets"`                                                                                | Boolean favourite toggle label             |
+| i18n Key                               | English copy                                        | Notes                                    |
+| -------------------------------------- | --------------------------------------------------- | ---------------------------------------- |
+| `moshpit.filters.addFilter`            | `"Add filter"`                                      | "+ Add filter" button label              |
+| `moshpit.filters.searchParams`         | `"Search parameters…"`                              | Popover Step 1 search input placeholder  |
+| `moshpit.filters.removeChip`           | `"Remove {param} filter"`                           | Chip × button aria-label                 |
+| `moshpit.filters.chipCount`            | `"{count} filter active \| {count} filters active"` | aria-live announcement after chip change |
+| `moshpit.filters.paramModel`           | `"Model"`                                           | Parameter display name                   |
+| `moshpit.filters.paramLoras`           | `"LoRA"`                                            | Parameter display name                   |
+| `moshpit.filters.paramCfg`             | `"CFG"`                                             | Parameter display name                   |
+| `moshpit.filters.paramSteps`           | `"Steps"`                                           | Parameter display name                   |
+| `moshpit.filters.paramSampler`         | `"Sampler"`                                         | Parameter display name                   |
+| `moshpit.filters.paramScheduler`       | `"Scheduler"`                                       | Parameter display name                   |
+| `moshpit.filters.paramSeed`            | `"Seed"`                                            | Parameter display name                   |
+| `moshpit.filters.paramPrompt`          | `"Prompt"`                                          | Parameter display name                   |
+| `moshpit.filters.paramNegativePrompt`  | `"Negative prompt"`                                 | Parameter display name                   |
+| `moshpit.filters.paramResolution`      | `"Resolution"`                                      | Parameter display name                   |
+| `moshpit.filters.paramGenerationTime`  | `"Generation time"`                                 | Parameter display name                   |
+| `moshpit.filters.paramTags`            | `"Tags"`                                            | Parameter display name                   |
+| `moshpit.filters.paramFavourite`       | `"Favourite"`                                       | Parameter display name                   |
+| `moshpit.filters.editorApply`          | `"Apply filter"`                                    | Value editor Apply button                |
+| `moshpit.filters.editorBack`           | `"Back"`                                            | ← Back button in Step 2 editor           |
+| `moshpit.filters.editorMin`            | `"Min"`                                             | Numeric range min input placeholder      |
+| `moshpit.filters.editorMax`            | `"Max"`                                             | Numeric range max input placeholder      |
+| `moshpit.filters.editorExact`          | `"Exact value"`                                     | Numeric exact toggle label               |
+| `moshpit.filters.editorSubstringHint`  | `"Substring match, case-insensitive"`               | Text editor input placeholder            |
+| `moshpit.filters.editorSearchValues`   | `"Search values…"`                                  | Categorical value search placeholder     |
+| `moshpit.filters.editorFavouriteLabel` | `"Only favourited assets"`                          | Boolean favourite toggle label           |
 
 #### Empty state
 
-| i18n Key                                  | English copy                                                                                              | Notes                                      |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| `moshpit.filters.emptyStateHeading`       | `"Pick a workflow to start"`                                                                              | Canvas empty state H (no workflow selected)|
-| `moshpit.filters.emptyStateBody`          | `"Select a workflow and time range in the Settings panel to populate the canvas."`                        | Canvas empty state body                    |
+| i18n Key                            | English copy                                                                       | Notes                                       |
+| ----------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------- |
+| `moshpit.filters.emptyStateHeading` | `"Pick a workflow to start"`                                                       | Canvas empty state H (no workflow selected) |
+| `moshpit.filters.emptyStateBody`    | `"Select a workflow and time range in the Settings panel to populate the canvas."` | Canvas empty state body                     |
 
 #### Sort section
 
-| i18n Key                                  | English copy                                                                                              | Notes                                      |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| `moshpit.sort.sectionLabel`               | `"Sort"`                                                                                                  | Settings panel section header              |
-| `moshpit.sort.xAxisLabel`                 | `"X"`                                                                                                     | Axis row label                             |
-| `moshpit.sort.yAxisLabel`                 | `"Y"`                                                                                                     | Axis row label                             |
-| `moshpit.sort.xAxisPlaceholder`           | `"Sort by…"`                                                                                              | X picker trigger placeholder               |
-| `moshpit.sort.yAxisPlaceholder`           | `"+ Add Y axis"`                                                                                          | Y picker trigger placeholder (add state)   |
-| `moshpit.sort.clearAxis`                  | `"Clear {axis} axis"`                                                                                     | × clear button aria-label                  |
-| `moshpit.sort.axisSetAnnouncement`        | `"Sorting by {param} on {axis} axis."`                                                                    | aria-live announcement                     |
-| `moshpit.sort.axisClearedAnnouncement`    | `"Sort cleared."`                                                                                         | aria-live announcement                     |
-| `moshpit.sort.gridSpacingLabel`           | `"Grid spacing"`                                                                                          | Slider row label                           |
-| `moshpit.sort.gridSpacingValue`           | `"{value}px"`                                                                                             | Slider current-value readout               |
-| `moshpit.sort.gridSpacingDisabledTooltip` | `"Set a sort axis to enable grid spacing"`                                                                | Tooltip on disabled slider                 |
-| `moshpit.sort.showHiddenLabel`            | `"Show hidden"`                                                                                           | Toggle row label                           |
+| i18n Key                                  | English copy                               | Notes                                    |
+| ----------------------------------------- | ------------------------------------------ | ---------------------------------------- |
+| `moshpit.sort.sectionLabel`               | `"Sort"`                                   | Settings panel section header            |
+| `moshpit.sort.xAxisLabel`                 | `"X"`                                      | Axis row label                           |
+| `moshpit.sort.yAxisLabel`                 | `"Y"`                                      | Axis row label                           |
+| `moshpit.sort.xAxisPlaceholder`           | `"Sort by…"`                               | X picker trigger placeholder             |
+| `moshpit.sort.yAxisPlaceholder`           | `"+ Add Y axis"`                           | Y picker trigger placeholder (add state) |
+| `moshpit.sort.clearAxis`                  | `"Clear {axis} axis"`                      | × clear button aria-label                |
+| `moshpit.sort.axisSetAnnouncement`        | `"Sorting by {param} on {axis} axis."`     | aria-live announcement                   |
+| `moshpit.sort.axisClearedAnnouncement`    | `"Sort cleared."`                          | aria-live announcement                   |
+| `moshpit.sort.gridSpacingLabel`           | `"Grid spacing"`                           | Slider row label                         |
+| `moshpit.sort.gridSpacingValue`           | `"{value}px"`                              | Slider current-value readout             |
+| `moshpit.sort.gridSpacingDisabledTooltip` | `"Set a sort axis to enable grid spacing"` | Tooltip on disabled slider               |
+| `moshpit.sort.showHiddenLabel`            | `"Show hidden"`                            | Toggle row label                         |
 
 ### Primary CTA
 

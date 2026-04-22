@@ -207,7 +207,12 @@ describe('moshpitFilterStore', () => {
         exact: null
       })
       const chip = store.chips.find((c) => c.id === 'chip-1')
-      expect(chip?.value).toEqual({ kind: 'numeric', min: 1, max: 3, exact: null })
+      expect(chip?.value).toEqual({
+        kind: 'numeric',
+        min: 1,
+        max: 3,
+        exact: null
+      })
     })
 
     it('preserves chip.id and chip.param', () => {

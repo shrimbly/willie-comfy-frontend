@@ -19,11 +19,11 @@ key_files:
     - src/renderer/core/canvas/useCanvasInteractions.test.ts
 decisions:
   - "Used event.type === 'wheel' instead of instanceof WheelEvent in forwardEvent — happy-dom does not create real WheelEvent prototype instances from Partial<WheelEvent> mocks, making instanceof checks unreliable in unit tests"
-  - "happy-dom WheelEvent constructor does not persist clientX/clientY/ctrlKey/shiftKey from init dict — delta fields (deltaX/deltaY) are supported; regression tests assert only what the environment supports"
-  - "canvasStore mock extended with mutable canvas getter (mockCanvasValue) to test shouldHandleNodePointerEvents reactive computed"
+  - 'happy-dom WheelEvent constructor does not persist clientX/clientY/ctrlKey/shiftKey from init dict — delta fields (deltaX/deltaY) are supported; regression tests assert only what the environment supports'
+  - 'canvasStore mock extended with mutable canvas getter (mockCanvasValue) to test shouldHandleNodePointerEvents reactive computed'
 metrics:
-  duration: "13m 17s"
-  completed: "2026-04-20"
+  duration: '13m 17s'
+  completed: '2026-04-20'
   tasks_completed: 3
   files_changed: 4
 ---
@@ -35,6 +35,7 @@ metrics:
 ## What Was Built
 
 ### Task 1: Regression Suite (test(01-01))
+
 Commit: `16e1e0d73`
 
 Added 14 new `it()` blocks to `useCanvasInteractions.test.ts` (10 → 24 total), covering:
@@ -48,6 +49,7 @@ Added 14 new `it()` blocks to `useCanvasInteractions.test.ts` (10 → 24 total),
 All 24 tests pass against the **unmodified** production file, confirming D-08 gate.
 
 ### Task 2: Pure Composable (feat(01-01))
+
 Commit: `cf5c7d8cf`
 
 Created `src/composables/canvas/useCanvasInput.ts`:
@@ -73,20 +75,22 @@ Only `@/base/pointerUtils` (for `isMiddlePointerInput`) and no Vue imports neede
 12 unit tests in `useCanvasInput.test.ts` cover all behavior bullets from the plan.
 
 ### Task 3: Thin Adapter (refactor(01-01))
+
 Commit: `85810fc6f`
 
 `useCanvasInteractions.ts` reduced from 141 → 68 lines. It now:
+
 1. Creates a `CanvasInputNavigator` wired to `app.canvas`, `canvasStore`, and `settingStore`
 2. Delegates to `useCanvasInput(navigator)`
 3. Returns identical public shape: `{ handleWheel, handlePointer, forwardEventToCanvas, shouldHandleNodePointerEvents }`
 
 ## Test Case Counts
 
-| File | Before | After |
-|------|--------|-------|
-| `useCanvasInteractions.test.ts` | 10 | 24 |
-| `useCanvasInput.test.ts` | 0 | 12 |
-| **Total** | **10** | **36** |
+| File                            | Before | After  |
+| ------------------------------- | ------ | ------ |
+| `useCanvasInteractions.test.ts` | 10     | 24     |
+| `useCanvasInput.test.ts`        | 0      | 12     |
+| **Total**                       | **10** | **36** |
 
 ## Callers NOT Touched
 
@@ -108,17 +112,22 @@ All 10 callers continue importing from `@/renderer/core/canvas/useCanvasInteract
 ## Surprises Found During Extraction
 
 ### 1. happy-dom WheelEvent constructor limitations
+
 `new WheelEvent('wheel', { ctrlKey: true, clientX: 42 })` in happy-dom does NOT persist `ctrlKey`, `clientX`, `clientY`, `metaKey`, or `shiftKey` — only `deltaX`/`deltaY` are propagated from the init dict. This affected:
+
 - Regression tests that tried to assert `dispatched.clientX === 42` — fixed by only asserting `deltaX`/`deltaY`
 - Tests for standard nav + Ctrl+wheel forwarding — tested via legacy mode (which forwards on any plain wheel) to avoid the ctrlKey limitation
 
 ### 2. instanceof WheelEvent unreliable with partial mocks
+
 `Partial<WheelEvent>` objects used as test fixtures fail `event instanceof WheelEvent`. Changed `forwardEvent` to use `event.type === 'wheel'` instead of `instanceof WheelEvent`, making it both test-friendly and semantically correct.
 
 ### 3. preventDefault called twice in handlePointer → forwardEvent
+
 The original code and the extracted composable both call `event.preventDefault()` in `handlePointer` before calling `forwardEvent` (which also calls it). Existing tests use `toHaveBeenCalled()` not `toHaveBeenCalledTimes(1)` so this was already accepted behavior. Preserved as-is to avoid behavioral drift.
 
 ### 4. canvasStore mock shape
+
 The original mock for `useCanvasStore` didn't expose a `canvas` property (only `getCanvas`). Added a `get canvas()` getter backed by a mutable module-level variable (`mockCanvasValue`) to test `shouldHandleNodePointerEvents` which reads `canvasStore.canvas?.read_only`.
 
 ## Deviations from Plan
@@ -126,6 +135,7 @@ The original mock for `useCanvasStore` didn't expose a `canvas` property (only `
 ### Auto-fixed Issues
 
 **1. [Rule 1 - Bug] instanceof WheelEvent unreliable in test environment**
+
 - **Found during:** Task 2 (useCanvasInput.test.ts authoring)
 - **Issue:** `Partial<WheelEvent>` mocks don't pass `instanceof WheelEvent`, causing `forwardEvent` to route wheel events to `dispatchPointer` instead of `dispatchWheel`
 - **Fix:** Changed `forwardEvent` condition from `event instanceof WheelEvent` to `event.type === 'wheel'`
@@ -133,6 +143,7 @@ The original mock for `useCanvasStore` didn't expose a `canvas` property (only `
 - **Commit:** cf5c7d8cf
 
 **2. [Rule 2 - Missing functionality] canvasStore mock lacked `canvas` reactive property**
+
 - **Found during:** Task 1 (regression suite for shouldHandleNodePointerEvents)
 - **Issue:** Mock returned `{ getCanvas, setCursorStyle }` but `useCanvasInteractions` reads `canvasStore.canvas?.read_only` for the computed
 - **Fix:** Added `get canvas()` getter to mock backed by `mockCanvasValue` module-level variable

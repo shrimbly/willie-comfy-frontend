@@ -22,9 +22,7 @@ import { z } from 'zod'
 
 export const NormalizedParamsSchema = z.object({
   model: z.string().optional(),
-  loras: z
-    .array(z.object({ name: z.string(), weight: z.number() }))
-    .readonly(),
+  loras: z.array(z.object({ name: z.string(), weight: z.number() })).readonly(),
   cfg: z.number().optional(),
   steps: z.number().optional(),
   sampler: z.string().optional(),

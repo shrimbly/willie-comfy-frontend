@@ -62,6 +62,7 @@ metrics:
 `MoshpitAddFilterPopover` is a two-step Reka UI `PopoverRoot`. Step 1 shows a search input (fuse.js) over 12 `PARAM_ENTRIES` (each `<li role="option">`). Params already active in `filterStore.chips` render with `aria-disabled="true"`. Selecting a param transitions to step 2, which renders `<component :is="editorFor(draftEntry.kind)" v-model="draftValue" :param="draftEntry.key" />`. Apply calls `filterStore.addChip({ id: crypto.randomUUID(), param, value: draftValue })`.
 
 Five value editors:
+
 - `MoshpitNumericFilterEditor` — exact toggle; range (min/max) or single exact number input; emits `{ kind: 'numeric', min, max, exact }` or null.
 - `MoshpitCategoricalFilterEditor` — fuse.js search over `useMoshpitParamValueOptions` options; checkbox list; emits `{ kind: 'categorical', values }` or null.
 - `MoshpitTextFilterEditor` — textarea with substring hint; watcher trims and emits `{ kind: 'text', substring }` or null.
@@ -81,6 +82,7 @@ Five value editors:
 ### Auto-fixed Issues
 
 **1. [Rule 2 - Missing correctness] emitted<unknown[]> typing for vue-tsc**
+
 - **Found during:** Task 3 commit
 - **Issue:** `emitted('update:modelValue')` returns `unknown[][]` in `@testing-library/vue`; indexing yields `unknown`, causing TS2571 under `vue-tsc --noEmit`
 - **Fix:** Added `<unknown[]>` generic to all `emitted()` calls that index into the result
@@ -88,24 +90,28 @@ Five value editors:
 - **Commit:** `3ec1b0a34`
 
 **2. [Rule 1 - Bug] Pinia two-instance isolation bug in store-seeding tests**
+
 - **Found during:** Tasks 1 and 3
 - **Issue:** `beforeEach(() => setActivePinia(createPinia()))` then `render(..., { global: { plugins: [createPinia(), i18n] } })` created two separate pinia instances; store mutations seeded before mount were invisible to the component
 - **Fix:** Module-level `let pinia = createPinia()` reassigned in `beforeEach`, passed to both `setActivePinia` and `global.plugins`
 - **Files modified:** MoshpitFilterChipRow.test.ts, MoshpitCategoricalFilterEditor.test.ts, MoshpitResolutionFilterEditor.test.ts
 
 **3. [Rule 1 - Bug] Param picker click not transitioning to step 2**
+
 - **Found during:** Task 2
 - **Issue:** `findByText(label)` returned inner `<span>` child of `<li>`; click was technically on the text node and didn't reliably propagate Vue's `@click` on the `<li>` in happy-dom
 - **Fix:** Added `role="option"` to `<li>` items; tests use `findByRole('option', { name: label })` which targets the interactive element directly
 - **Files modified:** MoshpitAddFilterPopover.vue, MoshpitAddFilterPopover.test.ts
 
 **4. [Rule 1 - Bug] data-testid collision on dynamic `<component :is>`**
+
 - **Found during:** Task 2 testing
 - **Issue:** Parent passes `data-testid="moshpit-add-filter-editor"` as fallthrough attr to `<component :is="editor" />`; stub's own `data-testid` was overwritten by the fallthrough, making `getByTestId('moshpit-numeric-editor')` fail
 - **Fix:** Changed editor stubs to render `<span>numeric-editor</span>` inner text; tests assert via `screen.getByText('numeric-editor')` and `screen.findByTestId('moshpit-add-filter-editor')` (the parent attr, which is preserved)
 - **Files modified:** MoshpitAddFilterPopover.test.ts
 
 **5. [Rule 2 - Missing validation] ESLint testing-library/prefer-user-event**
+
 - **Found during:** Task 2 commit hook
 - **Issue:** `fireEvent.click()` used in MoshpitAddFilterPopover.test.ts; rejected by `testing-library/prefer-user-event` ESLint rule
 - **Fix:** Converted all `fireEvent.click()` to `await user.click()` after confirming `role="option"` items work with userEvent
@@ -123,6 +129,7 @@ None — no new network endpoints, auth paths, or trust boundary changes introdu
 ## Self-Check: PASSED
 
 Files created:
+
 - src/platform/moshpit/composables/useMoshpitParamValueOptions.ts — FOUND
 - src/platform/moshpit/components/MoshpitFilterChipRow.vue — FOUND
 - src/platform/moshpit/components/MoshpitAddFilterPopover.vue — FOUND
@@ -133,6 +140,7 @@ Files created:
 - src/platform/moshpit/components/MoshpitBooleanFilterEditor.vue — FOUND
 
 Commits:
+
 - 84be74d94 — FOUND
 - c215f43d4 — FOUND
 - 0cbdf8fbd — FOUND

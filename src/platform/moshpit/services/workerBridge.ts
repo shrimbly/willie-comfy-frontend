@@ -19,6 +19,7 @@
 import { runWhenGlobalIdle } from '@/base/common/async'
 
 // Vite `?worker` import — resolved at bundle time as a separate ES-module chunk.
+// oxlint-disable-next-line import/default
 import ThumbWorker from './thumbWorker?worker'
 import { defaultCuration, putAssetMeta, putThumb } from './thumbRepository'
 import type {
@@ -54,7 +55,9 @@ export interface CreateBridgeOptions {
   readonly workerFactory?: () => Worker
 }
 
-export function createWorkerBridge(options?: CreateBridgeOptions): WorkerBridge {
+export function createWorkerBridge(
+  options?: CreateBridgeOptions
+): WorkerBridge {
   const worker: Worker = options?.workerFactory
     ? options.workerFactory()
     : new ThumbWorker()

@@ -11,6 +11,7 @@ Replace the deprecated parameter-sort UI (Phase 3 SORT-01/02) with lineage-based
 **Requirements in-scope:** GROUP-01..10, CSORT-01, FILTER-12. Deprecated UI removal closes out the Phase 3 sort surface (SORT-01/02/03 UI only; SORT-04/05 survive as cluster-spacing and grid-snap invariants).
 
 **Out of scope:**
+
 - Tournament mode and full-res on tournament entry (Phase 5) — Phase 4 ships selection-unchanged and lineage-grouped layout only.
 - Curation mutations (Phase 6).
 - Empty-state polish beyond what Phase 3 already ships (Phase 7 owns mid-session zero-match, all-hidden, and 5k-asset perf proof).
@@ -111,6 +112,7 @@ None — STATE.md's "consider running /gsd-discuss-phase" is satisfied by this d
 </decisions>
 
 <canonical_refs>
+
 ## Canonical References
 
 **Downstream agents MUST read these before planning or implementing.**
@@ -197,6 +199,7 @@ None — STATE.md's "consider running /gsd-discuss-phase" is satisfied by this d
 </canonical_refs>
 
 <code_context>
+
 ## Existing Code Insights
 
 ### Reusable Assets
@@ -272,5 +275,5 @@ None — STATE.md's "consider running /gsd-discuss-phase" is satisfied by this d
 
 ---
 
-*Phase: 04-lineage-groupings-within-cluster-sort*
-*Context gathered: 2026-04-21*
+_Phase: 04-lineage-groupings-within-cluster-sort_
+_Context gathered: 2026-04-21_

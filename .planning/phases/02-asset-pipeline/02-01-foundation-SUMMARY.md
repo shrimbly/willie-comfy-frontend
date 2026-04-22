@@ -49,21 +49,21 @@ Wave-0 foundation: installed `idb@7.1.1` as direct dep and `fake-indexeddb@6.2.5
 
 ## Confirmed Dependency Versions
 
-| Package | Resolved Version | Type | Source |
-|---|---|---|---|
-| `idb` | `7.1.1` | dependency | pnpm registry (matches Firebase transitive in lockfile) |
-| `fake-indexeddb` | `6.2.5` | devDependency | pnpm registry (^6.0.0 range) |
+| Package          | Resolved Version | Type          | Source                                                  |
+| ---------------- | ---------------- | ------------- | ------------------------------------------------------- |
+| `idb`            | `7.1.1`          | dependency    | pnpm registry (matches Firebase transitive in lockfile) |
+| `fake-indexeddb` | `6.2.5`          | devDependency | pnpm registry (^6.0.0 range)                            |
 
 ## RED Test Count
 
-| File | Tests | Status |
-|---|---|---|
-| `services/contentHash.test.ts` | 4 | RED (Cannot find module './contentHash') |
-| `services/layoutMath.test.ts` | 3 | RED (Cannot find module './layoutMath') |
-| `services/thumbRepository.test.ts` | 3 | RED (Cannot find module './thumbRepository') |
-| `composables/useMoshpitProcessingQueue.test.ts` | 3 | RED (Cannot find module './useMoshpitProcessingQueue') |
-| `components/MoshpitProcessingIndicator.test.ts` | 4 | RED (Cannot find module './MoshpitProcessingIndicator.vue') |
-| **Total** | **17** | **All RED** |
+| File                                            | Tests  | Status                                                      |
+| ----------------------------------------------- | ------ | ----------------------------------------------------------- |
+| `services/contentHash.test.ts`                  | 4      | RED (Cannot find module './contentHash')                    |
+| `services/layoutMath.test.ts`                   | 3      | RED (Cannot find module './layoutMath')                     |
+| `services/thumbRepository.test.ts`              | 3      | RED (Cannot find module './thumbRepository')                |
+| `composables/useMoshpitProcessingQueue.test.ts` | 3      | RED (Cannot find module './useMoshpitProcessingQueue')      |
+| `components/MoshpitProcessingIndicator.test.ts` | 4      | RED (Cannot find module './MoshpitProcessingIndicator.vue') |
+| **Total**                                       | **17** | **All RED**                                                 |
 
 ## Deviations from Plan
 
@@ -71,10 +71,10 @@ None — plan executed exactly as written.
 
 ## Commits
 
-| Commit | Message |
-|---|---|
+| Commit      | Message                                                                                |
+| ----------- | -------------------------------------------------------------------------------------- |
 | `6784f97fa` | chore(02-01): add idb and fake-indexeddb deps; register fake-indexeddb in vitest setup |
-| `7ef8f511f` | test(02-01): add Wave-0 RED test stubs for asset pipeline foundation |
+| `7ef8f511f` | test(02-01): add Wave-0 RED test stubs for asset pipeline foundation                   |
 
 ## Self-Check: PASSED
 

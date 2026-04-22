@@ -15,15 +15,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-import type {
-  ChipValue,
-  FilterChip,
-  TimeRange
-} from '../services/filterTypes'
-import type {
-  GroupingAxis,
-  WithinClusterSortMode
-} from '../services/groupAxes'
+import type { ChipValue, FilterChip, TimeRange } from '../services/filterTypes'
+import type { GroupingAxis, WithinClusterSortMode } from '../services/groupAxes'
 import { DEFAULT_CELL_SIZE } from '../composables/useMoshpitSpriteLayer'
 
 export const GRID_SPACING_MIN = 200
@@ -51,8 +44,13 @@ function mergeChipValues(
   if (existing.kind !== incoming.kind) return null
   switch (existing.kind) {
     case 'categorical': {
-      const incomingCat = incoming as Extract<ChipValue, { kind: 'categorical' }>
-      const merged = Array.from(new Set([...existing.values, ...incomingCat.values]))
+      const incomingCat = incoming as Extract<
+        ChipValue,
+        { kind: 'categorical' }
+      >
+      const merged = Array.from(
+        new Set([...existing.values, ...incomingCat.values])
+      )
       return { kind: 'categorical', values: merged }
     }
     case 'resolution': {

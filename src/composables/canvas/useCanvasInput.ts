@@ -38,9 +38,7 @@ export function useCanvasInput(navigator: CanvasInputNavigator): {
     )
   }
 
-  function forwardEvent(
-    event: WheelEvent | PointerEvent | MouseEvent
-  ): void {
+  function forwardEvent(event: WheelEvent | PointerEvent | MouseEvent): void {
     if (event.type === 'wheel' && !shouldForwardWheelEvent(event as WheelEvent))
       return
 
@@ -48,15 +46,8 @@ export function useCanvasInput(navigator: CanvasInputNavigator): {
     event.stopPropagation()
 
     if (event.type === 'wheel') {
-      const {
-        clientX,
-        clientY,
-        deltaX,
-        deltaY,
-        ctrlKey,
-        metaKey,
-        shiftKey
-      } = event as WheelEvent
+      const { clientX, clientY, deltaX, deltaY, ctrlKey, metaKey, shiftKey } =
+        event as WheelEvent
       navigator.dispatchWheel(
         new WheelEvent('wheel', {
           clientX,

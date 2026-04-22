@@ -75,32 +75,34 @@ Full decision list D-01..D-22 is in `04-CONTEXT.md`; canonical summary (research
 
 ## Phase Requirements
 
-| ID | Description | Research Support |
-|----|-------------|------------------|
-| GROUP-01 | User can enable any combination of grouping axes as non-exclusive toggles in the Settings panel | `activeGroupings` readonly-array ref on `moshpitFilterStore` + `MoshpitGroupingToggles.vue` pill row; store action `toggleGrouping(axis)` |
-| GROUP-02 | Nesting order is automatic — largest-average-bucket-size nests outermost, recursive | `computeNestingOrder()` in `clusterLayout.ts`; pure function, ties by declaration order; memoised bucket-key per `(hash, axis)` |
-| GROUP-03 | Group by workflow (filename) | `bucketKey('workflow', params)` → `params.workflowFilename ?? '(other)'` (field already exists from Phase 3) |
-| GROUP-04 | Group by save node | `bucketKey('saveNode', params)` → `params.saveNodeIdentity ?? '(other)'`; field added by `normalizeParams` extension + IDB v2→v3 migration |
-| GROUP-05 | Group by prompt (normalised) | `bucketKey('prompt', params)` → `normalisePromptKey(params.positivePrompt)` with trim + lowercase + whitespace-collapse |
-| GROUP-06 | Group by model | `bucketKey('model', params)` → `params.model ?? '(other)'` (field already present) |
-| GROUP-07 | Group by type (aspect bucket) | `deriveTypeBucket({ width, height })` pure helper: `>1.15` landscape, `<0.87` portrait, else square; missing w/h → `(other)` |
-| GROUP-08 | Missing-param → "(other)" cluster at that level | `OTHER_BUCKET_KEY = '(other)'` constant; all `bucketKey` branches fall through to it on undefined/null/empty |
-| GROUP-09 | Groupings separate from filters | `applyFilterChips` runs BEFORE `computeClusterLayout` in `useMoshpitFilteredAssets`; groups receive only the filtered visible-hash set |
-| GROUP-10 | Recompute + tween <400ms at 5k assets | <100ms pure math budget enforced by Vitest perf marker on `computeClusterLayout`; 300ms existing tween in `useMoshpitSpriteLayer` (REPACK_DURATION_MS const at line 55) |
-| CSORT-01 | Single global dropdown: newest/oldest/alphabetical | `withinClusterSort` ref on store + `MoshpitWithinClusterSort.vue` native `<select>`; `compareAssetsForWithinCluster` pure comparator in `groupAxes.ts` with contentHash tiebreaker for determinism |
-| FILTER-12 | Primary filter surface lineage-first; parameter filters behind Advanced disclosure | `PRIMARY_FILTER_PARAMS` + `ADVANCED_FILTER_PARAMS` consts on `filterTypes.ts`; `MoshpitFilterChipRow` accepts `tier` prop; `MoshpitAdvancedFilters.vue` wraps advanced row in Reka `Collapsible` |
+| ID        | Description                                                                                     | Research Support                                                                                                                                                                                   |
+| --------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GROUP-01  | User can enable any combination of grouping axes as non-exclusive toggles in the Settings panel | `activeGroupings` readonly-array ref on `moshpitFilterStore` + `MoshpitGroupingToggles.vue` pill row; store action `toggleGrouping(axis)`                                                          |
+| GROUP-02  | Nesting order is automatic — largest-average-bucket-size nests outermost, recursive             | `computeNestingOrder()` in `clusterLayout.ts`; pure function, ties by declaration order; memoised bucket-key per `(hash, axis)`                                                                    |
+| GROUP-03  | Group by workflow (filename)                                                                    | `bucketKey('workflow', params)` → `params.workflowFilename ?? '(other)'` (field already exists from Phase 3)                                                                                       |
+| GROUP-04  | Group by save node                                                                              | `bucketKey('saveNode', params)` → `params.saveNodeIdentity ?? '(other)'`; field added by `normalizeParams` extension + IDB v2→v3 migration                                                         |
+| GROUP-05  | Group by prompt (normalised)                                                                    | `bucketKey('prompt', params)` → `normalisePromptKey(params.positivePrompt)` with trim + lowercase + whitespace-collapse                                                                            |
+| GROUP-06  | Group by model                                                                                  | `bucketKey('model', params)` → `params.model ?? '(other)'` (field already present)                                                                                                                 |
+| GROUP-07  | Group by type (aspect bucket)                                                                   | `deriveTypeBucket({ width, height })` pure helper: `>1.15` landscape, `<0.87` portrait, else square; missing w/h → `(other)`                                                                       |
+| GROUP-08  | Missing-param → "(other)" cluster at that level                                                 | `OTHER_BUCKET_KEY = '(other)'` constant; all `bucketKey` branches fall through to it on undefined/null/empty                                                                                       |
+| GROUP-09  | Groupings separate from filters                                                                 | `applyFilterChips` runs BEFORE `computeClusterLayout` in `useMoshpitFilteredAssets`; groups receive only the filtered visible-hash set                                                             |
+| GROUP-10  | Recompute + tween <400ms at 5k assets                                                           | <100ms pure math budget enforced by Vitest perf marker on `computeClusterLayout`; 300ms existing tween in `useMoshpitSpriteLayer` (REPACK_DURATION_MS const at line 55)                            |
+| CSORT-01  | Single global dropdown: newest/oldest/alphabetical                                              | `withinClusterSort` ref on store + `MoshpitWithinClusterSort.vue` native `<select>`; `compareAssetsForWithinCluster` pure comparator in `groupAxes.ts` with contentHash tiebreaker for determinism |
+| FILTER-12 | Primary filter surface lineage-first; parameter filters behind Advanced disclosure              | `PRIMARY_FILTER_PARAMS` + `ADVANCED_FILTER_PARAMS` consts on `filterTypes.ts`; `MoshpitFilterChipRow` accepts `tier` prop; `MoshpitAdvancedFilters.vue` wraps advanced row in Reka `Collapsible`   |
 
 ## Project Constraints (from CLAUDE.md / AGENTS.md)
 
 Directives the planner and executor MUST honour. Every one verified against the referenced file.
 
 ### Language / tooling
+
 - **TypeScript only** for new code; strict mode; `ES2023` target. `[CITED: tsconfig.json]`
 - **Vue 3.5 SFC** with `<script setup lang="ts">`; destructured props with defaults (no `withDefaults`, no runtime props decl).
 - **No new JavaScript files** except `scripts/**/*.js` and legacy `src/extensions/core/*` + `src/scripts/*`.
 - **pnpm ≥10** (`package.json` `packageManager: pnpm@10.33.0`).
 
 ### Forbidden patterns (enforced via ESLint / oxlint)
+
 - `any` — `typescript/no-explicit-any: error`.
 - `as any` — fix the underlying type instead.
 - `--no-verify` on commits.
@@ -117,6 +119,7 @@ Directives the planner and executor MUST honour. Every one verified against the 
 - AI / Claude mentions in commit messages.
 
 ### Required patterns
+
 - `import type` separate from value imports (`import/consistent-type-specifier-style: prefer-top-level`).
 - Semantic Tailwind tokens (`bg-node-component-primary`, `border-(--interface-stroke)`, `text-muted-foreground`) — no hex.
 - Layer discipline: `base → platform → workbench → renderer`. Moshpit lives in `src/platform/moshpit/`. Cluster layout must not import from `src/lib/litegraph`.
@@ -143,18 +146,18 @@ src/platform/moshpit/
 
 ### Key files (line counts verified)
 
-| File | Lines | Role in Phase 4 |
-|------|-------|-----------------|
-| `src/platform/moshpit/services/sortMath.ts` | 310 | RETAINED — header-comment update only; row-band packing primitive reused by leaf-cluster flat grid |
-| `src/platform/moshpit/services/paramNormalize.ts` | 350 | EXTEND — add `saveNodeIdentity` field + `extractSaveNodeIdentity` helper; existing `findAllNodesByClassTypes` at line 168 reused |
-| `src/platform/moshpit/services/filterTypes.ts` | 63 | EXTEND — add `'saveNode'` to `ParamKey`; add `PRIMARY_FILTER_PARAMS` / `ADVANCED_FILTER_PARAMS` consts |
-| `src/platform/moshpit/services/thumbRepository.ts` | 135 | EXTEND — add v2→v3 migration branch after existing v1→v2 block at lines 44-64 |
-| `src/platform/moshpit/services/thumbRepository.types.ts` | — | EXTEND — bump `MOSHPIT_DB_VERSION` from 2 to 3 (current value verified at line 53) |
-| `src/platform/moshpit/stores/moshpitFilterStore.ts` | 170 | REFACTOR — remove sortX/sortY; add activeGroupings/withinClusterSort/isAdvancedOpen + mutators |
-| `src/platform/moshpit/composables/useMoshpitSpriteLayer.ts` | 280 | UNCHANGED — consumes `{hash, worldX, worldY}` slots; `REPACK_DURATION_MS = 300` at line 55; ease-out-cubic at line 223 (`1 - Math.pow(1 - t, 3)`) |
-| `src/platform/moshpit/composables/useMoshpitViewportInjection.ts` | 23 | REUSED — `MOSHPIT_VIEWPORT_INJECTION_KEY: InjectionKey<Ref<Viewport \| null>>` at line 12; `useMoshpitViewport(): Ref<Viewport \| null>` at line 15 |
-| `src/platform/moshpit/components/MoshpitAxisOverlay.vue` | 117 | DELETE — replaced by `MoshpitClusterOverlay.vue` (same HTML-over-Pixi pattern) |
-| `src/platform/moshpit/components/MoshpitSettingsPanel.vue` | 70 | RECOMPOSE — new layout order; remove `<MoshpitSortControls>` mount |
+| File                                                              | Lines | Role in Phase 4                                                                                                                                     |
+| ----------------------------------------------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/platform/moshpit/services/sortMath.ts`                       | 310   | RETAINED — header-comment update only; row-band packing primitive reused by leaf-cluster flat grid                                                  |
+| `src/platform/moshpit/services/paramNormalize.ts`                 | 350   | EXTEND — add `saveNodeIdentity` field + `extractSaveNodeIdentity` helper; existing `findAllNodesByClassTypes` at line 168 reused                    |
+| `src/platform/moshpit/services/filterTypes.ts`                    | 63    | EXTEND — add `'saveNode'` to `ParamKey`; add `PRIMARY_FILTER_PARAMS` / `ADVANCED_FILTER_PARAMS` consts                                              |
+| `src/platform/moshpit/services/thumbRepository.ts`                | 135   | EXTEND — add v2→v3 migration branch after existing v1→v2 block at lines 44-64                                                                       |
+| `src/platform/moshpit/services/thumbRepository.types.ts`          | —     | EXTEND — bump `MOSHPIT_DB_VERSION` from 2 to 3 (current value verified at line 53)                                                                  |
+| `src/platform/moshpit/stores/moshpitFilterStore.ts`               | 170   | REFACTOR — remove sortX/sortY; add activeGroupings/withinClusterSort/isAdvancedOpen + mutators                                                      |
+| `src/platform/moshpit/composables/useMoshpitSpriteLayer.ts`       | 280   | UNCHANGED — consumes `{hash, worldX, worldY}` slots; `REPACK_DURATION_MS = 300` at line 55; ease-out-cubic at line 223 (`1 - Math.pow(1 - t, 3)`)   |
+| `src/platform/moshpit/composables/useMoshpitViewportInjection.ts` | 23    | REUSED — `MOSHPIT_VIEWPORT_INJECTION_KEY: InjectionKey<Ref<Viewport \| null>>` at line 12; `useMoshpitViewport(): Ref<Viewport \| null>` at line 15 |
+| `src/platform/moshpit/components/MoshpitAxisOverlay.vue`          | 117   | DELETE — replaced by `MoshpitClusterOverlay.vue` (same HTML-over-Pixi pattern)                                                                      |
+| `src/platform/moshpit/components/MoshpitSettingsPanel.vue`        | 70    | RECOMPOSE — new layout order; remove `<MoshpitSortControls>` mount                                                                                  |
 
 `[VERIFIED: Bash wc -l + grep outputs this session]`
 
@@ -184,8 +187,12 @@ Phase 4 reuses the existing 300ms ease-out-cubic tween:
 // Lines 49-64, 71, 84 of MoshpitAxisOverlay.vue
 const transformTick = ref(0)
 // inside watch(viewportRef, (vp, _prev, onCleanup) => { ... }):
-vp.on('moved', () => { transformTick.value++ })
-onCleanup(() => { vp.off('moved', handler) })
+vp.on('moved', () => {
+  transformTick.value++
+})
+onCleanup(() => {
+  vp.off('moved', handler)
+})
 // Inside style getters:
 void transformTick.value // read reactive dep so style re-evaluates on pan/zoom
 ```
@@ -226,36 +233,36 @@ Project convention therefore supports Reka over plain `<details>`. Plan 04 Task 
 
 ### Core (no new deps needed)
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| Vue | 3.5.13 (catalog) | SFC + Composition API + reactivity | Project standard, Phase 1–3 precedent |
-| Pinia | 3.0.4 (catalog) | Store pattern (`defineStore` setup-API) | `moshpitFilterStore` already on this; Phase 4 extends |
-| TypeScript | 5.9.3 (catalog) | Strict mode app code | Required by project rules |
-| Tailwind CSS | 4.2.0 | Utility-first styling, semantic tokens | Project standard, `cn()` via `@comfyorg/tailwind-utils` |
-| Reka UI | 2.5.0 (catalog) | Headless primitives — `Collapsible` for Advanced disclosure | Project precedent at `PartnerNodesList.vue:2-6`; PrimeVue banned for new usage |
-| `idb` | 7.1.1 (already in lockfile) | IndexedDB wrapper — `openDB` upgrade callback | Phase 2 precedent; v2→v3 upgrade mirrors v1→v2 |
+| Library      | Version                     | Purpose                                                     | Why Standard                                                                   |
+| ------------ | --------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Vue          | 3.5.13 (catalog)            | SFC + Composition API + reactivity                          | Project standard, Phase 1–3 precedent                                          |
+| Pinia        | 3.0.4 (catalog)             | Store pattern (`defineStore` setup-API)                     | `moshpitFilterStore` already on this; Phase 4 extends                          |
+| TypeScript   | 5.9.3 (catalog)             | Strict mode app code                                        | Required by project rules                                                      |
+| Tailwind CSS | 4.2.0                       | Utility-first styling, semantic tokens                      | Project standard, `cn()` via `@comfyorg/tailwind-utils`                        |
+| Reka UI      | 2.5.0 (catalog)             | Headless primitives — `Collapsible` for Advanced disclosure | Project precedent at `PartnerNodesList.vue:2-6`; PrimeVue banned for new usage |
+| `idb`        | 7.1.1 (already in lockfile) | IndexedDB wrapper — `openDB` upgrade callback               | Phase 2 precedent; v2→v3 upgrade mirrors v1→v2                                 |
 
 ### Supporting (test infra)
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| Vitest | 4.0.16 | Unit/component tests (happy-dom) | All new math modules + components |
-| `fast-check` | 4.5.3 (verified current = 4.7.0, repo is 4.5.3 — [CITED: npm view fast-check version]) | Property tests — uniqueness invariant + determinism | `clusterLayout.test.ts` (every hash in exactly one leaf); `groupAxes.test.ts` (comparator determinism) |
-| `@testing-library/vue` | 8.1.0 | Behavioral component tests (grouping toggles, within-sort dropdown) | Plan 04 SFC tests |
-| `@testing-library/user-event` | 14.6.1 | Keyboard + click interactions | Pill toggle assertions |
-| `@pinia/testing` | 1.0.3 | `createTestingPinia` for component tests | Component-level store stubbing |
-| `fake-indexeddb` | (already in lockfile) | In-memory IDB for thumbRepository tests | Migration tests |
-| Playwright | 1.58.1 | `@moshpit`-tagged E2E spec | Best-effort, non-blocking per D-21 |
-| Storybook | 10.2.10 | Component stories | Plan 04 + 05 new components each ship stories |
+| Library                       | Version                                                                                | Purpose                                                             | When to Use                                                                                            |
+| ----------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Vitest                        | 4.0.16                                                                                 | Unit/component tests (happy-dom)                                    | All new math modules + components                                                                      |
+| `fast-check`                  | 4.5.3 (verified current = 4.7.0, repo is 4.5.3 — [CITED: npm view fast-check version]) | Property tests — uniqueness invariant + determinism                 | `clusterLayout.test.ts` (every hash in exactly one leaf); `groupAxes.test.ts` (comparator determinism) |
+| `@testing-library/vue`        | 8.1.0                                                                                  | Behavioral component tests (grouping toggles, within-sort dropdown) | Plan 04 SFC tests                                                                                      |
+| `@testing-library/user-event` | 14.6.1                                                                                 | Keyboard + click interactions                                       | Pill toggle assertions                                                                                 |
+| `@pinia/testing`              | 1.0.3                                                                                  | `createTestingPinia` for component tests                            | Component-level store stubbing                                                                         |
+| `fake-indexeddb`              | (already in lockfile)                                                                  | In-memory IDB for thumbRepository tests                             | Migration tests                                                                                        |
+| Playwright                    | 1.58.1                                                                                 | `@moshpit`-tagged E2E spec                                          | Best-effort, non-blocking per D-21                                                                     |
+| Storybook                     | 10.2.10                                                                                | Component stories                                                   | Plan 04 + 05 new components each ship stories                                                          |
 
 ### Alternatives Considered
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| Reka `Collapsible` | Native `<details><summary>` | Lighter but inconsistent with project chrome; reka is canonical here per existing precedent. Choose Reka unless profiling flags bundle weight. |
-| Ordered `readonly GroupingAxis[]` on the store | `Set<GroupingAxis>` | Set reactivity in Vue/Pinia works but serialisation into test snapshots is less clean; array preserves insertion order and enumerates deterministically. |
-| Row-wrapping at branch levels | Column-first wrapping | Row wrapping is the default (D-01); column-first may suit ultrawide screens better but is not needed v1. |
-| Custom animation primitive for grouping toggle | Reuse 300ms ease-out-cubic tween in `useMoshpitSpriteLayer` | Reuse preserves single motion language; all transitions feel the same to users. |
+| Instead of                                     | Could Use                                                   | Tradeoff                                                                                                                                                 |
+| ---------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Reka `Collapsible`                             | Native `<details><summary>`                                 | Lighter but inconsistent with project chrome; reka is canonical here per existing precedent. Choose Reka unless profiling flags bundle weight.           |
+| Ordered `readonly GroupingAxis[]` on the store | `Set<GroupingAxis>`                                         | Set reactivity in Vue/Pinia works but serialisation into test snapshots is less clean; array preserves insertion order and enumerates deterministically. |
+| Row-wrapping at branch levels                  | Column-first wrapping                                       | Row wrapping is the default (D-01); column-first may suit ultrawide screens better but is not needed v1.                                                 |
+| Custom animation primitive for grouping toggle | Reuse 300ms ease-out-cubic tween in `useMoshpitSpriteLayer` | Reuse preserves single motion language; all transitions feel the same to users.                                                                          |
 
 ### Version verification
 
@@ -279,7 +286,13 @@ Project convention therefore supports Reka over plain `<details>`. Plan 04 Task 
 // groupAxes.ts — worker-safe; only types from paramNormalize
 import type { NormalizedParams } from './paramNormalize'
 
-export const GROUPING_AXES = ['workflow', 'saveNode', 'prompt', 'model', 'type'] as const
+export const GROUPING_AXES = [
+  'workflow',
+  'saveNode',
+  'prompt',
+  'model',
+  'type'
+] as const
 export type GroupingAxis = (typeof GROUPING_AXES)[number]
 
 export const OTHER_BUCKET_KEY = '(other)'
@@ -355,12 +368,20 @@ import { useMoshpitViewport } from '@/platform/moshpit/composables/useMoshpitVie
 const viewportRef = useMoshpitViewport()
 const transformTick = ref(0)
 
-watch(viewportRef, (viewport, _prev, onCleanup) => {
-  if (!viewport) return
-  const handler = () => { transformTick.value++ }
-  viewport.on('moved', handler)
-  onCleanup(() => { viewport.off?.('moved', handler) })
-}, { immediate: true })
+watch(
+  viewportRef,
+  (viewport, _prev, onCleanup) => {
+    if (!viewport) return
+    const handler = () => {
+      transformTick.value++
+    }
+    viewport.on('moved', handler)
+    onCleanup(() => {
+      viewport.off?.('moved', handler)
+    })
+  },
+  { immediate: true }
+)
 
 function boxStyle(cluster: ClusterNode): StyleValue {
   void transformTick.value // register reactive dep
@@ -421,14 +442,21 @@ if (oldVersion < 3) {
   while (cursor) {
     const rec = cursor.value
     try {
-      const fresh = normalizeParams(rec.metadata, rec.params?.timestamp ?? Date.now())
+      const fresh = normalizeParams(
+        rec.metadata,
+        rec.params?.timestamp ?? Date.now()
+      )
       const nextParams = rec.params
         ? { ...rec.params, saveNodeIdentity: fresh.saveNodeIdentity }
         : fresh
       await cursor.update({ ...rec, params: nextParams })
     } catch (err) {
       skipped += 1
-      console.error('[moshpit] v2→v3 migration failed for record', rec.contentHash, err)
+      console.error(
+        '[moshpit] v2→v3 migration failed for record',
+        rec.contentHash,
+        err
+      )
     }
     cursor = await cursor.continue()
   }
@@ -449,27 +477,27 @@ if (oldVersion < 3) {
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| IndexedDB versioning + upgrade callbacks | Raw `indexedDB.open` + event listeners | `idb` library's `openDB({ upgrade(db, oldVersion, newVersion, tx) })` | Handles blocked/terminated events, promisifies cursors, Phase 2 already uses it. |
-| Ease-out-cubic tween from scratch | `requestAnimationFrame` loop + math | Reuse `useMoshpitSpriteLayer`'s existing `REPACK_DURATION_MS = 300` + `1 - Math.pow(1 - t, 3)` | Verified existing primitive at lines 55, 223. One motion language. |
-| Property-based uniqueness invariant | Hand-written loop over inputs | `fast-check`'s `fc.property` + `fc.assert` | Shrinking on failure surfaces minimal repro; ecosystem-standard for this class of invariant. |
-| Disclosure (accordion) UI chrome | Plain `<details>` + custom chevron | Reka UI `Collapsible*` triad | Keyboard + ARIA handled, controlled/uncontrolled modes, precedent at `PartnerNodesList.vue`. |
-| Fuzzy search on param picker | Substring scan | `fuse.js` (already installed for Phase 3 popover) | No regression; same ~16-item list. |
-| PNG metadata parse on migration | Re-run thumbnail worker | Re-parse stored `rec.metadata` via `normalizeParams(rec.metadata, ...)` | Raw metadata already in IDB (verified at `thumbRepository.types.ts:22-32`). Free upgrade. |
-| Exhaustive switch safety | Commenting "all cases handled" | `const _exhaustive: never = param` in `default:` | Compile-time proof; future widening surfaces as type error (Pitfall 1). |
+| Problem                                  | Don't Build                            | Use Instead                                                                                    | Why                                                                                          |
+| ---------------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| IndexedDB versioning + upgrade callbacks | Raw `indexedDB.open` + event listeners | `idb` library's `openDB({ upgrade(db, oldVersion, newVersion, tx) })`                          | Handles blocked/terminated events, promisifies cursors, Phase 2 already uses it.             |
+| Ease-out-cubic tween from scratch        | `requestAnimationFrame` loop + math    | Reuse `useMoshpitSpriteLayer`'s existing `REPACK_DURATION_MS = 300` + `1 - Math.pow(1 - t, 3)` | Verified existing primitive at lines 55, 223. One motion language.                           |
+| Property-based uniqueness invariant      | Hand-written loop over inputs          | `fast-check`'s `fc.property` + `fc.assert`                                                     | Shrinking on failure surfaces minimal repro; ecosystem-standard for this class of invariant. |
+| Disclosure (accordion) UI chrome         | Plain `<details>` + custom chevron     | Reka UI `Collapsible*` triad                                                                   | Keyboard + ARIA handled, controlled/uncontrolled modes, precedent at `PartnerNodesList.vue`. |
+| Fuzzy search on param picker             | Substring scan                         | `fuse.js` (already installed for Phase 3 popover)                                              | No regression; same ~16-item list.                                                           |
+| PNG metadata parse on migration          | Re-run thumbnail worker                | Re-parse stored `rec.metadata` via `normalizeParams(rec.metadata, ...)`                        | Raw metadata already in IDB (verified at `thumbRepository.types.ts:22-32`). Free upgrade.    |
+| Exhaustive switch safety                 | Commenting "all cases handled"         | `const _exhaustive: never = param` in `default:`                                               | Compile-time proof; future widening surfaces as type error (Pitfall 1).                      |
 
 **Key insight:** Every major subsystem already has a precedent in the repo. Phase 4 composes existing patterns; the only genuinely new code is the recursive packer + bucket-key extractor — both pure math with bounded inputs and unit-testable behaviour.
 
 ## Runtime State Inventory
 
-| Category | Items Found | Action Required |
-|----------|-------------|------------------|
-| Stored data | (1) IndexedDB `moshpit-v1` DB, `assetMeta` store, field `params: NormalizedParams` (v2 schema) — needs `saveNodeIdentity` added. (2) Raw PNG metadata in `assetMeta.metadata` — source for re-derivation. (3) `thumbs` store — unchanged. | Bump `MOSHPIT_DB_VERSION` 2→3; cursor-migration re-derives `saveNodeIdentity` (per D-11 / Plan 02 Task 2). Data migration — user's existing cache re-populates on next app open without re-thumbnailing. |
-| Live service config | None — Moshpit is frontend-only; no n8n/Datadog/Tailscale/Cloudflare Tunnel integration. ComfyUI backend runs locally; no remote service state. | None. |
-| OS-registered state | None — no Windows Task Scheduler tasks, no pm2 processes, no launchd plists, no systemd units touch Phase 4 code paths. | None. |
-| Secrets/env vars | None referenced by Phase 4 code. Phase 4 does not introduce any new `VITE_*` / `__…__` compile-time define. Existing Firebase / Sentry / Algolia vars unrelated. | None. |
-| Build artifacts | (1) `components.d.ts` at repo root is auto-regenerated by `unplugin-vue-components` on dev/build — new Moshpit SFCs auto-register. (2) Storybook build artifacts (`.storybook-cache/`) — cleared on first story rebuild. (3) Vite's `.vite/deps` optimiser cache — invalidated when new imports (`reka-ui` Collapsible subpath if treeshaking changes) surface. | None beyond normal `pnpm install` / `pnpm dev` restart. No manual intervention. |
+| Category            | Items Found                                                                                                                                                                                                                                                                                                                                                     | Action Required                                                                                                                                                                                          |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stored data         | (1) IndexedDB `moshpit-v1` DB, `assetMeta` store, field `params: NormalizedParams` (v2 schema) — needs `saveNodeIdentity` added. (2) Raw PNG metadata in `assetMeta.metadata` — source for re-derivation. (3) `thumbs` store — unchanged.                                                                                                                       | Bump `MOSHPIT_DB_VERSION` 2→3; cursor-migration re-derives `saveNodeIdentity` (per D-11 / Plan 02 Task 2). Data migration — user's existing cache re-populates on next app open without re-thumbnailing. |
+| Live service config | None — Moshpit is frontend-only; no n8n/Datadog/Tailscale/Cloudflare Tunnel integration. ComfyUI backend runs locally; no remote service state.                                                                                                                                                                                                                 | None.                                                                                                                                                                                                    |
+| OS-registered state | None — no Windows Task Scheduler tasks, no pm2 processes, no launchd plists, no systemd units touch Phase 4 code paths.                                                                                                                                                                                                                                         | None.                                                                                                                                                                                                    |
+| Secrets/env vars    | None referenced by Phase 4 code. Phase 4 does not introduce any new `VITE_*` / `__…__` compile-time define. Existing Firebase / Sentry / Algolia vars unrelated.                                                                                                                                                                                                | None.                                                                                                                                                                                                    |
+| Build artifacts     | (1) `components.d.ts` at repo root is auto-regenerated by `unplugin-vue-components` on dev/build — new Moshpit SFCs auto-register. (2) Storybook build artifacts (`.storybook-cache/`) — cleared on first story rebuild. (3) Vite's `.vite/deps` optimiser cache — invalidated when new imports (`reka-ui` Collapsible subpath if treeshaking changes) surface. | None beyond normal `pnpm install` / `pnpm dev` restart. No manual intervention.                                                                                                                          |
 
 **Canonical question answer:** After every file in the repo is updated, the only runtime state that persists is user-cached IndexedDB data, which the v2→v3 migration handles automatically on app open. No other cached, stored, or OS-registered state is affected.
 
@@ -564,10 +592,19 @@ Verified or direct-from-plan patterns the executor will write.
 // src/platform/moshpit/services/groupAxes.ts — peer of sortMath.ts / filterMath.ts
 import type { NormalizedParams } from './paramNormalize'
 
-export const GROUPING_AXES = ['workflow', 'saveNode', 'prompt', 'model', 'type'] as const
+export const GROUPING_AXES = [
+  'workflow',
+  'saveNode',
+  'prompt',
+  'model',
+  'type'
+] as const
 export type GroupingAxis = (typeof GROUPING_AXES)[number]
 
-export type WithinClusterSortMode = 'newestFirst' | 'oldestFirst' | 'alphabetical'
+export type WithinClusterSortMode =
+  | 'newestFirst'
+  | 'oldestFirst'
+  | 'alphabetical'
 export const WITHIN_CLUSTER_SORT_MODES: readonly WithinClusterSortMode[] = [
   'newestFirst',
   'oldestFirst',
@@ -586,7 +623,12 @@ export function deriveTypeBucket(
   params: Pick<NormalizedParams, 'width' | 'height'>
 ): 'landscape' | 'portrait' | 'square' | typeof OTHER_BUCKET_KEY {
   const { width, height } = params
-  if (!Number.isFinite(width) || !Number.isFinite(height) || !width || !height) {
+  if (
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    !width ||
+    !height
+  ) {
     return OTHER_BUCKET_KEY
   }
   const ratio = width / height
@@ -604,13 +646,23 @@ Source: Plan 01 Task 1, consistent with CONTEXT.md D-09/D-10.
 // src/platform/moshpit/services/clusterLayout.ts
 import type { NormalizedParams } from './paramNormalize'
 import type { GridSlot } from './layoutMath'
-import { bucketKey, compareAssetsForWithinCluster, type GroupingAxis, type WithinClusterSortMode } from './groupAxes'
+import {
+  bucketKey,
+  compareAssetsForWithinCluster,
+  type GroupingAxis,
+  type WithinClusterSortMode
+} from './groupAxes'
 
 export interface ClusterNode {
   readonly axis: GroupingAxis | null
   readonly bucketValue: string
   readonly depth: number
-  readonly boundsWorld: { readonly x: number; readonly y: number; readonly w: number; readonly h: number }
+  readonly boundsWorld: {
+    readonly x: number
+    readonly y: number
+    readonly w: number
+    readonly h: number
+  }
   readonly children: readonly ClusterNode[]
   readonly leafHashes: readonly string[]
 }
@@ -652,7 +704,11 @@ Source: Plan 01 Task 2. Property tests (uniqueness + determinism + perf budget) 
 ```typescript
 // src/platform/moshpit/composables/useMoshpitFilteredAssets.ts — after Plan 03
 import { computed } from 'vue'
-import { computeClusterLayout, computeNestingOrder, type ClusterNode } from '../services/clusterLayout'
+import {
+  computeClusterLayout,
+  computeNestingOrder,
+  type ClusterNode
+} from '../services/clusterLayout'
 import type { GroupingAxis } from '../services/groupAxes'
 
 export function useMoshpitFilteredAssets(): {
@@ -697,7 +753,14 @@ Full code in Plan 05 Task 1; pattern verified identical to `MoshpitAxisOverlay.v
   >
     <CollapsibleTrigger as-child>
       <button type="button" :class="cn('…')">
-        <i :class="cn('size-3', open ? 'icon-[lucide--chevron-up]' : 'icon-[lucide--chevron-down]')" />
+        <i
+          :class="
+            cn(
+              'size-3',
+              open ? 'icon-[lucide--chevron-up]' : 'icon-[lucide--chevron-down]'
+            )
+          "
+        />
         <span>{{ t('moshpit.filters.advancedLabel') }}</span>
       </button>
     </CollapsibleTrigger>
@@ -708,7 +771,11 @@ Full code in Plan 05 Task 1; pattern verified identical to `MoshpitAxisOverlay.v
 </template>
 
 <script setup lang="ts">
-import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from 'reka-ui'
+import {
+  CollapsibleContent,
+  CollapsibleRoot,
+  CollapsibleTrigger
+} from 'reka-ui'
 import { cn } from '@/utils/tailwindUtil'
 // … filterStore, i18n
 </script>
@@ -718,14 +785,14 @@ Source: Plan 04 Task 3, `[VERIFIED: reka-ui precedent at PartnerNodesList.vue:2-
 
 ## State of the Art
 
-| Old Approach (pre-v3 pivot) | Current Approach (v3) | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| 1D / 2D parameter spatial sort (`MoshpitSortControls` + `MoshpitAxisOverlay`) | Multi-axis lineage grouping with auto-nested hierarchy | 2026-04-21 (v3 pivot invalidated by Phase 3 dogfood) | `sortMath` primitives kept; UI + store fields + i18n removed |
-| Flat filter chip row including CFG/steps/sampler/scheduler/resolution/LoRA/negativePrompt | Primary chip row (lineage) + Advanced disclosure (parameter) via Reka `Collapsible` | Phase 4 (FILTER-12) | Two `MoshpitFilterChipRow` instances with `tier` prop; `PRIMARY_FILTER_PARAMS` / `ADVANCED_FILTER_PARAMS` consts |
-| No per-asset save-node identity | `saveNodeIdentity: string \| null` on `NormalizedParams` | Phase 4 (GROUP-04) | IDB v2 → v3 migration; `_meta.title ?? class_type` extractor |
-| `filterStore.sortX` / `sortY` + `setSortX` / `setSortY` | `activeGroupings` / `withinClusterSort` / `isAdvancedOpen` + mutators | Phase 4 (D-15 / D-19) | Every consumer refactored; doomed components deleted |
-| Auto-nesting UI | No user-visible ordering UI (PRD §5.4 literal) | Phase 4 (D-02) | Auto-derived server-side (pure function); no manual reorder affordance |
-| Tournament mode framed as "Comparison Mode" (old Phase 5) | Pairwise winner selection + ephemeral scoring (Phase 5) | v3 pivot | Phase 4 ships selection-unchanged; Phase 5 consumes selection |
+| Old Approach (pre-v3 pivot)                                                               | Current Approach (v3)                                                               | When Changed                                         | Impact                                                                                                           |
+| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 1D / 2D parameter spatial sort (`MoshpitSortControls` + `MoshpitAxisOverlay`)             | Multi-axis lineage grouping with auto-nested hierarchy                              | 2026-04-21 (v3 pivot invalidated by Phase 3 dogfood) | `sortMath` primitives kept; UI + store fields + i18n removed                                                     |
+| Flat filter chip row including CFG/steps/sampler/scheduler/resolution/LoRA/negativePrompt | Primary chip row (lineage) + Advanced disclosure (parameter) via Reka `Collapsible` | Phase 4 (FILTER-12)                                  | Two `MoshpitFilterChipRow` instances with `tier` prop; `PRIMARY_FILTER_PARAMS` / `ADVANCED_FILTER_PARAMS` consts |
+| No per-asset save-node identity                                                           | `saveNodeIdentity: string \| null` on `NormalizedParams`                            | Phase 4 (GROUP-04)                                   | IDB v2 → v3 migration; `_meta.title ?? class_type` extractor                                                     |
+| `filterStore.sortX` / `sortY` + `setSortX` / `setSortY`                                   | `activeGroupings` / `withinClusterSort` / `isAdvancedOpen` + mutators               | Phase 4 (D-15 / D-19)                                | Every consumer refactored; doomed components deleted                                                             |
+| Auto-nesting UI                                                                           | No user-visible ordering UI (PRD §5.4 literal)                                      | Phase 4 (D-02)                                       | Auto-derived server-side (pure function); no manual reorder affordance                                           |
+| Tournament mode framed as "Comparison Mode" (old Phase 5)                                 | Pairwise winner selection + ephemeral scoring (Phase 5)                             | v3 pivot                                             | Phase 4 ships selection-unchanged; Phase 5 consumes selection                                                    |
 
 **Deprecated/outdated:**
 
@@ -739,13 +806,13 @@ Source: Plan 04 Task 3, `[VERIFIED: reka-ui precedent at PartnerNodesList.vue:2-
 
 > All claims in this research were either verified against files inspected this session or cited from existing plan documents. The table below captures the handful of items where uncertainty remains.
 
-| # | Claim | Section | Risk if Wrong |
-|---|-------|---------|---------------|
-| A1 | `useMoshpitAssetRegistry` exposes a per-entry `filename` / `sourceFilename` field usable for alphabetical within-cluster sort | Reactive pivot (Plan 03 Task 3) | Alphabetical sort falls back to contentHash tiebreaker — deterministic but not what the user expects; dogfood may flag. Executor must `grep` the registry to confirm; if absent, thread from `useMoshpitMetadataStore` or accept null-uniform behaviour. |
-| A2 | Reka UI `CollapsibleRoot` at the currently-pinned catalog version supports controlled `:open` + `@update:open` mode | Pattern 4 / Plan 04 Task 3 | If uncontrolled-only, switch to native `<details>` + custom styling. Precedent at `PartnerNodesList.vue:62-84` uses Reka in controlled form but executor should verify the concrete props. |
-| A3 | `viewport.off?.('moved', handler)` exists on concrete pixi-viewport Viewport (i.e., Viewport extends EventEmitter exposing `.off`) | Pattern 3 / Plan 05 Task 1 | Handler leaks across Moshpit ↔ workflow canvas swaps. `pixi-viewport`'s `Viewport` does extend `EventEmitter` via PixiJS's event system — standard behaviour, but untested in this session. |
-| A4 | `ParamKey` union widening to `'saveNode'` affects only the switches in `filterMath.ts` (caught by exhaustiveness) — not `sortMath.ts`, because `saveNode` is never routed as a sort axis | Pitfall 1 / Plan 03 Task 1 | If `sortMath` has a silent `default` that's hit during cluster-layout integration, typecheck fails at integration. Plan 03 Task 1 calls this out explicitly; executor re-audits all switches. |
-| A5 | Phase 4's <100ms `computeClusterLayout` budget at 5k × 3 axes is achievable with bucket-key memoisation alone (no Web Worker needed) | D-05 / Pitfall 6 | Miss the 400ms total; degraded UX. Plan 01 Task 2's perf marker test is the trip-wire. If the test fails, escalate to worker offload (breaks the plan shape; flag during execution). |
+| #   | Claim                                                                                                                                                                                    | Section                         | Risk if Wrong                                                                                                                                                                                                                                            |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | `useMoshpitAssetRegistry` exposes a per-entry `filename` / `sourceFilename` field usable for alphabetical within-cluster sort                                                            | Reactive pivot (Plan 03 Task 3) | Alphabetical sort falls back to contentHash tiebreaker — deterministic but not what the user expects; dogfood may flag. Executor must `grep` the registry to confirm; if absent, thread from `useMoshpitMetadataStore` or accept null-uniform behaviour. |
+| A2  | Reka UI `CollapsibleRoot` at the currently-pinned catalog version supports controlled `:open` + `@update:open` mode                                                                      | Pattern 4 / Plan 04 Task 3      | If uncontrolled-only, switch to native `<details>` + custom styling. Precedent at `PartnerNodesList.vue:62-84` uses Reka in controlled form but executor should verify the concrete props.                                                               |
+| A3  | `viewport.off?.('moved', handler)` exists on concrete pixi-viewport Viewport (i.e., Viewport extends EventEmitter exposing `.off`)                                                       | Pattern 3 / Plan 05 Task 1      | Handler leaks across Moshpit ↔ workflow canvas swaps. `pixi-viewport`'s `Viewport` does extend `EventEmitter` via PixiJS's event system — standard behaviour, but untested in this session.                                                              |
+| A4  | `ParamKey` union widening to `'saveNode'` affects only the switches in `filterMath.ts` (caught by exhaustiveness) — not `sortMath.ts`, because `saveNode` is never routed as a sort axis | Pitfall 1 / Plan 03 Task 1      | If `sortMath` has a silent `default` that's hit during cluster-layout integration, typecheck fails at integration. Plan 03 Task 1 calls this out explicitly; executor re-audits all switches.                                                            |
+| A5  | Phase 4's <100ms `computeClusterLayout` budget at 5k × 3 axes is achievable with bucket-key memoisation alone (no Web Worker needed)                                                     | D-05 / Pitfall 6                | Miss the 400ms total; degraded UX. Plan 01 Task 2's perf marker test is the trip-wire. If the test fails, escalate to worker offload (breaks the plan shape; flag during execution).                                                                     |
 
 **Provenance note:** Every file-path reference and line number in this document was grep-verified this session. The plans themselves (01-PLAN through 06-PLAN) encode research findings that the prior RESEARCH.md iteration captured — this reconstruction cross-references plan claims against the current code state.
 
@@ -790,17 +857,17 @@ Source: Plan 04 Task 3, `[VERIFIED: reka-ui precedent at PartnerNodesList.vue:2-
 
 Phase 4 is pure frontend code + IndexedDB. No new external dependencies. All relevant tooling already verified by Phases 1–3.
 
-| Dependency | Required By | Available | Version | Fallback |
-|------------|------------|-----------|---------|----------|
-| Node.js 24.x | Dev server + build | ✓ | 24.x pinned | — |
-| pnpm ≥10 | Package mgmt | ✓ | 10.33.0 | — |
-| ComfyUI backend at `127.0.0.1:8188` | HUMAN-UAT (D-20) | Conda env `comfyui` per memory | per user env | User starts backend (documented command) |
-| Chromium | Playwright `@moshpit` spec | ✓ via `@playwright/test` install | 1.58.1 | — |
-| IndexedDB / `fake-indexeddb` | v2→v3 migration tests | ✓ | In lockfile | — |
-| `reka-ui` Collapsible | Advanced disclosure | ✓ | 2.5.0 catalog | Plain `<details>` if Reka fails |
-| `idb` | IDB open / upgrade | ✓ | In lockfile | — |
-| `fast-check` | Property tests | ✓ | 4.5.3 | Hand-written invariant checks |
-| Storybook | Component stories | ✓ | 10.2.10 | — |
+| Dependency                          | Required By                | Available                        | Version       | Fallback                                 |
+| ----------------------------------- | -------------------------- | -------------------------------- | ------------- | ---------------------------------------- |
+| Node.js 24.x                        | Dev server + build         | ✓                                | 24.x pinned   | —                                        |
+| pnpm ≥10                            | Package mgmt               | ✓                                | 10.33.0       | —                                        |
+| ComfyUI backend at `127.0.0.1:8188` | HUMAN-UAT (D-20)           | Conda env `comfyui` per memory   | per user env  | User starts backend (documented command) |
+| Chromium                            | Playwright `@moshpit` spec | ✓ via `@playwright/test` install | 1.58.1        | —                                        |
+| IndexedDB / `fake-indexeddb`        | v2→v3 migration tests      | ✓                                | In lockfile   | —                                        |
+| `reka-ui` Collapsible               | Advanced disclosure        | ✓                                | 2.5.0 catalog | Plain `<details>` if Reka fails          |
+| `idb`                               | IDB open / upgrade         | ✓                                | In lockfile   | —                                        |
+| `fast-check`                        | Property tests             | ✓                                | 4.5.3         | Hand-written invariant checks            |
+| Storybook                           | Component stories          | ✓                                | 10.2.10       | —                                        |
 
 **Missing dependencies with no fallback:** None.
 **Missing dependencies with fallback:** None.
@@ -813,30 +880,30 @@ Step 2.6 result: environment is fully provisioned; no install/setup steps needed
 
 ### Test Framework
 
-| Property | Value |
-|----------|-------|
-| Framework | Vitest 4.0.16 (unit / component, happy-dom) + Playwright 1.58.1 (E2E, tag `@moshpit`) |
-| Config file | `vite.config.mts` (vitest block) + `playwright.config.ts` |
-| Quick run command | `pnpm test:unit -- src/platform/moshpit/<module> --run` (scoped per touched file) |
-| Full suite command | `pnpm test:unit --run && pnpm typecheck && pnpm lint` |
-| Playwright spec | `browser_tests/tests/moshpit/lineage-groupings.spec.ts` (created by Plan 06 Task 5) |
+| Property           | Value                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| Framework          | Vitest 4.0.16 (unit / component, happy-dom) + Playwright 1.58.1 (E2E, tag `@moshpit`) |
+| Config file        | `vite.config.mts` (vitest block) + `playwright.config.ts`                             |
+| Quick run command  | `pnpm test:unit -- src/platform/moshpit/<module> --run` (scoped per touched file)     |
+| Full suite command | `pnpm test:unit --run && pnpm typecheck && pnpm lint`                                 |
+| Playwright spec    | `browser_tests/tests/moshpit/lineage-groupings.spec.ts` (created by Plan 06 Task 5)   |
 
 ### Phase Requirements → Test Map
 
-| Req ID | Behavior | Test Type | Automated Command | File Exists? |
-|--------|----------|-----------|-------------------|-------------|
-| GROUP-01 | Toggle any combination of grouping axes | component | `pnpm test:unit -- src/platform/moshpit/components/MoshpitGroupingToggles.test.ts --run` | ❌ Wave 0 (Plan 04 Task 1) |
-| GROUP-02 | Auto-nesting = avg bucket size desc | unit | `pnpm test:unit -- src/platform/moshpit/services/clusterLayout.test.ts --run` | ❌ Wave 0 (Plan 01 Task 2) |
-| GROUP-03 | Workflow axis bucket-key | unit | `pnpm test:unit -- src/platform/moshpit/services/groupAxes.test.ts --run` | ❌ Wave 0 (Plan 01 Task 1) |
-| GROUP-04 | Save-node identity extraction + IDB migration | unit | `pnpm test:unit -- src/platform/moshpit/services/paramNormalize.test.ts src/platform/moshpit/services/thumbRepository.test.ts --run` | ✅ extend (Plan 02) |
-| GROUP-05 | Prompt axis normalised bucket-key | unit | `pnpm test:unit -- src/platform/moshpit/services/groupAxes.test.ts --run` | ❌ Wave 0 (Plan 01 Task 1) |
-| GROUP-06 | Model axis bucket-key | unit | `pnpm test:unit -- src/platform/moshpit/services/groupAxes.test.ts --run` | ❌ Wave 0 |
-| GROUP-07 | Type aspect-bucket derivation | unit | `pnpm test:unit -- src/platform/moshpit/services/groupAxes.test.ts --run` | ❌ Wave 0 |
-| GROUP-08 | "(other)" bucket fallthrough | unit | `pnpm test:unit -- src/platform/moshpit/services/groupAxes.test.ts src/platform/moshpit/services/clusterLayout.test.ts --run` | ❌ Wave 0 |
-| GROUP-09 | Filters cull; groupings organise | integration | `pnpm test:unit -- src/platform/moshpit/composables/useMoshpitFilteredAssets.test.ts --run` | ✅ extend (Plan 03) |
-| GROUP-10 | <400ms recompute + tween at 5k | unit (perf marker) + manual (wall-clock) | `pnpm test:unit -- src/platform/moshpit/services/clusterLayout.test.ts --run` (asserts <100ms math); manual HUMAN-UAT for tween perception | ❌ Wave 0 + manual |
-| CSORT-01 | Within-cluster sort dropdown (3 modes) | component + unit | `pnpm test:unit -- src/platform/moshpit/components/MoshpitWithinClusterSort.test.ts src/platform/moshpit/services/groupAxes.test.ts --run` | ❌ Wave 0 |
-| FILTER-12 | Primary chip row + Advanced disclosure + saveNode chip | component | `pnpm test:unit -- src/platform/moshpit/components/MoshpitAdvancedFilters.test.ts src/platform/moshpit/components/MoshpitFilterChipRow.test.ts src/platform/moshpit/components/MoshpitAddFilterPopover.test.ts --run` | ✅ extend + ❌ Wave 0 |
+| Req ID    | Behavior                                               | Test Type                                | Automated Command                                                                                                                                                                                                     | File Exists?               |
+| --------- | ------------------------------------------------------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| GROUP-01  | Toggle any combination of grouping axes                | component                                | `pnpm test:unit -- src/platform/moshpit/components/MoshpitGroupingToggles.test.ts --run`                                                                                                                              | ❌ Wave 0 (Plan 04 Task 1) |
+| GROUP-02  | Auto-nesting = avg bucket size desc                    | unit                                     | `pnpm test:unit -- src/platform/moshpit/services/clusterLayout.test.ts --run`                                                                                                                                         | ❌ Wave 0 (Plan 01 Task 2) |
+| GROUP-03  | Workflow axis bucket-key                               | unit                                     | `pnpm test:unit -- src/platform/moshpit/services/groupAxes.test.ts --run`                                                                                                                                             | ❌ Wave 0 (Plan 01 Task 1) |
+| GROUP-04  | Save-node identity extraction + IDB migration          | unit                                     | `pnpm test:unit -- src/platform/moshpit/services/paramNormalize.test.ts src/platform/moshpit/services/thumbRepository.test.ts --run`                                                                                  | ✅ extend (Plan 02)        |
+| GROUP-05  | Prompt axis normalised bucket-key                      | unit                                     | `pnpm test:unit -- src/platform/moshpit/services/groupAxes.test.ts --run`                                                                                                                                             | ❌ Wave 0 (Plan 01 Task 1) |
+| GROUP-06  | Model axis bucket-key                                  | unit                                     | `pnpm test:unit -- src/platform/moshpit/services/groupAxes.test.ts --run`                                                                                                                                             | ❌ Wave 0                  |
+| GROUP-07  | Type aspect-bucket derivation                          | unit                                     | `pnpm test:unit -- src/platform/moshpit/services/groupAxes.test.ts --run`                                                                                                                                             | ❌ Wave 0                  |
+| GROUP-08  | "(other)" bucket fallthrough                           | unit                                     | `pnpm test:unit -- src/platform/moshpit/services/groupAxes.test.ts src/platform/moshpit/services/clusterLayout.test.ts --run`                                                                                         | ❌ Wave 0                  |
+| GROUP-09  | Filters cull; groupings organise                       | integration                              | `pnpm test:unit -- src/platform/moshpit/composables/useMoshpitFilteredAssets.test.ts --run`                                                                                                                           | ✅ extend (Plan 03)        |
+| GROUP-10  | <400ms recompute + tween at 5k                         | unit (perf marker) + manual (wall-clock) | `pnpm test:unit -- src/platform/moshpit/services/clusterLayout.test.ts --run` (asserts <100ms math); manual HUMAN-UAT for tween perception                                                                            | ❌ Wave 0 + manual         |
+| CSORT-01  | Within-cluster sort dropdown (3 modes)                 | component + unit                         | `pnpm test:unit -- src/platform/moshpit/components/MoshpitWithinClusterSort.test.ts src/platform/moshpit/services/groupAxes.test.ts --run`                                                                            | ❌ Wave 0                  |
+| FILTER-12 | Primary chip row + Advanced disclosure + saveNode chip | component                                | `pnpm test:unit -- src/platform/moshpit/components/MoshpitAdvancedFilters.test.ts src/platform/moshpit/components/MoshpitFilterChipRow.test.ts src/platform/moshpit/components/MoshpitAddFilterPopover.test.ts --run` | ✅ extend + ❌ Wave 0      |
 
 ### Sampling Rate
 
@@ -858,6 +925,7 @@ Step 2.6 result: environment is fully provisioned; no install/setup steps needed
 Wave 0 new-file list replaces the placeholder paths in current `04-VALIDATION.md` which incorrectly reference `src/workbench/moshpit/...` — actual path is `src/platform/moshpit/...`. Plan 06 Task 6 fixes this.
 
 Extended tests (existing files):
+
 - [ ] `src/platform/moshpit/services/paramNormalize.test.ts` — extend with `saveNodeIdentity` cases (Plan 02 Task 1)
 - [ ] `src/platform/moshpit/services/thumbRepository.test.ts` — extend with v2→v3 migration (Plan 02 Task 2)
 - [ ] `src/platform/moshpit/services/filterMath.test.ts` — extend with saveNode categorical predicate + exhaustive `never` default (Plan 03 Task 1)
@@ -874,28 +942,28 @@ Extended tests (existing files):
 
 ### Applicable ASVS Categories
 
-| ASVS Category | Applies | Standard Control |
-|---------------|---------|-----------------|
-| V2 Authentication | no | N/A — Moshpit consumes existing frontend session; no new auth surface |
-| V3 Session Management | no | N/A — no new session state |
-| V4 Access Control | no | N/A — Moshpit is client-only |
-| V5 Input Validation | yes | Zod schema on `NormalizedParamsSchema` (existing); `paramNormalize.normalizeParams` widens to parse `saveNodeIdentity` with `z.string().nullable()` |
-| V6 Cryptography | no | Content-hash (SHA-256) is reused from Phase 2; no new crypto in Phase 4 |
-| V7 Error Handling | yes | IDB upgrade per-record `try/catch`; Vue global error → Sentry (existing); no new unbounded catch-all |
-| V8 Data Protection | yes | No new secret handling; PNG metadata sanitisation via existing `paramNormalize.ts` (already validated) |
-| V12 File Handling | yes | PNG metadata strings → bucket labels; truncated at render via CSS `truncate max-w-56` (~28ch) |
+| ASVS Category         | Applies | Standard Control                                                                                                                                    |
+| --------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| V2 Authentication     | no      | N/A — Moshpit consumes existing frontend session; no new auth surface                                                                               |
+| V3 Session Management | no      | N/A — no new session state                                                                                                                          |
+| V4 Access Control     | no      | N/A — Moshpit is client-only                                                                                                                        |
+| V5 Input Validation   | yes     | Zod schema on `NormalizedParamsSchema` (existing); `paramNormalize.normalizeParams` widens to parse `saveNodeIdentity` with `z.string().nullable()` |
+| V6 Cryptography       | no      | Content-hash (SHA-256) is reused from Phase 2; no new crypto in Phase 4                                                                             |
+| V7 Error Handling     | yes     | IDB upgrade per-record `try/catch`; Vue global error → Sentry (existing); no new unbounded catch-all                                                |
+| V8 Data Protection    | yes     | No new secret handling; PNG metadata sanitisation via existing `paramNormalize.ts` (already validated)                                              |
+| V12 File Handling     | yes     | PNG metadata strings → bucket labels; truncated at render via CSS `truncate max-w-56` (~28ch)                                                       |
 
 ### Known Threat Patterns for this stack
 
-| Pattern | STRIDE | Standard Mitigation |
-|---------|--------|---------------------|
-| XSS via cluster labels | Information Disclosure | Vue `{{ }}` interpolation auto-escapes; no `v-html`; template-only rendering confirmed in Plan 05 Task 1 |
-| Malicious PNG metadata causing upgrade transaction abort | Denial of Service | Per-record `try/catch` in v2→v3 upgrade; skipped records logged, migration continues (Pitfall 4) |
-| Prototype pollution via parsed workflow JSON | Tampering | `normalizeParams` validates with Zod; no `Object.assign(target, parsed)` on untrusted input |
-| Unbounded cluster tree causing browser DoS | DoS | Recursion depth capped at `GROUPING_AXES.length = 5`; bucket-key memoisation prevents quadratic blow-up (Pitfall 6); <100ms perf marker enforces budget |
-| Viewport handler leak on Moshpit ↔ workflow swap | Resource Exhaustion | `watch` + `onCleanup` detaches `'moved'` handler (verified at `MoshpitAxisOverlay.vue:62-64`, Pitfall copy-pasted into `MoshpitClusterOverlay.vue`) |
-| ParamKey widening silently breaks filter semantics | Tampering | Exhaustive `never` default in switches over `ParamKey` (Pitfall 1); compile-time proof |
-| `saveNodeIdentity` arbitrary length on render | DoS (layout) | CSS `truncate max-w-56` caps label render width; 28ch ellipsis |
+| Pattern                                                  | STRIDE                 | Standard Mitigation                                                                                                                                     |
+| -------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| XSS via cluster labels                                   | Information Disclosure | Vue `{{ }}` interpolation auto-escapes; no `v-html`; template-only rendering confirmed in Plan 05 Task 1                                                |
+| Malicious PNG metadata causing upgrade transaction abort | Denial of Service      | Per-record `try/catch` in v2→v3 upgrade; skipped records logged, migration continues (Pitfall 4)                                                        |
+| Prototype pollution via parsed workflow JSON             | Tampering              | `normalizeParams` validates with Zod; no `Object.assign(target, parsed)` on untrusted input                                                             |
+| Unbounded cluster tree causing browser DoS               | DoS                    | Recursion depth capped at `GROUPING_AXES.length = 5`; bucket-key memoisation prevents quadratic blow-up (Pitfall 6); <100ms perf marker enforces budget |
+| Viewport handler leak on Moshpit ↔ workflow swap         | Resource Exhaustion    | `watch` + `onCleanup` detaches `'moved'` handler (verified at `MoshpitAxisOverlay.vue:62-64`, Pitfall copy-pasted into `MoshpitClusterOverlay.vue`)     |
+| ParamKey widening silently breaks filter semantics       | Tampering              | Exhaustive `never` default in switches over `ParamKey` (Pitfall 1); compile-time proof                                                                  |
+| `saveNodeIdentity` arbitrary length on render            | DoS (layout)           | CSS `truncate max-w-56` caps label render width; 28ch ellipsis                                                                                          |
 
 ## Sources
 
@@ -931,6 +999,7 @@ None — assumptions explicitly listed in Assumptions Log with risk assessment.
 ## Metadata
 
 **Confidence breakdown:**
+
 - Existing architecture: HIGH — all file paths + line counts + API shapes verified this session via grep/wc.
 - Cluster layout algorithm: HIGH — math specification encoded in Plan 01 with property tests and perf marker.
 - IDB migration pattern: HIGH — v1→v2 precedent verified in code; v2→v3 mirrors exactly.

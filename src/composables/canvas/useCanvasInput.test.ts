@@ -3,10 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CanvasInputNavigator } from '@/composables/canvas/useCanvasInput'
 import { useCanvasInput } from '@/composables/canvas/useCanvasInput'
 
-function createFakeNavigator(opts: {
-  standard?: boolean
-  readOnly?: boolean
-} = {}) {
+function createFakeNavigator(
+  opts: {
+    standard?: boolean
+    readOnly?: boolean
+  } = {}
+) {
   const dispatchWheel = vi.fn()
   const dispatchPointer = vi.fn()
   return {
@@ -21,13 +23,15 @@ function createFakeNavigator(opts: {
   }
 }
 
-function createMockWheelEvent(opts: {
-  ctrl?: boolean
-  meta?: boolean
-  shift?: boolean
-  deltaY?: number
-  target?: Element
-} = {}): WheelEvent {
+function createMockWheelEvent(
+  opts: {
+    ctrl?: boolean
+    meta?: boolean
+    shift?: boolean
+    deltaY?: number
+    target?: Element
+  } = {}
+): WheelEvent {
   const mockEvent: Partial<WheelEvent> = {
     type: 'wheel',
     ctrlKey: opts.ctrl ?? false,
@@ -46,9 +50,11 @@ function createMockWheelEvent(opts: {
   return mockEvent as WheelEvent
 }
 
-function createMockPointerEvent(opts: {
-  buttons?: number
-} = {}): PointerEvent {
+function createMockPointerEvent(
+  opts: {
+    buttons?: number
+  } = {}
+): PointerEvent {
   const mockEvent: Partial<PointerEvent> = {
     buttons: opts.buttons ?? 1,
     button: -1,

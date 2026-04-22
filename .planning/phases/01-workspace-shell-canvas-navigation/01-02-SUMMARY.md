@@ -58,10 +58,10 @@ PixiJS runtime deps installed, `/moshpit` top-level route registered with full-b
 
 ## Tasks Completed
 
-| Task | Name | Commit | Files |
-|------|------|--------|-------|
-| 1-02-01 | Install Pixi deps, register route, keep-alive, name GraphView | 4b215f3e2 | package.json, pnpm-workspace.yaml, pnpm-lock.yaml, src/router.ts, src/App.vue, src/views/GraphView.vue, src/renderer/core/canvas/useCanvasInteractions.test.ts |
-| 1-02-02 | MoshpitLayout, MoshpitView, i18n keys, nav commands | 577bb9236 | src/views/layouts/MoshpitLayout.vue, src/views/MoshpitView.vue, src/locales/en/main.json, src/composables/useCoreCommands.ts, src/constants/coreMenuCommands.ts |
+| Task    | Name                                                          | Commit    | Files                                                                                                                                                           |
+| ------- | ------------------------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1-02-01 | Install Pixi deps, register route, keep-alive, name GraphView | 4b215f3e2 | package.json, pnpm-workspace.yaml, pnpm-lock.yaml, src/router.ts, src/App.vue, src/views/GraphView.vue, src/renderer/core/canvas/useCanvasInteractions.test.ts  |
+| 1-02-02 | MoshpitLayout, MoshpitView, i18n keys, nav commands           | 577bb9236 | src/views/layouts/MoshpitLayout.vue, src/views/MoshpitView.vue, src/locales/en/main.json, src/composables/useCoreCommands.ts, src/constants/coreMenuCommands.ts |
 
 ## Installed Dependency Versions
 
@@ -70,7 +70,7 @@ PixiJS runtime deps installed, `/moshpit` top-level route registered with full-b
 
 Both are under `"dependencies"` (runtime, not devDependencies) as required by the plan.
 
-## Moshpit.Workspace.* Command Registration
+## Moshpit.Workspace.\* Command Registration
 
 Both commands (`Moshpit.Workspace.Open`, `Moshpit.Workspace.BackToWorkflow`) are registered in `src/composables/useCoreCommands.ts` — the same composable that registers all core workflow commands. They are wired into the `['View']` menu path via `src/constants/coreMenuCommands.ts`.
 
@@ -89,6 +89,7 @@ Both commands (`Moshpit.Workspace.Open`, `Moshpit.Workspace.BackToWorkflow`) are
 ### Auto-fixed Issues
 
 **1. [Rule 1 - Bug] Fixed pre-existing TS2339 error in useCanvasInteractions.test.ts**
+
 - **Found during:** Task 1-02-01 (typecheck run)
 - **Issue:** Line 355: `dispatched.constructor.name` where `dispatched` was typed as `never` due to Vitest mock type inference. This was a pre-existing change on the `moshpit` branch (not in base commit).
 - **Fix:** Cast `dispatched` to `Event` — `vi.mocked(...).mock.calls[0][0] as Event`
@@ -96,6 +97,7 @@ Both commands (`Moshpit.Workspace.Open`, `Moshpit.Workspace.BackToWorkflow`) are
 - **Commit:** 4b215f3e2
 
 **2. [Rule 2 - Missing critical functionality] Added defineExpose for containerEl in MoshpitView**
+
 - **Found during:** Task 1-02-02
 - **Issue:** TypeScript flagged `containerEl` as "declared but its value is never read" — the template ref binding alone doesn't satisfy strict unused-variable checking. Plan 03 requires this ref for Pixi Application mount.
 - **Fix:** Added `defineExpose({ containerEl })` so the ref is both type-safe and accessible to the parent plan's canvas mounting logic.

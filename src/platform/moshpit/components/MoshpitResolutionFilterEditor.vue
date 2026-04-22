@@ -48,7 +48,10 @@
 <script setup lang="ts">
 import { ref, toRef, watch } from 'vue'
 
-import type { ChipValue, ParamKey } from '@/platform/moshpit/services/filterTypes'
+import type {
+  ChipValue,
+  ParamKey
+} from '@/platform/moshpit/services/filterTypes'
 import { useMoshpitParamValueOptions } from '@/platform/moshpit/composables/useMoshpitParamValueOptions'
 
 defineOptions({ name: 'MoshpitResolutionFilterEditor' })
@@ -56,7 +59,9 @@ defineOptions({ name: 'MoshpitResolutionFilterEditor' })
 const value = defineModel<ChipValue | null>()
 const props = defineProps<{ param: ParamKey }>()
 
-const { resolutionPairs } = useMoshpitParamValueOptions(toRef(() => props.param))
+const { resolutionPairs } = useMoshpitParamValueOptions(
+  toRef(() => props.param)
+)
 
 const selectedPairs = ref<[number, number][]>([])
 const customW = ref('')
@@ -68,7 +73,9 @@ function hasPreset(w: number, h: number): boolean {
 
 function togglePreset(w: number, h: number): void {
   if (hasPreset(w, h)) {
-    selectedPairs.value = selectedPairs.value.filter(([sw, sh]) => !(sw === w && sh === h))
+    selectedPairs.value = selectedPairs.value.filter(
+      ([sw, sh]) => !(sw === w && sh === h)
+    )
   } else {
     selectedPairs.value = [...selectedPairs.value, [w, h]]
   }

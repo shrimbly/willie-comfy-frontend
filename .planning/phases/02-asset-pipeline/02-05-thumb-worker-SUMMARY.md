@@ -1,8 +1,9 @@
 ---
 phase: 02-asset-pipeline
-plan: "05"
+plan: '05'
 subsystem: moshpit/services
-tags: [web-worker, offscreen-canvas, webp, discriminated-union, wave-2, leaf-module]
+tags:
+  [web-worker, offscreen-canvas, webp, discriminated-union, wave-2, leaf-module]
 dependency_graph:
   requires:
     - src/platform/moshpit/services/contentHash.ts (sha256Hex — Wave 1 output)
@@ -16,12 +17,12 @@ dependency_graph:
 tech_stack:
   added: []
   patterns:
-    - "?worker Vite import pattern — first Web Worker module in the Moshpit pipeline"
-    - "Discriminated union message contract (WorkerInMessage / WorkerOutMessage) — exhaustiveness via switch+never"
-    - "Dependency-injected pure handler (processAsset + ProcessCtx) — testable without a real Worker"
-    - "FIFO queue with AbortController per job + concurrency cap (WORKER_CONCURRENCY_CAP=4)"
-    - "createImageBitmap resize + OffscreenCanvas.convertToBlob WebP encode path"
-    - "Cloud fast-path: assetHash non-null/non-empty bypasses sha256Hex computation"
+    - '?worker Vite import pattern — first Web Worker module in the Moshpit pipeline'
+    - 'Discriminated union message contract (WorkerInMessage / WorkerOutMessage) — exhaustiveness via switch+never'
+    - 'Dependency-injected pure handler (processAsset + ProcessCtx) — testable without a real Worker'
+    - 'FIFO queue with AbortController per job + concurrency cap (WORKER_CONCURRENCY_CAP=4)'
+    - 'createImageBitmap resize + OffscreenCanvas.convertToBlob WebP encode path'
+    - 'Cloud fast-path: assetHash non-null/non-empty bypasses sha256Hex computation'
 key_files:
   created:
     - src/platform/moshpit/services/workerMessages.ts
@@ -29,14 +30,14 @@ key_files:
     - src/platform/moshpit/services/thumbWorker.test.ts
   modified: []
 decisions:
-  - "filterId echoed in all outgoing messages so workerBridge (Plan 06) can drop stale responses on filter change"
-  - "Blob is structured-cloneable — no Transferable list passed; signature left open for future optimisation"
-  - "processAsset ctx injection pattern: real encodeThumb/parseMetadata/hash injected by worker shell, mocked in tests"
-  - "encodeThumbReal does two createImageBitmap calls — first to get source dimensions, second with resize options"
-  - "AbortController propagates to fetch via signal; encodeThumb has no abort-signal API — silently returns early post-encode via aborted check"
+  - 'filterId echoed in all outgoing messages so workerBridge (Plan 06) can drop stale responses on filter change'
+  - 'Blob is structured-cloneable — no Transferable list passed; signature left open for future optimisation'
+  - 'processAsset ctx injection pattern: real encodeThumb/parseMetadata/hash injected by worker shell, mocked in tests'
+  - 'encodeThumbReal does two createImageBitmap calls — first to get source dimensions, second with resize options'
+  - 'AbortController propagates to fetch via signal; encodeThumb has no abort-signal API — silently returns early post-encode via aborted check'
 metrics:
   duration_minutes: 15
-  completed_date: "2026-04-21"
+  completed_date: '2026-04-21'
   tasks_completed: 2
   tasks_total: 2
   files_created: 3
@@ -54,17 +55,17 @@ One-liner: Web Worker + message contract for off-main-thread 512px WebP thumbnai
 
 Leaf-module discriminated union (58 lines, zero runtime imports):
 
-| Export | Kind | Purpose |
-|---|---|---|
-| `EnqueueAssetInput` | interface | Per-asset work order posted to worker |
-| `WorkerInMessage` | union | `enqueue` \| `abort` \| `abortAll` |
-| `ThumbReadyMessage` | interface | Success result with blob + hash + metadata |
-| `ExcludedMessage` | interface | Exclusion result with typed reason |
-| `ErrorMessage` | interface | Unexpected error path |
-| `WorkerOutMessage` | union | `ThumbReadyMessage` \| `ExcludedMessage` \| `ErrorMessage` |
-| `THUMB_MAX_DIMENSION` | const | `512` |
-| `WEBP_QUALITY` | const | `0.85` |
-| `WORKER_CONCURRENCY_CAP` | const | `4` |
+| Export                   | Kind      | Purpose                                                    |
+| ------------------------ | --------- | ---------------------------------------------------------- |
+| `EnqueueAssetInput`      | interface | Per-asset work order posted to worker                      |
+| `WorkerInMessage`        | union     | `enqueue` \| `abort` \| `abortAll`                         |
+| `ThumbReadyMessage`      | interface | Success result with blob + hash + metadata                 |
+| `ExcludedMessage`        | interface | Exclusion result with typed reason                         |
+| `ErrorMessage`           | interface | Unexpected error path                                      |
+| `WorkerOutMessage`       | union     | `ThumbReadyMessage` \| `ExcludedMessage` \| `ErrorMessage` |
+| `THUMB_MAX_DIMENSION`    | const     | `512`                                                      |
+| `WEBP_QUALITY`           | const     | `0.85`                                                     |
+| `WORKER_CONCURRENCY_CAP` | const     | `4`                                                        |
 
 The discriminated union on `type` enables TypeScript exhaustiveness checking in any `switch` handler downstream.
 
@@ -73,6 +74,7 @@ The discriminated union on `type` enables TypeScript exhaustiveness checking in 
 Two layers:
 
 **Pure handler (`processAsset`)** — exported for unit testing via `ProcessCtx` injection:
+
 1. Short-circuit if signal already aborted
 2. `fetchFn(fetchUrl, { signal })` — AbortError returns silently; non-OK throws → `excluded/fetch-failed`
 3. `parseMetadata(buffer)` — throws → `excluded/decode-failed`; empty result → `excluded/no-metadata`
@@ -81,12 +83,14 @@ Two layers:
 6. `postMessage(thumbReady)` with blob, width, height, metadata, contentHash, id, filterId
 
 **Worker shell** (`self.onmessage`):
+
 - `enqueue`: pushes to queue, calls `schedule()`
 - `abort`: aborts in-flight AbortController + splices matching queue entries
 - `abortAll`: aborts all in-flight + clears queue
 - `schedule()`: drains queue while `active < WORKER_CONCURRENCY_CAP`, creates AbortController per job, decrements `active` in `.finally()`
 
 **`encodeThumbReal`**:
+
 - Two `createImageBitmap` calls: first to measure dimensions, second to resize with `resizeQuality: 'high'`
 - `OffscreenCanvas.convertToBlob({ type: 'image/webp', quality: WEBP_QUALITY })`
 
@@ -94,22 +98,22 @@ Two layers:
 
 5 behavioural unit tests covering the pure `processAsset` handler:
 
-| Test | Scenario |
-|---|---|
-| thumbReady with cloud hash | assetHash non-null → posted as contentHash, hash() not called |
-| client-side hash fallback | assetHash null → hash() called, result in contentHash |
-| excluded/no-metadata | parseMetadata returns {} → excluded posted, encodeThumb not called |
-| excluded/fetch-failed | fetchFn returns ok:false → excluded posted |
-| abort short-circuit | signal.aborted at entry → nothing posted, returns silently |
+| Test                       | Scenario                                                           |
+| -------------------------- | ------------------------------------------------------------------ |
+| thumbReady with cloud hash | assetHash non-null → posted as contentHash, hash() not called      |
+| client-side hash fallback  | assetHash null → hash() called, result in contentHash              |
+| excluded/no-metadata       | parseMetadata returns {} → excluded posted, encodeThumb not called |
+| excluded/fetch-failed      | fetchFn returns ok:false → excluded posted                         |
+| abort short-circuit        | signal.aborted at entry → nothing posted, returns silently         |
 
 ## Threat Mitigations Applied
 
-| Threat | Mitigation in this plan |
-|---|---|
-| T-02-05-02 (zlib bomb) | `try/catch` around `ctx.parseMetadata(buffer)` → `excluded/decode-failed` |
-| T-02-05-03 (large PNG OOM) | `createImageBitmap` throw caught → `excluded/decode-failed` |
-| T-02-05-04 (metadata injection) | `Record<string, string>` type boundary; no eval/innerHTML |
-| T-02-05-05 (stale filter) | `filterId` echoed in all outgoing messages |
+| Threat                          | Mitigation in this plan                                                   |
+| ------------------------------- | ------------------------------------------------------------------------- |
+| T-02-05-02 (zlib bomb)          | `try/catch` around `ctx.parseMetadata(buffer)` → `excluded/decode-failed` |
+| T-02-05-03 (large PNG OOM)      | `createImageBitmap` throw caught → `excluded/decode-failed`               |
+| T-02-05-04 (metadata injection) | `Record<string, string>` type boundary; no eval/innerHTML                 |
+| T-02-05-05 (stale filter)       | `filterId` echoed in all outgoing messages                                |
 
 T-02-05-01 (URL trust gate) is documented for Plan 06 workerBridge — only `getAssetUrl`-produced URLs may be posted.
 

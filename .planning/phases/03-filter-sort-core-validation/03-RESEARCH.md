@@ -7,6 +7,7 @@
 ---
 
 <user_constraints>
+
 ## User Constraints (from CONTEXT.md)
 
 ### Locked Decisions
@@ -73,31 +74,33 @@
 - Shareable filter URL
 - Workflow grouping by graph hash
 - Thumbnail cache eviction
-</user_constraints>
+  </user_constraints>
 
 ---
 
 <phase_requirements>
+
 ## Phase Requirements
 
-| ID | Description | Research Support |
-|----|-------------|------------------|
-| FILTER-01 | Initial filter gate: workflow selector + time range before canvas populates | D-06/D-07/D-09; piggybacks `queue.setFilter()` call path from Plan 02-08 |
-| FILTER-02 | Filter by model (checkpoint) | D-05 `model` field from `CheckpointLoaderSimple.ckpt_name`; categorical chip editor |
-| FILTER-03 | Filter by LoRA (name + weight) | D-04/D-05 `loras[]` array; name-match chip with OR semantics (D-12) |
-| FILTER-04 | Filter by CFG, steps, sampler, scheduler, seed, resolution | D-05 numeric + categorical + resolution chip editors (D-11) |
-| FILTER-05 | Filter by prompt/negative prompt substring | D-05 `positivePrompt`/`negativePrompt`; text chip editor (D-11) |
-| FILTER-06 | Filter by generation time | D-09/D-05 `timestamp` field; time-range chip |
-| FILTER-07 | Filter by tags and favourite status | Reads `moshpitCurationStore` (favourite, tags); boolean chip for favourite |
-| FILTER-08 | Filtering is subtractive — non-matching assets hidden entirely | `useMoshpitFilteredAssets` computed predicate; removes entries from sprite layer input |
-| FILTER-09 | Assets lacking the filtered parameter are hidden | D-03 silent-null; predicate returns false for `undefined` fields |
-| FILTER-10 | Filter chips render in Settings panel; click removes chip | MoshpitSettingsPanel chip row; chip click dispatches `removeChip` action on moshpitFilterStore |
-| FILTER-11 | Default filter hides soft-deleted; "show hidden" toggle reveals them | D-13; reads `moshpitCurationStore.hidden`; implicit predicate unless toggled |
-| SORT-01 | 1D sort: parameter → X-axis columns, Y packs to fit | `computeSortedLayout1D` in sortMath.ts; column-per-unique-value (D-16) |
-| SORT-02 | 2D scatter: parameter → X, parameter → Y | `computeSortedLayout2D`; same bucketing model on both axes |
-| SORT-03 | Assets lacking sorted parameter are hidden | D-17; same treatment as filter exclusion |
-| SORT-04 | User-configurable grid spacing | `gridSpacing` in moshpitFilterStore; slider control in Settings panel footer |
-| SORT-05 | All asset positioning is grid-snapped | `computeSortedLayout1D`/`2D` outputs are grid-aligned (column×gridSpacing, row×gridSpacing) |
+| ID        | Description                                                                 | Research Support                                                                               |
+| --------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| FILTER-01 | Initial filter gate: workflow selector + time range before canvas populates | D-06/D-07/D-09; piggybacks `queue.setFilter()` call path from Plan 02-08                       |
+| FILTER-02 | Filter by model (checkpoint)                                                | D-05 `model` field from `CheckpointLoaderSimple.ckpt_name`; categorical chip editor            |
+| FILTER-03 | Filter by LoRA (name + weight)                                              | D-04/D-05 `loras[]` array; name-match chip with OR semantics (D-12)                            |
+| FILTER-04 | Filter by CFG, steps, sampler, scheduler, seed, resolution                  | D-05 numeric + categorical + resolution chip editors (D-11)                                    |
+| FILTER-05 | Filter by prompt/negative prompt substring                                  | D-05 `positivePrompt`/`negativePrompt`; text chip editor (D-11)                                |
+| FILTER-06 | Filter by generation time                                                   | D-09/D-05 `timestamp` field; time-range chip                                                   |
+| FILTER-07 | Filter by tags and favourite status                                         | Reads `moshpitCurationStore` (favourite, tags); boolean chip for favourite                     |
+| FILTER-08 | Filtering is subtractive — non-matching assets hidden entirely              | `useMoshpitFilteredAssets` computed predicate; removes entries from sprite layer input         |
+| FILTER-09 | Assets lacking the filtered parameter are hidden                            | D-03 silent-null; predicate returns false for `undefined` fields                               |
+| FILTER-10 | Filter chips render in Settings panel; click removes chip                   | MoshpitSettingsPanel chip row; chip click dispatches `removeChip` action on moshpitFilterStore |
+| FILTER-11 | Default filter hides soft-deleted; "show hidden" toggle reveals them        | D-13; reads `moshpitCurationStore.hidden`; implicit predicate unless toggled                   |
+| SORT-01   | 1D sort: parameter → X-axis columns, Y packs to fit                         | `computeSortedLayout1D` in sortMath.ts; column-per-unique-value (D-16)                         |
+| SORT-02   | 2D scatter: parameter → X, parameter → Y                                    | `computeSortedLayout2D`; same bucketing model on both axes                                     |
+| SORT-03   | Assets lacking sorted parameter are hidden                                  | D-17; same treatment as filter exclusion                                                       |
+| SORT-04   | User-configurable grid spacing                                              | `gridSpacing` in moshpitFilterStore; slider control in Settings panel footer                   |
+| SORT-05   | All asset positioning is grid-snapped                                       | `computeSortedLayout1D`/`2D` outputs are grid-aligned (column×gridSpacing, row×gridSpacing)    |
+
 </phase_requirements>
 
 ---
@@ -106,7 +109,7 @@
 
 Phase 3 builds the filter → sort loop entirely within the `src/platform/moshpit/` platform layer, on top of a solid Phase 2 foundation. The five new pure-math modules (`paramNormalize.ts`, `filterMath.ts`, `sortMath.ts` and the extended `workerMessages.ts`/`thumbRepository.types.ts`) form the testable core. A new `moshpitFilterStore.ts` holds all UI state. A new `useMoshpitFilteredAssets.ts` composable wraps `useMoshpitAssetRegistry` with the filter predicate and sort layout, feeding the existing sprite tween path.
 
-The most important architectural insight: **the sprite tween path in `useMoshpitSpriteLayer` is already built**. Phase 3 does not replace it — it changes the *inputs* to that tween. The sprite layer currently calls `computeJitteredGrid(hashes, seed, cellSize)` to produce target positions. Phase 3 makes the layout function conditional on filter/sort state. When a sort is active, positions come from `computeSortedLayout1D` or `computeSortedLayout2D` instead. When sort is cleared, positions return to `computeJitteredGrid`. The 300ms ease-out-cubic runs in both cases through the exact same Ticker handler.
+The most important architectural insight: **the sprite tween path in `useMoshpitSpriteLayer` is already built**. Phase 3 does not replace it — it changes the _inputs_ to that tween. The sprite layer currently calls `computeJitteredGrid(hashes, seed, cellSize)` to produce target positions. Phase 3 makes the layout function conditional on filter/sort state. When a sort is active, positions come from `computeSortedLayout1D` or `computeSortedLayout2D` instead. When sort is cleared, positions return to `computeJitteredGrid`. The 300ms ease-out-cubic runs in both cases through the exact same Ticker handler.
 
 The second architectural insight: **workflow identification lives in the embedded PNG metadata, not in AssetItem fields**. The `prompt` PNG tEXt chunk encodes a JSON object keyed by node ID. `getFromPngBuffer` returns this as a raw string in `metadata["prompt"]`. The normalized `params` object (written to IDB by the extended worker) will contain the workflow filename as extracted from the `"workflow"` key in the same PNG metadata — ComfyUI embeds `extra_pnginfo.workflow.extra.workflow_filename` in the workflow chunk, but since D-02 disallows walking the `workflow` chunk, the workflow-filename grouping must derive from the `prompt` chunk's node graph or fall back to `AssetItem.name` (which encodes the output filename). The planner needs to confirm the fallback strategy; the recommended approach is to derive the "workflow group" from the `AssetItem.name` basename, which is the output filename (e.g., `ComfyUI_00042_.png` maps to no workflow; but if the user named the output with a workflow hint, that helps). More practically: the ComfyUI prompt chunk often contains a `"workflow"` key at the top level of the PNG metadata — this is the workflow JSON itself, not a filename. The embedded metadata does NOT contain a stable workflow filename in the `prompt` chunk. Therefore workflow grouping must be inferred from `AssetItem.user_metadata.workflow_filename` (if populated by the backend), or derived by finding a `"note"` key in the `workflow` chunk's `extra_data`, or — most robustly — from a summary hash of the node graph topology. Since v1 accepts filename-as-group (D-CONTEXT.md specifics) and D-02 locks prompt-only extraction, the planner's call is: extract workflow identifier from `AssetItem.name` → workflow-derived-display-name, or treat each unique `AssetItem.user_metadata` workflow_id as a group. The research section below documents the exact field.
 
@@ -117,29 +120,32 @@ The second architectural insight: **workflow identification lives in the embedde
 ## Standard Stack
 
 ### Core (all already in package.json)
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| `pixi.js` | `^8.x` (installed) | Sprite layer tween targets | Already the canvas renderer [VERIFIED: codebase] |
-| `pixi-viewport` | installed | World-to-screen transforms for axis label overlay | Already the viewport adapter [VERIFIED: codebase] |
-| `pinia` | `^3.0.4` | `moshpitFilterStore` state | Project-wide standard [VERIFIED: codebase] |
-| `idb` | `^7.x` (installed) | IDB schema bump (add `params` to `assetMeta`) | Phase 2 already uses it [VERIFIED: codebase] |
-| `zod` | `^3.23.8` | Validated `NormalizedParams` schema | Project-wide standard; no `z.any()` [VERIFIED: codebase] |
-| `reka-ui` | `^2.5.0` | Popover (add-filter picker), ComboboxRoot (workflow picker) | Project convention — no new PrimeVue [VERIFIED: codebase] |
-| `es-toolkit` | `^1.39.9` | Utility functions inside filter/sort math | Project-wide preference over lodash [VERIFIED: codebase] |
-| `vue-i18n` | `^9.14.5` | All new user-facing strings | Required by lint rule [VERIFIED: codebase] |
+
+| Library         | Version            | Purpose                                                     | Why Standard                                              |
+| --------------- | ------------------ | ----------------------------------------------------------- | --------------------------------------------------------- |
+| `pixi.js`       | `^8.x` (installed) | Sprite layer tween targets                                  | Already the canvas renderer [VERIFIED: codebase]          |
+| `pixi-viewport` | installed          | World-to-screen transforms for axis label overlay           | Already the viewport adapter [VERIFIED: codebase]         |
+| `pinia`         | `^3.0.4`           | `moshpitFilterStore` state                                  | Project-wide standard [VERIFIED: codebase]                |
+| `idb`           | `^7.x` (installed) | IDB schema bump (add `params` to `assetMeta`)               | Phase 2 already uses it [VERIFIED: codebase]              |
+| `zod`           | `^3.23.8`          | Validated `NormalizedParams` schema                         | Project-wide standard; no `z.any()` [VERIFIED: codebase]  |
+| `reka-ui`       | `^2.5.0`           | Popover (add-filter picker), ComboboxRoot (workflow picker) | Project convention — no new PrimeVue [VERIFIED: codebase] |
+| `es-toolkit`    | `^1.39.9`          | Utility functions inside filter/sort math                   | Project-wide preference over lodash [VERIFIED: codebase]  |
+| `vue-i18n`      | `^9.14.5`          | All new user-facing strings                                 | Required by lint rule [VERIFIED: codebase]                |
 
 ### Supporting
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `@tanstack/vue-virtual` | installed | Virtual list for categorical value picker (if >200 items) | Only if workflow picker or categorical multi-select overflows DOM budget |
-| `fuse.js` | `^7.0.0` | Fuzzy search for "Add filter" popover and categorical value picker | Fuzzy-match over 13 param names + discovered values |
+
+| Library                 | Version   | Purpose                                                            | When to Use                                                              |
+| ----------------------- | --------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| `@tanstack/vue-virtual` | installed | Virtual list for categorical value picker (if >200 items)          | Only if workflow picker or categorical multi-select overflows DOM budget |
+| `fuse.js`               | `^7.0.0`  | Fuzzy search for "Add filter" popover and categorical value picker | Fuzzy-match over 13 param names + discovered values                      |
 
 ### Alternatives Considered
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| HTML overlay for axis labels | PixiJS `Text` drawn objects | PixiJS Text requires texture atlas, looks blurry at non-native zoom; HTML is crisper and already tracks transforms via pixi-viewport's `moved` event |
-| Dedicated `sortMath.ts` | Extending `layoutMath.ts` | Either works; separate file keeps the existing module under 150 lines and makes testing boundaries cleaner |
-| Zod schema for NormalizedParams | Raw TypeScript interface | Zod gives free validation + inference; required by `docs/guidance/typescript.md` conventions (no `any`) |
+
+| Instead of                      | Could Use                   | Tradeoff                                                                                                                                             |
+| ------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HTML overlay for axis labels    | PixiJS `Text` drawn objects | PixiJS Text requires texture atlas, looks blurry at non-native zoom; HTML is crisper and already tracks transforms via pixi-viewport's `moved` event |
+| Dedicated `sortMath.ts`         | Extending `layoutMath.ts`   | Either works; separate file keeps the existing module under 150 lines and makes testing boundaries cleaner                                           |
+| Zod schema for NormalizedParams | Raw TypeScript interface    | Zod gives free validation + inference; required by `docs/guidance/typescript.md` conventions (no `any`)                                              |
 
 **Installation:** No new packages required. All dependencies are already present. [VERIFIED: codebase — `idb`, `zod`, `reka-ui`, `pixi.js`, `pixi-viewport`, `fuse.js` all in `pnpm-lock.yaml`]
 
@@ -148,6 +154,7 @@ The second architectural insight: **workflow identification lives in the embedde
 ## Architecture Patterns
 
 ### Recommended Module Layout (new files)
+
 ```
 src/platform/moshpit/
 ├── stores/
@@ -223,7 +230,7 @@ export interface AssetMetaRecord {
   readonly contentHash: string
   readonly metadata: Readonly<Record<string, string>>
   readonly curation: CurationRecord
-  readonly params: NormalizedParams   // NEW — added in MOSHPIT_DB_VERSION 2
+  readonly params: NormalizedParams // NEW — added in MOSHPIT_DB_VERSION 2
 }
 ```
 
@@ -300,6 +307,7 @@ export function useMoshpitFilteredAssets(): {
 ```
 
 **The critical performance decision:** The `entries` computed must NOT be a deep reactive watch over 5k `NormalizedParams`. Instead:
+
 1. `useMoshpitFilteredAssets` reads `moshpitFilterStore` state (shallow refs).
 2. On filter/sort state change, it calls pure functions: `applyFilterChips(allEntries, chips, curation, showHidden) → ContentHash[]` then `computeSortedLayout1D(filteredHashes, params, sortX, gridSpacing) → GridSlot[]` (or `computeSortedLayout2D` for two-axis sort).
 3. The result is a new `FilteredAssetEntry[]` with position fields added.
@@ -319,7 +327,7 @@ export interface SortedGridSlot extends GridSlot {
 }
 
 export interface ColumnDescriptor {
-  readonly paramValue: string       // JSON.stringify-comparable label
+  readonly paramValue: string // JSON.stringify-comparable label
   readonly columnIndex: number
   readonly worldX: number
 }
@@ -334,7 +342,7 @@ export function computeSortedLayout1D(
   paramsByHash: ReadonlyMap<string, NormalizedParams>,
   sortX: ParamKey,
   gridSpacing: number
-): { slots: SortedGridSlot[], columns: ColumnDescriptor[] }
+): { slots: SortedGridSlot[]; columns: ColumnDescriptor[] }
 
 export function computeSortedLayout2D(
   hashes: readonly string[],
@@ -342,10 +350,15 @@ export function computeSortedLayout2D(
   sortX: ParamKey,
   sortY: ParamKey,
   gridSpacing: number
-): { slots: SortedGridSlot[], columns: ColumnDescriptor[], rows: RowDescriptor[] }
+): {
+  slots: SortedGridSlot[]
+  columns: ColumnDescriptor[]
+  rows: RowDescriptor[]
+}
 ```
 
 **Bucketing mechanics for `computeSortedLayout1D`:**
+
 1. Group hashes by `JSON.stringify(getParamValue(params, sortX))` — handles numeric and string values uniformly.
 2. Sort groups: numeric params sort numerically; categorical params sort alphabetically.
 3. Assign column index per group. Within each column, pack rows top-to-bottom in deterministic order (sort by content hash for stability).
@@ -373,6 +386,7 @@ The `viewport` instance is owned by `MoshpitCanvas`. To avoid prop-drilling the 
 ### Pattern 6: Workflow Identifier Discovery
 
 `AssetItem` from `assetsStore.outputJobAssets` has:
+
 - `id: string` — job ID (not workflow-scoped)
 - `name: string` — output filename (e.g., `ComfyUI_00042_.png`)
 - `user_metadata: Record<string, unknown> | undefined` — contains `{ jobId, nodeId, subfolder, executionTimeInSeconds, format, create_time }` from `mapTaskOutputToAssetItem` [VERIFIED: assetMappers.ts]
@@ -394,8 +408,11 @@ The ComfyUI PNG `workflow` chunk (the full workflow JSON) contains `extra.workfl
 ```typescript
 // Pattern from SearchAutocomplete.vue [VERIFIED: codebase]
 import {
-  ComboboxAnchor, ComboboxContent, ComboboxInput,
-  ComboboxItem, ComboboxRoot
+  ComboboxAnchor,
+  ComboboxContent,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxRoot
 } from 'reka-ui'
 ```
 
@@ -409,59 +426,66 @@ import {
 
 - **Reactive loops in 5k filter math.** Do NOT use `watchEffect` or `computed` that reads all `NormalizedParams` individually. Read params from a `Map<contentHash, NormalizedParams>` in a single O(N) loop inside a pure function called once per filter state change.
 - **Storing params in a separate Pinia store with per-asset reactivity.** The `moshpitMetadataStore` already holds `metaByHash: Map<hash, Record<string, string>>`. Phase 3 stores `NormalizedParams` in the same IDB record. Load them once at warm-cache init into a local `Map<hash, NormalizedParams>` — not into a reactive Pinia map that re-renders on every update.
-- **Calling `computeJitteredGrid` from inside `watchEffect`.** The sprite layer already does this. Phase 3 passes new layout targets *into* the existing tween path rather than re-implementing tweens.
+- **Calling `computeJitteredGrid` from inside `watchEffect`.** The sprite layer already does this. Phase 3 passes new layout targets _into_ the existing tween path rather than re-implementing tweens.
 - **New PrimeVue components.** DateRangeFilter.vue is PrimeVue-based. Do NOT copy it into Phase 3. Ship a Moshpit-local Tailwind+Reka date-range control.
 
 ---
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Fuzzy search in categorical value picker | Custom string distance | `fuse.js` | Already in package.json; handles Unicode, short-string edge cases |
-| PRNG for sorted-layout determinism | Custom LCG | `mulberry32` from `contentHash.ts` | Already exists and tested; seeded by filter-hash |
-| CSS transform tracking for overlay | Manual matrix math | `pixi-viewport.toScreen(worldX, worldY)` | Viewport already computes the transform; calling `toScreen` is O(1) |
-| Virtual list for large categorical pickers | Custom list slicing | `@tanstack/vue-virtual` | Already in package.json; handles variable heights |
-| IDB version migrations | Custom migration runner | `idb` v7 `openDB` `upgrade` callback | Already the pattern (Plan 02-04); version bump + `if (newVersion >= 2)` branch |
+| Problem                                    | Don't Build             | Use Instead                              | Why                                                                            |
+| ------------------------------------------ | ----------------------- | ---------------------------------------- | ------------------------------------------------------------------------------ |
+| Fuzzy search in categorical value picker   | Custom string distance  | `fuse.js`                                | Already in package.json; handles Unicode, short-string edge cases              |
+| PRNG for sorted-layout determinism         | Custom LCG              | `mulberry32` from `contentHash.ts`       | Already exists and tested; seeded by filter-hash                               |
+| CSS transform tracking for overlay         | Manual matrix math      | `pixi-viewport.toScreen(worldX, worldY)` | Viewport already computes the transform; calling `toScreen` is O(1)            |
+| Virtual list for large categorical pickers | Custom list slicing     | `@tanstack/vue-virtual`                  | Already in package.json; handles variable heights                              |
+| IDB version migrations                     | Custom migration runner | `idb` v7 `openDB` `upgrade` callback     | Already the pattern (Plan 02-04); version bump + `if (newVersion >= 2)` branch |
 
 ---
 
 ## Common Pitfalls
 
 ### Pitfall 1: Worker import of `paramNormalize.ts` pulls in non-Worker-safe deps
+
 **What goes wrong:** `paramNormalize.ts` is imported by `thumbWorker.ts`. If it imports from Vue, Pinia, or DOM-only libs, the worker bundle fails at runtime.
 **Why it happens:** Vite's `?worker` bundling respects tree-shaking but not always implicit DOM globals.
 **How to avoid:** `paramNormalize.ts` must be a strict leaf module: only imports from `./workerMessages` (for types) and no external deps. The `normalizeParams` function parses JSON strings — all standard JS, no DOM.
 **Warning signs:** TypeScript reports `window is not defined` or Pinia store access inside the worker.
 
 ### Pitfall 2: IDB schema bump without migration drops existing Phase 2 cached data
+
 **What goes wrong:** Bumping `MOSHPIT_DB_VERSION` to 2 without adding an `upgrade` handler for the `assetMeta` store's new `params` field causes existing records to be read with `params: undefined`. Filter/sort math then sees all `undefined` params.
 **Why it happens:** `idb`'s `openDB` only fires the `upgrade` callback for new version numbers; it does not auto-migrate existing records.
 **How to avoid:** In the `upgrade` callback for `newVersion === 2`, iterate all existing `assetMeta` records and re-parse `params` from their `metadata` field using `normalizeParams`. This is a one-time bounded cost.
 **Warning signs:** All assets show as "lacking sorted parameter" immediately after upgrading to Phase 3.
 
 ### Pitfall 3: `useMoshpitSpriteLayer`'s `computeLayoutSlots` is called inside `watchEffect` — Phase 3 must not break this
+
 **What goes wrong:** `useMoshpitSpriteLayer.syncSprites` calls `computeLayoutSlots(hashes)` which calls `computeJitteredGrid`. If Phase 3 replaces `computeLayoutSlots` with a conditional layout function that reads filter store state, this watchEffect callback must also track filter store deps — or it will not re-run on filter changes.
 **Why it happens:** `watchEffect` only tracks reactive deps accessed during execution. If the layout function switch is conditional on a ref that isn't accessed inside `watchEffect`, reactivity is broken.
-**How to avoid:** The cleanest solution is to extend `useMoshpitSpriteLayer` to accept layout targets from *outside* (passed by `useMoshpitFilteredAssets`) rather than computing them internally. The sprite layer becomes purely a tween executor. `useMoshpitFilteredAssets` computes the targets reactively and passes them in.
-**Alternative:** Pass `layoutFn: () => GridSlot[]` as an option to the sprite layer, ensuring it is called *inside* `watchEffect`. Either approach works; the first is architecturally cleaner.
+**How to avoid:** The cleanest solution is to extend `useMoshpitSpriteLayer` to accept layout targets from _outside_ (passed by `useMoshpitFilteredAssets`) rather than computing them internally. The sprite layer becomes purely a tween executor. `useMoshpitFilteredAssets` computes the targets reactively and passes them in.
+**Alternative:** Pass `layoutFn: () => GridSlot[]` as an option to the sprite layer, ensuring it is called _inside_ `watchEffect`. Either approach works; the first is architecturally cleaner.
 
 ### Pitfall 4: Workflow picker options derived from live `outputJobAssets` include in-progress assets
+
 **What goes wrong:** `assetsStore.outputJobAssets` is a live stream. Assets currently being processed (no metadata yet) have no `params.workflow` identifier. The workflow picker would show unstable option counts during processing.
 **Why it happens:** Phase 2's pipeline adds assets to `outputJobAssets` before metadata is parsed.
 **How to avoid:** Derive workflow picker options only from assets that have completed `moshpitMetadataStore.metaByHash` entries. Filter `outputJobAssets` to those with a populated `metaByHash` entry before grouping.
 
 ### Pitfall 5: `pixi-viewport.toScreen` called before viewport is initialized
+
 **What goes wrong:** `MoshpitAxisOverlay.vue` is mounted inside `MoshpitCanvas.vue` template but the viewport is created asynchronously (after `Application.init()`). If the overlay tries to call `viewport.toScreen()` before init completes, it throws.
 **Why it happens:** `Application.init()` is async; viewport is null until init resolves.
 **How to avoid:** The overlay should only render (and track) when the viewport injection key is non-null. Initialize the injection key ref as `null` and set it only after `await pending.init()` completes — same timing as when `spriteLayerRef` is created in `MoshpitCanvas.vue`.
 
 ### Pitfall 6: OR semantics within a chip vs AND semantics across chips — filter math edge cases
+
 **What goes wrong:** A chip with `param: 'sampler'`, `values: ['euler', 'dpmpp_2m']` must match assets where sampler is EITHER euler OR dpmpp_2m. A second chip with `param: 'model'`, `values: ['model_x.safetensors']` must AND with the sampler chip. Getting the logic inverted (ANDing values within a chip, ORing across chips) silently produces wrong results.
 **Why it happens:** Developer copies the outer AND loop and applies it to the inner values loop.
 **How to avoid:** `filterMath.ts` unit tests MUST cover multi-value single-chip (OR) vs multi-chip (AND) cases explicitly. The filter predicate function signature should make the semantics explicit: `matchesChip(params, chip) → boolean` (OR within chip); `allChipsMatch(params, chips) → boolean` (AND across chips).
 
 ### Pitfall 7: `timestamp` field for time-range filter needs consistent units
+
 **What goes wrong:** `AssetItem.created_at` is an ISO string. `NormalizedParams.timestamp` mirrors it as epoch ms. The time-range filter computes start/end in epoch ms from `getDateRangeForPreset`. If `timestamp` stores seconds instead of milliseconds, the comparison is off by 1000×.
 **Why it happens:** `new Date(isoString).getTime()` returns ms; confusion arises if the raw `created_at` value is already numeric.
 **How to avoid:** In `paramNormalize.ts`, always derive `timestamp` via `new Date(assetItem.created_at ?? 0).getTime()` — epoch ms. The time-range predicate compares `params.timestamp >= rangeStart && params.timestamp < rangeEnd` where `rangeStart` and `rangeEnd` are also `Date.getTime()` values.
@@ -500,19 +524,26 @@ export function normalizeParams(
 
   // Find KSampler-family nodes
   const samplerNode = findNodeByClassTypes(graph, [
-    'KSampler', 'KSamplerAdvanced', 'KSamplerSelect'
+    'KSampler',
+    'KSamplerAdvanced',
+    'KSamplerSelect'
   ])
   // Find checkpoint node
   const checkpointNode = findNodeByClassTypes(graph, [
-    'CheckpointLoaderSimple', 'CheckpointLoader'
+    'CheckpointLoaderSimple',
+    'CheckpointLoader'
   ])
   // Find LoRA nodes
   const loraNodes = findAllNodesByClassTypes(graph, [
-    'LoraLoader', 'LoraLoaderModelOnly', 'LoraTagLoader'
+    'LoraLoader',
+    'LoraLoaderModelOnly',
+    'LoraTagLoader'
   ])
   // Find latent dimensions
   const latentNode = findNodeByClassTypes(graph, [
-    'EmptyLatentImage', 'EmptySD3LatentImage', 'EmptyHunyuanLatentVideo'
+    'EmptyLatentImage',
+    'EmptySD3LatentImage',
+    'EmptyHunyuanLatentVideo'
   ])
 
   // Resolve positive/negative prompts by walking conditioning refs
@@ -520,10 +551,13 @@ export function normalizeParams(
 
   return {
     model: checkpointNode?.inputs['ckpt_name'] as string | undefined,
-    loras: loraNodes.map((n) => ({
-      name: (n.inputs['lora_name'] ?? n.inputs['lora_tag']) as string,
-      weight: ((n.inputs['strength_model'] ?? n.inputs['strength']) as number) ?? 1
-    })).filter(l => l.name),
+    loras: loraNodes
+      .map((n) => ({
+        name: (n.inputs['lora_name'] ?? n.inputs['lora_tag']) as string,
+        weight:
+          ((n.inputs['strength_model'] ?? n.inputs['strength']) as number) ?? 1
+      }))
+      .filter((l) => l.name),
     cfg: samplerNode?.inputs['cfg'] as number | undefined,
     steps: samplerNode?.inputs['steps'] as number | undefined,
     sampler: samplerNode?.inputs['sampler_name'] as string | undefined,
@@ -596,7 +630,7 @@ export function computeSortedLayout1D(
   for (const hash of visibleHashes) {
     const params = paramsByHash.get(hash)
     const val = params ? getParamValue(params, sortX) : undefined
-    if (val === undefined) continue   // D-17: exclude assets lacking the sorted param
+    if (val === undefined) continue // D-17: exclude assets lacking the sorted param
     const key = JSON.stringify(val)
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key)!.push(hash)
@@ -608,10 +642,20 @@ export function computeSortedLayout1D(
   const columns: ColumnDescriptor[] = []
 
   sortedKeys.forEach((key, colIdx) => {
-    const colHashes = groups.get(key)!.sort()  // deterministic row order within column
-    columns.push({ paramValue: key, columnIndex: colIdx, worldX: colIdx * gridSpacing })
+    const colHashes = groups.get(key)!.sort() // deterministic row order within column
+    columns.push({
+      paramValue: key,
+      columnIndex: colIdx,
+      worldX: colIdx * gridSpacing
+    })
     colHashes.forEach((hash, rowIdx) => {
-      slots.push({ hash, worldX: colIdx * gridSpacing, worldY: rowIdx * gridSpacing, columnIndex: colIdx, rowIndex: rowIdx })
+      slots.push({
+        hash,
+        worldX: colIdx * gridSpacing,
+        worldY: rowIdx * gridSpacing,
+        columnIndex: colIdx,
+        rowIndex: rowIdx
+      })
     })
   })
 
@@ -642,13 +686,14 @@ When `layoutProvider` is provided, `syncSprites` calls `layoutProvider()` instea
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Manual IDB queries per filter change | In-memory Map over pre-loaded NormalizedParams | Phase 3 (new) | O(1) param lookup vs O(N) IDB transactions on every filter change |
-| `getFromPngBuffer` called each time | Worker normalizes once, stores params in IDB | Phase 3 (new) | Zero main-thread parse cost on warm cache |
-| Linear filter scan with DOM-reactive ops | Pure function filter + decoupled reactive trigger | Phase 3 (new) | 5k assets filter << 1ms, no frame drop |
+| Old Approach                             | Current Approach                                  | When Changed  | Impact                                                            |
+| ---------------------------------------- | ------------------------------------------------- | ------------- | ----------------------------------------------------------------- |
+| Manual IDB queries per filter change     | In-memory Map over pre-loaded NormalizedParams    | Phase 3 (new) | O(1) param lookup vs O(N) IDB transactions on every filter change |
+| `getFromPngBuffer` called each time      | Worker normalizes once, stores params in IDB      | Phase 3 (new) | Zero main-thread parse cost on warm cache                         |
+| Linear filter scan with DOM-reactive ops | Pure function filter + decoupled reactive trigger | Phase 3 (new) | 5k assets filter << 1ms, no frame drop                            |
 
 **Deprecated/outdated for Phase 3:**
+
 - `DateRangeFilter.vue` using PrimeVue DatePicker: do not reuse; ship a Moshpit-local Tailwind+Reka control.
 - Any `v-for` loop directly over `paramsByHash` in Vue template: use pure function filter before template; never render 5k reactive bindings.
 
@@ -686,14 +731,14 @@ When `layoutProvider` is provided, `syncSprites` calls `layoutProvider()` instea
 
 Step 2.6: All dependencies are already installed in the project. No external services are required. No new packages needed.
 
-| Dependency | Required By | Available | Notes |
-|------------|------------|-----------|-------|
-| `idb` v7 | IDB schema bump | ✓ | Phase 2 installed [VERIFIED: codebase] |
-| `zod` | NormalizedParams schema | ✓ | Project-wide [VERIFIED: codebase] |
-| `reka-ui` | Workflow picker + popover | ✓ | SearchAutocomplete.vue already uses it [VERIFIED: codebase] |
-| `fuse.js` | Categorical fuzzy search | ✓ | In package.json [VERIFIED: codebase] |
-| `pixi.js` v8 | Sprite tween | ✓ | Phase 1/2 installed [VERIFIED: codebase] |
-| `pixi-viewport` | Axis overlay transforms | ✓ | Phase 1 installed [VERIFIED: codebase] |
+| Dependency      | Required By               | Available | Notes                                                       |
+| --------------- | ------------------------- | --------- | ----------------------------------------------------------- |
+| `idb` v7        | IDB schema bump           | ✓         | Phase 2 installed [VERIFIED: codebase]                      |
+| `zod`           | NormalizedParams schema   | ✓         | Project-wide [VERIFIED: codebase]                           |
+| `reka-ui`       | Workflow picker + popover | ✓         | SearchAutocomplete.vue already uses it [VERIFIED: codebase] |
+| `fuse.js`       | Categorical fuzzy search  | ✓         | In package.json [VERIFIED: codebase]                        |
+| `pixi.js` v8    | Sprite tween              | ✓         | Phase 1/2 installed [VERIFIED: codebase]                    |
+| `pixi-viewport` | Axis overlay transforms   | ✓         | Phase 1 installed [VERIFIED: codebase]                      |
 
 **No missing dependencies.**
 
@@ -703,39 +748,40 @@ Step 2.6: All dependencies are already installed in the project. No external ser
 
 ### Test Framework
 
-| Property | Value |
-|----------|-------|
-| Framework | Vitest 4.x (unit/component, happy-dom) + Playwright 1.58 (E2E) |
-| Config file | `vite.config.mts` (unit), `playwright.config.ts` (E2E) |
-| Quick run command | `pnpm test:unit --run src/platform/moshpit` |
-| Full suite command | `pnpm test:unit && pnpm typecheck && pnpm lint` |
+| Property           | Value                                                          |
+| ------------------ | -------------------------------------------------------------- |
+| Framework          | Vitest 4.x (unit/component, happy-dom) + Playwright 1.58 (E2E) |
+| Config file        | `vite.config.mts` (unit), `playwright.config.ts` (E2E)         |
+| Quick run command  | `pnpm test:unit --run src/platform/moshpit`                    |
+| Full suite command | `pnpm test:unit && pnpm typecheck && pnpm lint`                |
 
 ### Phase Requirements → Test Map
 
-| Req ID | Behavior | Test Type | Automated Command | New File? |
-|--------|----------|-----------|-------------------|-----------|
-| FILTER-01 | Canvas empty state until workflow+range set; `setFilter` called on gate entry | unit (filterStore) + manual UAT | `pnpm test:unit --run moshpitFilterStore` | ❌ Wave 0 |
-| FILTER-02 | Model chip predicate: assets matching model pass, others excluded | unit (filterMath) | `pnpm test:unit --run filterMath` | ❌ Wave 0 |
-| FILTER-03 | LoRA chip OR semantics: asset with lora "A" matches chip with values ["A","B"] | unit (filterMath) | `pnpm test:unit --run filterMath` | ❌ Wave 0 |
-| FILTER-04 | Numeric range chips: CFG 7.0 inside [6,8] passes; 5.0 excluded | unit (filterMath) | `pnpm test:unit --run filterMath` | ❌ Wave 0 |
-| FILTER-05 | Substring text chip: "masterpiece" matches "beautiful masterpiece" | unit (filterMath) | `pnpm test:unit --run filterMath` | ❌ Wave 0 |
-| FILTER-06 | Time-range filter: timestamp within range passes | unit (filterMath) | `pnpm test:unit --run filterMath` | ❌ Wave 0 |
-| FILTER-07 | Favourite chip: `curation.favourite === true` passes boolean chip | unit (filterMath) | `pnpm test:unit --run filterMath` | ❌ Wave 0 |
-| FILTER-08 | Subtractive: filtered-out assets absent from `entries` (not dimmed) | unit (useMoshpitFilteredAssets) | `pnpm test:unit --run useMoshpitFilteredAssets` | ❌ Wave 0 |
-| FILTER-09 | Asset with `model: undefined` excluded when model filter active | unit (filterMath) | `pnpm test:unit --run filterMath` | ❌ Wave 0 |
-| FILTER-10 | `removeChip(id)` removes chip from store; entries recomputed | unit (moshpitFilterStore) | `pnpm test:unit --run moshpitFilterStore` | ❌ Wave 0 |
-| FILTER-11 | `showHidden: false` (default) excludes `curation.hidden: true` assets | unit (filterMath) | `pnpm test:unit --run filterMath` | ❌ Wave 0 |
-| SORT-01 | 1D sorted layout: 4 CFG values → 4 columns, assets in correct columns | unit (sortMath) | `pnpm test:unit --run sortMath` | ❌ Wave 0 |
-| SORT-02 | 2D scatter: sampler × CFG produces correct (col, row) for each asset | unit (sortMath) | `pnpm test:unit --run sortMath` | ❌ Wave 0 |
-| SORT-03 | Asset with `cfg: undefined` absent from sorted layout output | unit (sortMath) | `pnpm test:unit --run sortMath` | ❌ Wave 0 |
-| SORT-04 | gridSpacing=200 → column separation = 200px | unit (sortMath) | `pnpm test:unit --run sortMath` | ❌ Wave 0 |
-| SORT-05 | All positions are multiples of gridSpacing (grid-snapped) | unit (sortMath) | `pnpm test:unit --run sortMath` | ❌ Wave 0 |
-| NormalizedParams | KSampler cfg/steps/sampler/scheduler/seed extracted correctly | unit (paramNormalize) | `pnpm test:unit --run paramNormalize` | ❌ Wave 0 |
-| NormalizedParams | LoRA array populated from LoraLoader node | unit (paramNormalize) | `pnpm test:unit --run paramNormalize` | ❌ Wave 0 |
-| NormalizedParams | Empty `{}` metadata returns `emptyParams` with all fields undefined except timestamp | unit (paramNormalize) | `pnpm test:unit --run paramNormalize` | ❌ Wave 0 |
-| Core value (qualitative) | CFG sweep on real workflow produces legible column arrangement | HUMAN-UAT (03-HUMAN-UAT.md) | manual | N/A |
+| Req ID                   | Behavior                                                                             | Test Type                       | Automated Command                               | New File? |
+| ------------------------ | ------------------------------------------------------------------------------------ | ------------------------------- | ----------------------------------------------- | --------- |
+| FILTER-01                | Canvas empty state until workflow+range set; `setFilter` called on gate entry        | unit (filterStore) + manual UAT | `pnpm test:unit --run moshpitFilterStore`       | ❌ Wave 0 |
+| FILTER-02                | Model chip predicate: assets matching model pass, others excluded                    | unit (filterMath)               | `pnpm test:unit --run filterMath`               | ❌ Wave 0 |
+| FILTER-03                | LoRA chip OR semantics: asset with lora "A" matches chip with values ["A","B"]       | unit (filterMath)               | `pnpm test:unit --run filterMath`               | ❌ Wave 0 |
+| FILTER-04                | Numeric range chips: CFG 7.0 inside [6,8] passes; 5.0 excluded                       | unit (filterMath)               | `pnpm test:unit --run filterMath`               | ❌ Wave 0 |
+| FILTER-05                | Substring text chip: "masterpiece" matches "beautiful masterpiece"                   | unit (filterMath)               | `pnpm test:unit --run filterMath`               | ❌ Wave 0 |
+| FILTER-06                | Time-range filter: timestamp within range passes                                     | unit (filterMath)               | `pnpm test:unit --run filterMath`               | ❌ Wave 0 |
+| FILTER-07                | Favourite chip: `curation.favourite === true` passes boolean chip                    | unit (filterMath)               | `pnpm test:unit --run filterMath`               | ❌ Wave 0 |
+| FILTER-08                | Subtractive: filtered-out assets absent from `entries` (not dimmed)                  | unit (useMoshpitFilteredAssets) | `pnpm test:unit --run useMoshpitFilteredAssets` | ❌ Wave 0 |
+| FILTER-09                | Asset with `model: undefined` excluded when model filter active                      | unit (filterMath)               | `pnpm test:unit --run filterMath`               | ❌ Wave 0 |
+| FILTER-10                | `removeChip(id)` removes chip from store; entries recomputed                         | unit (moshpitFilterStore)       | `pnpm test:unit --run moshpitFilterStore`       | ❌ Wave 0 |
+| FILTER-11                | `showHidden: false` (default) excludes `curation.hidden: true` assets                | unit (filterMath)               | `pnpm test:unit --run filterMath`               | ❌ Wave 0 |
+| SORT-01                  | 1D sorted layout: 4 CFG values → 4 columns, assets in correct columns                | unit (sortMath)                 | `pnpm test:unit --run sortMath`                 | ❌ Wave 0 |
+| SORT-02                  | 2D scatter: sampler × CFG produces correct (col, row) for each asset                 | unit (sortMath)                 | `pnpm test:unit --run sortMath`                 | ❌ Wave 0 |
+| SORT-03                  | Asset with `cfg: undefined` absent from sorted layout output                         | unit (sortMath)                 | `pnpm test:unit --run sortMath`                 | ❌ Wave 0 |
+| SORT-04                  | gridSpacing=200 → column separation = 200px                                          | unit (sortMath)                 | `pnpm test:unit --run sortMath`                 | ❌ Wave 0 |
+| SORT-05                  | All positions are multiples of gridSpacing (grid-snapped)                            | unit (sortMath)                 | `pnpm test:unit --run sortMath`                 | ❌ Wave 0 |
+| NormalizedParams         | KSampler cfg/steps/sampler/scheduler/seed extracted correctly                        | unit (paramNormalize)           | `pnpm test:unit --run paramNormalize`           | ❌ Wave 0 |
+| NormalizedParams         | LoRA array populated from LoraLoader node                                            | unit (paramNormalize)           | `pnpm test:unit --run paramNormalize`           | ❌ Wave 0 |
+| NormalizedParams         | Empty `{}` metadata returns `emptyParams` with all fields undefined except timestamp | unit (paramNormalize)           | `pnpm test:unit --run paramNormalize`           | ❌ Wave 0 |
+| Core value (qualitative) | CFG sweep on real workflow produces legible column arrangement                       | HUMAN-UAT (03-HUMAN-UAT.md)     | manual                                          | N/A       |
 
 ### Sampling Rate
+
 - **Per task commit:** `pnpm test:unit --run src/platform/moshpit`
 - **Per wave merge:** `pnpm test:unit && pnpm typecheck && pnpm lint`
 - **Phase gate:** Full suite green + 03-HUMAN-UAT.md completed before `/gsd-verify-work`
@@ -743,8 +789,8 @@ Step 2.6: All dependencies are already installed in the project. No external ser
 ### Wave 0 Gaps (must exist before implementation waves)
 
 - [ ] `src/platform/moshpit/services/paramNormalize.test.ts` — RED stubs covering FILTER-02/03/04/05/06/07/09 + NormalizedParams extraction
-- [ ] `src/platform/moshpit/services/filterMath.test.ts` — RED stubs for all FILTER-* unit cases
-- [ ] `src/platform/moshpit/services/sortMath.test.ts` — RED stubs for all SORT-* unit cases
+- [ ] `src/platform/moshpit/services/filterMath.test.ts` — RED stubs for all FILTER-\* unit cases
+- [ ] `src/platform/moshpit/services/sortMath.test.ts` — RED stubs for all SORT-\* unit cases
 - [ ] `src/platform/moshpit/stores/moshpitFilterStore.test.ts` — RED stubs for FILTER-01, FILTER-10
 - [ ] `src/platform/moshpit/composables/useMoshpitFilteredAssets.test.ts` — RED stub for FILTER-08 integration
 - [ ] `03-HUMAN-UAT.md` — qualitative CFG-sweep dogfood checklist (D-20)
@@ -754,6 +800,7 @@ Phase 2's three `test.skip` E2E scaffolds in `asset-pipeline.spec.ts` should be 
 ### Nyquist Compliance Note
 
 Phase 2's `nyquist_compliant: false` flips to `true` in Phase 3 once:
+
 1. The three `test.skip` Playwright scenarios in `asset-pipeline.spec.ts` are un-skipped and passing
 2. All Wave 0 Vitest stubs above turn GREEN
 3. `03-HUMAN-UAT.md` returns a PASS sign-off
@@ -766,41 +813,42 @@ Phase 2's `nyquist_compliant: false` flips to `true` in Phase 3 once:
 
 ### Applicable ASVS Categories
 
-| ASVS Category | Applies | Standard Control |
-|---------------|---------|-----------------|
-| V2 Authentication | no | n/a — local only, no auth surface in Phase 3 |
-| V3 Session Management | no | n/a |
-| V4 Access Control | no | n/a |
-| V5 Input Validation | yes | `normalizeParams` uses Zod for `NormalizedParams` shape; `JSON.parse` wrapped in try/catch; all `Record<string, unknown>` fields narrowed before use |
-| V6 Cryptography | no | No new crypto; content hash is Phase 2 |
+| ASVS Category         | Applies | Standard Control                                                                                                                                     |
+| --------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| V2 Authentication     | no      | n/a — local only, no auth surface in Phase 3                                                                                                         |
+| V3 Session Management | no      | n/a                                                                                                                                                  |
+| V4 Access Control     | no      | n/a                                                                                                                                                  |
+| V5 Input Validation   | yes     | `normalizeParams` uses Zod for `NormalizedParams` shape; `JSON.parse` wrapped in try/catch; all `Record<string, unknown>` fields narrowed before use |
+| V6 Cryptography       | no      | No new crypto; content hash is Phase 2                                                                                                               |
 
 ### Known Threat Patterns for Phase 3 Stack
 
-| Pattern | STRIDE | Standard Mitigation |
-|---------|--------|---------------------|
-| Malformed `prompt` JSON in PNG metadata | Tampering | `try/catch` around `JSON.parse(rawMeta['prompt'])` → return `emptyParams`. Already pattern in `processAsset` [VERIFIED: thumbWorker.ts] |
-| Prototype pollution via `JSON.parse` of prompt chunk | Tampering | Validate parsed result as `Record<string, PromptNode>` via Zod before accessing properties; never spread unknown objects into store state |
-| XSS via LoRA name / model name rendered in axis labels | XSS | All axis label content rendered via Vue text interpolation (not `v-html`); Tailwind text classes; no `innerHTML` |
+| Pattern                                                    | STRIDE     | Standard Mitigation                                                                                                                                |
+| ---------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Malformed `prompt` JSON in PNG metadata                    | Tampering  | `try/catch` around `JSON.parse(rawMeta['prompt'])` → return `emptyParams`. Already pattern in `processAsset` [VERIFIED: thumbWorker.ts]            |
+| Prototype pollution via `JSON.parse` of prompt chunk       | Tampering  | Validate parsed result as `Record<string, PromptNode>` via Zod before accessing properties; never spread unknown objects into store state          |
+| XSS via LoRA name / model name rendered in axis labels     | XSS        | All axis label content rendered via Vue text interpolation (not `v-html`); Tailwind text classes; no `innerHTML`                                   |
 | IDB stored `NormalizedParams` with injected script strings | Stored XSS | `NormalizedParams` fields are string primitives rendered via text interpolation only; no eval or innerHTML in filter chip or axis label components |
 
 ---
 
 ## Assumptions Log
 
-| # | Claim | Section | Risk if Wrong |
-|---|-------|---------|---------------|
-| A1 | ComfyUI prompt chunk contains KSampler node with `inputs.cfg`, `inputs.steps`, `inputs.sampler_name`, `inputs.scheduler`, `inputs.seed` | Code Examples §1 | Params extraction returns undefined for those fields; sort/filter by those params won't work until extraction is fixed |
-| A2 | `CLIPTextEncode` node is referenced by KSampler's `positive`/`negative` inputs as `[nodeId, outputIndex]` arrays | Code Examples §1 (resolvePrompts) | Positive/negative prompt extraction fails; text filter returns no matches |
-| A3 | LoRA nodes have `class_type` containing "Lora" (LoraLoader, LoraLoaderModelOnly, LoraTagLoader) with inputs `lora_name` + `strength_model` | Code Examples §1 | LoRA filter/sort doesn't populate; returns empty arrays |
-| A4 | `AssetItem.user_metadata` does NOT contain a stable workflow filename | Architecture §Pattern 6 | If it does contain one, the recommended workflow-fingerprint approach is unnecessary; use the field directly instead |
-| A5 | Grid spacing range [200, 1200] with default 560 is ergonomically sensible | Open Questions §4 | Default or bounds may feel off; fixable post-dogfood |
-| A6 | `normalizeParams` run in the worker at parse time is fast enough to not impact 5k-asset cold-start time | Performance pitfall note | If slow, move to lazy-load from IDB on filter-store init; likely not an issue given O(1) JSON parse per asset |
+| #   | Claim                                                                                                                                      | Section                           | Risk if Wrong                                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| A1  | ComfyUI prompt chunk contains KSampler node with `inputs.cfg`, `inputs.steps`, `inputs.sampler_name`, `inputs.scheduler`, `inputs.seed`    | Code Examples §1                  | Params extraction returns undefined for those fields; sort/filter by those params won't work until extraction is fixed |
+| A2  | `CLIPTextEncode` node is referenced by KSampler's `positive`/`negative` inputs as `[nodeId, outputIndex]` arrays                           | Code Examples §1 (resolvePrompts) | Positive/negative prompt extraction fails; text filter returns no matches                                              |
+| A3  | LoRA nodes have `class_type` containing "Lora" (LoraLoader, LoraLoaderModelOnly, LoraTagLoader) with inputs `lora_name` + `strength_model` | Code Examples §1                  | LoRA filter/sort doesn't populate; returns empty arrays                                                                |
+| A4  | `AssetItem.user_metadata` does NOT contain a stable workflow filename                                                                      | Architecture §Pattern 6           | If it does contain one, the recommended workflow-fingerprint approach is unnecessary; use the field directly instead   |
+| A5  | Grid spacing range [200, 1200] with default 560 is ergonomically sensible                                                                  | Open Questions §4                 | Default or bounds may feel off; fixable post-dogfood                                                                   |
+| A6  | `normalizeParams` run in the worker at parse time is fast enough to not impact 5k-asset cold-start time                                    | Performance pitfall note          | If slow, move to lazy-load from IDB on filter-store init; likely not an issue given O(1) JSON parse per asset          |
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - `src/platform/moshpit/services/layoutMath.ts` — coordinate system, GridSlot interface, `computeJitteredGrid`/`computePackedGrid` patterns
 - `src/platform/moshpit/composables/useMoshpitSpriteLayer.ts` — tween path, watchEffect contract, `SpriteLayerOptions`
 - `src/platform/moshpit/services/workerMessages.ts` — discriminated union message contract
@@ -818,10 +866,12 @@ Phase 2's `nyquist_compliant: false` flips to `true` in Phase 3 once:
 - `.planning/phases/02-asset-pipeline/02-11-canvas-sprites-and-tween-SUMMARY.md` — follow-up items Phase 3 must address (queue.setFilter call, 3 skipped Playwright specs)
 
 ### Secondary (MEDIUM confidence)
+
 - CONTEXT.md canonical refs — ComfyUI API-format prompt JSON structure (class_type, inputs.cfg etc.)
 - Phase 2 plan summaries (02-04, 02-05, 02-06, 02-07, 02-08) — confirmed final shapes of all IDB/worker/store APIs
 
 ### Tertiary (LOW confidence)
+
 - Specific ComfyUI node class names (KSampler, CheckpointLoaderSimple, LoraLoader, CLIPTextEncode, EmptyLatentImage) — based on training knowledge of ComfyUI prompt format; should be verified against a real ComfyUI PNG output during Wave 0/1 implementation
 
 ---
@@ -829,6 +879,7 @@ Phase 2's `nyquist_compliant: false` flips to `true` in Phase 3 once:
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH — all dependencies verified in codebase
 - Architecture patterns: HIGH — built directly on VERIFIED Phase 2 APIs; integration points confirmed
 - Normalization logic: MEDIUM — class names and input field names are ASSUMED from ComfyUI documentation; verify with real PNG during implementation

@@ -1,6 +1,6 @@
 ---
 phase: 03-filter-sort-core-validation
-plan: "11"
+plan: '11'
 subsystem: moshpit/integration
 tags: [moshpit, settings-panel, integration, e2e, human-uat, validation]
 dependency_graph:
@@ -48,14 +48,14 @@ key_files:
     - browser_tests/tests/moshpit/asset-pipeline.spec.ts (test.skip removed from 3 tests)
     - .planning/phases/03-filter-sort-core-validation/03-VALIDATION.md (populated)
 decisions:
-  - "MOSHPIT_LAYOUT_INJECTION_KEY co-located in useMoshpitSpriteLayer.ts (option A) — avoids new module, keeps injection key adjacent to the SpriteLayerOptions type it feeds"
-  - "injectedLayout ?? undefined pattern in MoshpitCanvas — null from inject default falls back to Phase 2 jittered-grid; undefined triggers layoutProvider absent path in sprite layer"
-  - "MoshpitEmptyGateOverlay uses v-if=!filterStore.isGated (not v-show) — overlay is never in DOM when workflow is selected; avoids pointer-events-none relying on CSS alone"
-  - "Phase 2 asset-pipeline.spec.ts tests un-skipped with CI-safe assertions — no real backend required; pill-absent assertions pass in empty-backend CI"
-  - "MoshpitSettingsPanel tests use explicit named stubs (not shallowMount global) to avoid fallthrough attr collisions from prior Plan 03-08 experience"
+  - 'MOSHPIT_LAYOUT_INJECTION_KEY co-located in useMoshpitSpriteLayer.ts (option A) — avoids new module, keeps injection key adjacent to the SpriteLayerOptions type it feeds'
+  - 'injectedLayout ?? undefined pattern in MoshpitCanvas — null from inject default falls back to Phase 2 jittered-grid; undefined triggers layoutProvider absent path in sprite layer'
+  - 'MoshpitEmptyGateOverlay uses v-if=!filterStore.isGated (not v-show) — overlay is never in DOM when workflow is selected; avoids pointer-events-none relying on CSS alone'
+  - 'Phase 2 asset-pipeline.spec.ts tests un-skipped with CI-safe assertions — no real backend required; pill-absent assertions pass in empty-backend CI'
+  - 'MoshpitSettingsPanel tests use explicit named stubs (not shallowMount global) to avoid fallthrough attr collisions from prior Plan 03-08 experience'
 metrics:
   duration_minutes: 90
-  completed_date: "2026-04-21"
+  completed_date: '2026-04-21'
   tasks_completed: 2
   tasks_total: 3
   files_created: 4
@@ -71,6 +71,7 @@ metrics:
 ### Task 1: Composition + Wiring
 
 **MoshpitSettingsPanel.vue** — Phase 3-complete composition order (top to bottom):
+
 1. Filter section header ("Filter" label)
 2. `<MoshpitWorkflowPicker />` — unconditional
 3. `<MoshpitTimeRangePicker />` — unconditional
@@ -98,6 +99,7 @@ metrics:
 **asset-pipeline.spec.ts** — Three `test.skip(...)` blocks replaced with `test(...)`. Assertions are CI-safe (container visible, pill hidden on load) because the queue stays idle without a real backend. The tests verify the Phase 3 shell integration without requiring live assets.
 
 **phase-03-filter-sort.spec.ts** — New E2E spec with 4 tests:
+
 1. Workflow picker gates canvas → empty-gate overlay visible, 0 filter chips
 2. No axis labels in ungated/chaos mode
 3. Settings panel has workflow picker trigger + time range radiogroup
@@ -112,18 +114,21 @@ metrics:
 ### Auto-fixed Issues
 
 **1. [Rule 1 - Bug] Tailwind class order lint error in MoshpitSettingsPanel**
+
 - **Found during:** Task 1 lint run
 - **Issue:** `text-2xs uppercase tracking-wide` — ESLint `enforce-consistent-class-order` rule expected `text-2xs tracking-wide text-muted-foreground uppercase`
 - **Fix:** Reordered classes to canonical Tailwind order
 - **Files modified:** `MoshpitSettingsPanel.vue`
 
 **2. [Rule 1 - Bug] Tailwind canonical class lint error in MoshpitEmptyGateOverlay**
+
 - **Found during:** Task 1 lint run
 - **Issue:** `text-xs leading-relaxed` → ESLint `enforce-canonical-classes` requires `text-xs/relaxed`
 - **Fix:** Replaced with shorthand `text-xs/relaxed`
 - **Files modified:** `MoshpitEmptyGateOverlay.vue`
 
 **3. [Rule 2 - Missing testid] MoshpitTimeRangePicker has no data-testid**
+
 - **Found during:** Task 2 E2E spec authoring
 - **Issue:** Plan spec used `getByTestId('moshpit-time-range-picker')` but the component has no such testid; only a `role="radiogroup"` is exposed
 - **Fix:** Changed E2E assertion to `getByRole('radiogroup', { name: /time range/i })` — tests the correct accessible semantic
@@ -142,6 +147,7 @@ None — no new network endpoints, auth paths, or trust boundary changes. Filter
 **Status:** Pending. Task 3 checkpoint returned — awaiting user dogfood sign-off on `.planning/phases/03-filter-sort-core-validation/03-HUMAN-UAT.md`.
 
 The sign-off result gates Phase 4–7 continuation per D-22:
+
 - "approved" → Phases 4–7 proceed as planned
 - "sort of" → gap-closure planning before Phase 4
 - "paused" → roadmap pause per D-22

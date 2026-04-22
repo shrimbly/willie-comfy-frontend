@@ -15,7 +15,9 @@ const i18n = createI18n({
   messages: { en: enMessages }
 })
 
-function makeParams(overrides: Partial<NormalizedParams> = {}): NormalizedParams {
+function makeParams(
+  overrides: Partial<NormalizedParams> = {}
+): NormalizedParams {
   return {
     model: undefined,
     loras: [],
@@ -76,7 +78,10 @@ describe('MoshpitResolutionFilterEditor', () => {
     const updates = emitted<unknown[]>('update:modelValue')
     expect(updates).toBeTruthy()
     const lastUpdate = updates![updates!.length - 1][0]
-    expect(lastUpdate).toMatchObject({ kind: 'resolution', pairs: [[512, 512]] })
+    expect(lastUpdate).toMatchObject({
+      kind: 'resolution',
+      pairs: [[512, 512]]
+    })
   })
 
   it('unchecking all pairs emits null', async () => {
@@ -119,6 +124,9 @@ describe('MoshpitResolutionFilterEditor', () => {
     const updates = emitted<unknown[]>('update:modelValue')
     expect(updates).toBeTruthy()
     const lastUpdate = updates![updates!.length - 1][0]
-    expect(lastUpdate).toMatchObject({ kind: 'resolution', pairs: [[1024, 768]] })
+    expect(lastUpdate).toMatchObject({
+      kind: 'resolution',
+      pairs: [[1024, 768]]
+    })
   })
 })

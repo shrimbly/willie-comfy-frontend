@@ -1,6 +1,6 @@
 ---
 phase: 02-asset-pipeline
-plan: "06"
+plan: '06'
 subsystem: moshpit/worker-bridge
 tags: [worker-bridge, indexeddb, stale-filter, idle-dispatch, wave-2]
 dependency_graph:
@@ -31,7 +31,7 @@ decisions:
   - void keyword used for handleThumbReady call to satisfy no-floating-promises rule while keeping the async IDB write non-blocking.
 metrics:
   duration_minutes: 12
-  completed_date: "2026-04-20T16:50:46Z"
+  completed_date: '2026-04-20T16:50:46Z'
   tasks_completed: 1
   files_created: 4
 ---

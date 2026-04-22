@@ -2,8 +2,12 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { emptyParams } from '@/platform/moshpit/services/paramNormalize'
-import type { ExcludedMessage, ThumbReadyMessage } from '@/platform/moshpit/services/workerMessages'
+import type * as WorkerBridgeModule from '@/platform/moshpit/services/workerBridge'
 import type { WorkerBridge } from '@/platform/moshpit/services/workerBridge'
+import type {
+  ExcludedMessage,
+  ThumbReadyMessage
+} from '@/platform/moshpit/services/workerMessages'
 
 // Mock IDB helpers so tests never open a real IndexedDB
 vi.mock('@/platform/moshpit/services/thumbRepository', () => ({
@@ -11,18 +15,24 @@ vi.mock('@/platform/moshpit/services/thumbRepository', () => ({
   getAssetMeta: vi.fn().mockResolvedValue(undefined)
 }))
 
-import { getAllThumbHashes, getAssetMeta } from '@/platform/moshpit/services/thumbRepository'
+import {
+  getAllThumbHashes,
+  getAssetMeta
+} from '@/platform/moshpit/services/thumbRepository'
 
 // Mock createWorkerBridge so the composable never spawns a real Worker
 vi.mock('@/platform/moshpit/services/workerBridge', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/platform/moshpit/services/workerBridge')>()
+  const actual = await importOriginal<typeof WorkerBridgeModule>()
   return {
     ...actual,
     createWorkerBridge: vi.fn()
   }
 })
 
-import { computeQueueDelta, useMoshpitProcessingQueue } from './useMoshpitProcessingQueue'
+import {
+  computeQueueDelta,
+  useMoshpitProcessingQueue
+} from './useMoshpitProcessingQueue'
 import { useMoshpitAssetRegistry } from './useMoshpitAssetRegistry'
 import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetadataStore'
 import { useMoshpitThumbStore } from '@/platform/moshpit/stores/moshpitThumbStore'
@@ -40,11 +50,15 @@ function makeFakeBridge() {
     setActiveFilterId: vi.fn(),
     onThumbReady(cb) {
       thumbReadyCb = cb
-      return () => { thumbReadyCb = null }
+      return () => {
+        thumbReadyCb = null
+      }
     },
     onExcluded(cb) {
       excludedCb = cb
-      return () => { excludedCb = null }
+      return () => {
+        excludedCb = null
+      }
     },
     onError: vi.fn(() => () => {}),
     destroy: vi.fn()
