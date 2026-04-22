@@ -461,4 +461,64 @@ describe('moshpitTournamentStore', () => {
       expect(store.isActive).toBe(false)
     })
   })
+
+  describe('pairResults + entryHashes', () => {
+    it('pairResults is empty initially after enter()', () => {
+      const store = useMoshpitTournamentStore()
+      store.enter(['a', 'b', 'c', 'd'])
+      expect(store.pairResults.size).toBe(0)
+    })
+
+    it('records A pick under the pair.index', () => {
+      const store = useMoshpitTournamentStore()
+      store.enter(['a', 'b', 'c', 'd'])
+      const firstPairIndex = store.bracket[0].index
+      store.pickWinner('A')
+      expect(store.pairResults.get(firstPairIndex)).toBe('A')
+    })
+
+    it('records B pick under the next pair.index', () => {
+      const store = useMoshpitTournamentStore()
+      store.enter(['a', 'b', 'c', 'd'])
+      store.pickWinner('A')
+      const secondPairIndex = store.bracket[1].index
+      store.pickWinner('B')
+      expect(store.pairResults.get(secondPairIndex)).toBe('B')
+    })
+
+    it('round-robin skip records skip under the original pair.index', () => {
+      const store = useMoshpitTournamentStore()
+      store.enter(['a', 'b', 'c', 'd'])
+      const firstPair = store.currentPair!
+      const firstIndex = firstPair.index
+      store.skip()
+      expect(store.pairResults.get(firstIndex)).toBe('skip')
+    })
+
+    it('single-elim skip records skip AND preserves bye-advance behaviour', () => {
+      const store = useMoshpitTournamentStore()
+      const hashes = Array.from({ length: 8 }, (_, i) => `h${i}`)
+      store.enter(hashes)
+      const firstPair = store.currentPair!
+      store.skip()
+      expect(store.pairResults.get(firstPair.index)).toBe('skip')
+      expect(store.wins.get(firstPair.assetHashA)).toBe(1)
+    })
+
+    it('exit() clears pairResults; re-enter yields an empty map', () => {
+      const store = useMoshpitTournamentStore()
+      store.enter(['a', 'b', 'c', 'd'])
+      store.pickWinner('A')
+      expect(store.pairResults.size).toBeGreaterThan(0)
+      store.exit('esc')
+      store.enter(['x', 'y', 'z'])
+      expect(store.pairResults.size).toBe(0)
+    })
+
+    it('entryHashes reflects the frozen selection on entry', () => {
+      const store = useMoshpitTournamentStore()
+      store.enter(['a', 'b', 'c', 'd'])
+      expect([...store.entryHashes]).toEqual(['a', 'b', 'c', 'd'])
+    })
+  })
 })

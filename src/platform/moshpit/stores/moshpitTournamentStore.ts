@@ -74,6 +74,7 @@ export const useMoshpitTournamentStore = defineStore(
     const currentPairIndex: Ref<number> = ref(0)
     const wins: Ref<Map<string, number>> = ref(new Map())
     const skippedPairIndexes: Ref<Set<number>> = ref(new Set())
+    const pairResults: Ref<Map<number, 'A' | 'B' | 'skip'>> = ref(new Map())
     const displayMode: Ref<TournamentDisplayMode> = ref('sideBySide')
     const flipShowsB: Ref<boolean> = ref(false)
     const isPeekOpen: Ref<boolean> = ref(false)
@@ -116,6 +117,10 @@ export const useMoshpitTournamentStore = defineStore(
       computeWinnerSet(wins.value, bracketShape.value, selectionOnEntry.value)
     )
 
+    const entryHashes: ComputedRef<readonly string[]> = computed(
+      () => selectionOnEntry.value
+    )
+
     const progress: ComputedRef<{ current: number; total: number }> = computed(
       () => ({
         current: Math.min(
@@ -135,6 +140,7 @@ export const useMoshpitTournamentStore = defineStore(
       currentPairIndex.value = 0
       wins.value = new Map()
       skippedPairIndexes.value = new Set()
+      pairResults.value = new Map()
       displayMode.value = 'sideBySide'
       flipShowsB.value = false
       isPeekOpen.value = false
@@ -177,6 +183,7 @@ export const useMoshpitTournamentStore = defineStore(
       currentPairIndex.value = 0
       wins.value = new Map()
       skippedPairIndexes.value = new Set()
+      pairResults.value = new Map()
       displayMode.value = 'sideBySide'
       flipShowsB.value = false
       isPeekOpen.value = false
@@ -242,6 +249,9 @@ export const useMoshpitTournamentStore = defineStore(
         remaining
       )
       wins.value = new Map(update.wins)
+      const nextResults = new Map(pairResults.value)
+      nextResults.set(pair.index, which)
+      pairResults.value = nextResults
       const winnerHash = which === 'A' ? pair.assetHashA : pair.assetHashB
 
       currentPairIndex.value += 1
@@ -274,6 +284,10 @@ export const useMoshpitTournamentStore = defineStore(
       if (!isActive.value) return
       const pair = currentPair.value
       if (!pair) return
+
+      const nextResults = new Map(pairResults.value)
+      nextResults.set(pair.index, 'skip')
+      pairResults.value = nextResults
 
       const remaining = bracket.value.slice(currentPairIndex.value + 1)
       const update = applySkip(
@@ -356,6 +370,7 @@ export const useMoshpitTournamentStore = defineStore(
       currentPairIndex,
       wins,
       skippedPairIndexes,
+      pairResults,
       displayMode,
       flipShowsB,
       isPeekOpen,
@@ -366,6 +381,7 @@ export const useMoshpitTournamentStore = defineStore(
       totalPairs,
       isFinished,
       winnerHashes,
+      entryHashes,
       progress,
       enter,
       exit,
