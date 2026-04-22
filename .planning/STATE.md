@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 5 context gathered
-last_updated: '2026-04-22T02:43:57.179Z'
+stopped_at: Completed 05-01-PLAN.md
+last_updated: '2026-04-22T02:53:00.949Z'
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 41
-  completed_plans: 35
-  percent: 85
+  completed_plans: 36
+  percent: 88
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 
 **Project:** Moshpit (ComfyUI Autocanvas)
 **Core Value:** Prove that a lineage-grouped spatial canvas with shortlist-then-tournament curation is a faster, more intuitive way to pick the best generations from a large set.
-**Current Focus:** Phase 04 — lineage-groupings-within-cluster-sort
+**Current Focus:** Phase 05 — tournament-mode-replaces-old-comparison-mode-framing
 
 ## Current Position
 
-Phase: 04 (lineage-groupings-within-cluster-sort) — EXECUTING
-Plan: 6 of 6
+Phase: 05 (tournament-mode-replaces-old-comparison-mode-framing) — EXECUTING
+Plan: 2 of 6
 
 - **Milestone:** v1
 - **Phase:** 5
-- **Plan:** Not started
-- **Status:** Ready to execute
+- **Plan:** 05-01 complete (tournamentBracket pure module + tests)
+- **Status:** Executing Phase 05
 
 Progress: `[█████████░] 3 / 7 phases`
 
@@ -49,6 +49,7 @@ Progress: `[█████████░] 3 / 7 phases`
 | Phase 04 P04 | ~29 min  | 4 tasks | 16 files               |
 | Phase 04 P05 | ~10min   | 1 tasks | 3 files                |
 | Phase 04 P06 | 55min    | 6 tasks | 10 files               |
+| Phase 05 P01 | ~30min   | 2 tasks | 2 files                |
 
 ## Accumulated Context
 
@@ -105,6 +106,7 @@ Progress: `[█████████░] 3 / 7 phases`
 - [Phase 04]: Plan 04-06: MoshpitClusterOverlay mounted in src/views/MoshpitView.vue (not MoshpitCanvas.vue) — matches Plan 03 SUMMARY executor note. Cluster overlay replaces the removed MoshpitAxisOverlay parallel to the sprite layer.
 - [Phase 04]: Plan 04-06: moshpit.sort.\* i18n block fully removed (12 keys); showHiddenLabel relocated to moshpit.filters.showHiddenLabel; grid-spacing label now lives in moshpit.grouping.spacingLabel + spacingValue.
 - [Phase 04]: Plan 04-06 Task 5 (Playwright @moshpit spec) deferred per D-21 — pre-existing typecheck:browser tsconfig mismatch on main blocks browser_tests/ commits. Full rationale + 5-test design logged to deferred-items.md.
+- [Phase 05]: Phase 05 Plan 01 — tournamentBracket pure module shipped with applyPick/generateNextRound split locked; RED commit requires a stub for ESLint import-x; happy-dom strips file: scheme so pure-module invariant test uses process.cwd().
 
 ### Active Todos
 
@@ -118,8 +120,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-22T01:20:55.842Z
-**Stopped at:** Phase 5 context gathered
+**Last session:** 2026-04-22T02:52:52.755Z
+**Stopped at:** Completed 05-01-PLAN.md
 
 **Context for next session:**
 
