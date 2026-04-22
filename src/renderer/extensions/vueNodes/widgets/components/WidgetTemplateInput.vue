@@ -7,104 +7,104 @@
       :reset-search-term-on-select="false"
       :disabled="isReadOnly"
     >
-      <ComboboxAnchor as-child>
-        <div class="relative">
-          <div
-            v-if="!isEditing"
-            v-tooltip="tooltipText"
-            :class="
-              cn(
-                WidgetInputBaseClass,
-                'flex w-full cursor-text items-center gap-0.5 overflow-hidden pr-9 pl-4 hover:bg-component-node-widget-background-hovered',
-                size === 'large' ? 'py-3 text-sm' : 'py-2 text-xs'
-              )
-            "
-            :aria-label="widget.name"
-            @click="startEditing"
-          >
-            <template v-if="segments.length > 0">
-              <template v-for="(seg, i) in segments" :key="i">
-                <span
-                  v-if="seg.type === 'directory'"
-                  v-tooltip="seg.path"
-                  :class="
-                    cn(
-                      'inline-flex shrink-0 items-center gap-1 rounded-sm px-1.5 py-px text-2xs',
-                      seg.isAbsolute
-                        ? 'bg-(--color-azure-300) text-charcoal-800'
-                        : 'bg-modal-card-tag-background text-modal-card-tag-foreground'
-                    )
-                  "
-                >
-                  <i class="pi pi-folder text-2xs" />
-                  {{ truncateDirectoryPath(seg.path) }}
-                  <button
-                    type="button"
-                    class="-mr-0.5 ml-0.5 inline-flex items-center opacity-70 hover:opacity-100"
-                    :aria-label="t('templateVariables.removeDirectory')"
-                    @click.stop="removeDirectory"
-                  >
-                    <i class="pi pi-times text-2xs" />
-                  </button>
-                </span>
-                <span
-                  v-else-if="seg.type === 'variable'"
-                  :class="
-                    cn(
-                      'inline-flex shrink-0 items-center rounded-sm px-1.5 py-px text-2xs',
-                      seg.missing
-                        ? 'bg-destructive-background text-white'
-                        : isCustomSegment(seg)
+      <div :class="cn(WidgetInputBaseClass, 'flex w-full')">
+        <ComboboxAnchor as-child>
+          <div class="relative min-w-0 flex-1">
+            <div
+              v-if="!isEditing"
+              v-tooltip="tooltipText"
+              :class="
+                cn(
+                  'flex w-full cursor-text items-center gap-0.5 overflow-hidden rounded-l-lg px-4 hover:bg-component-node-widget-background-hovered',
+                  size === 'large' ? 'py-3 text-sm' : 'py-2 text-xs'
+                )
+              "
+              :aria-label="widget.name"
+              @click="startEditing"
+            >
+              <template v-if="segments.length > 0">
+                <template v-for="(seg, i) in segments" :key="i">
+                  <span
+                    v-if="seg.type === 'directory'"
+                    v-tooltip="seg.path"
+                    :class="
+                      cn(
+                        'inline-flex shrink-0 items-center gap-1 rounded-sm px-1.5 py-px text-2xs',
+                        seg.isAbsolute
                           ? 'bg-(--color-azure-300) text-charcoal-800'
                           : 'bg-modal-card-tag-background text-modal-card-tag-foreground'
-                    )
-                  "
-                >
-                  {{ segmentChipLabel(seg) }}
-                </span>
-                <span v-else class="truncate">{{ seg.value }}</span>
+                      )
+                    "
+                  >
+                    <i class="icon-[lucide--folder] size-3" />
+                    {{ truncateDirectoryPath(seg.path) }}
+                    <button
+                      type="button"
+                      class="-mr-0.5 ml-0.5 inline-flex items-center opacity-70 hover:opacity-100"
+                      :aria-label="t('templateVariables.removeDirectory')"
+                      @click.stop="removeDirectory"
+                    >
+                      <i class="icon-[lucide--x] size-3" />
+                    </button>
+                  </span>
+                  <span
+                    v-else-if="seg.type === 'variable'"
+                    :class="
+                      cn(
+                        'inline-flex shrink-0 items-center rounded-sm px-1.5 py-px text-2xs',
+                        seg.missing
+                          ? 'bg-destructive-background text-white'
+                          : isCustomSegment(seg)
+                            ? 'bg-(--color-azure-300) text-charcoal-800'
+                            : 'bg-modal-card-tag-background text-modal-card-tag-foreground'
+                      )
+                    "
+                  >
+                    {{ segmentChipLabel(seg) }}
+                  </span>
+                  <span v-else class="truncate">{{ seg.value }}</span>
+                </template>
               </template>
-            </template>
-            <span v-else class="truncate opacity-50">
-              {{ widget.name }}
-            </span>
-          </div>
+              <span v-else class="truncate opacity-50">
+                {{ widget.name }}
+              </span>
+            </div>
 
-          <ComboboxInput
-            v-else
-            ref="inputRef"
-            v-model="modelValue"
-            :class="
-              cn(
-                WidgetInputBaseClass,
-                'w-full pr-9 pl-4 hover:bg-component-node-widget-background-hovered',
-                size === 'large' ? 'py-3 text-sm' : 'py-2 text-xs'
-              )
-            "
-            :aria-label="widget.name"
-            :disabled="isReadOnly"
-            @input="autocomplete.handleInput"
-            @keydown="onInputKeydown"
-            @blur="isEditing = false"
-          />
-          <button
-            type="button"
-            :disabled="isReadOnly"
-            :aria-label="t('templateVariables.selectDirectory')"
-            :class="
-              cn(
-                'absolute top-1/2 right-1 z-10 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-sm',
-                'text-component-node-foreground hover:bg-component-node-widget-background-hovered',
-                'disabled:cursor-not-allowed disabled:opacity-50'
-              )
-            "
-            @click.stop="onPickDirectory"
-            @mousedown.prevent
-          >
-            <i class="pi pi-folder-open text-xs" />
-          </button>
-        </div>
-      </ComboboxAnchor>
+            <ComboboxInput
+              v-else
+              ref="inputRef"
+              v-model="modelValue"
+              :class="
+                cn(
+                  'w-full rounded-l-lg bg-transparent px-4 hover:bg-component-node-widget-background-hovered',
+                  size === 'large' ? 'py-3 text-sm' : 'py-2 text-xs'
+                )
+              "
+              :aria-label="widget.name"
+              :disabled="isReadOnly"
+              @input="autocomplete.handleInput"
+              @keydown="onInputKeydown"
+              @blur="isEditing = false"
+            />
+          </div>
+        </ComboboxAnchor>
+        <button
+          type="button"
+          :disabled="isReadOnly"
+          :aria-label="t('templateVariables.selectDirectory')"
+          :class="
+            cn(
+              'flex w-8 shrink-0 items-center justify-center self-stretch rounded-r-lg border-l border-node-component-border',
+              'text-component-node-foreground-secondary hover:bg-component-node-widget-background-hovered',
+              'disabled:cursor-not-allowed disabled:opacity-50'
+            )
+          "
+          @click.stop="onPickDirectory"
+          @mousedown.prevent
+        >
+          <i class="icon-[lucide--folder-search] size-4" />
+        </button>
+      </div>
       <ComboboxContent
         position="popper"
         side="bottom"
@@ -199,6 +199,7 @@ import { applyTextReplacements } from '@/utils/searchAndReplace'
 import type { TemplateSegment } from '@/utils/templateVariableResolver'
 import {
   getCustomTemplateVariableValues,
+  isAbsolutePath,
   parseTemplateSegments,
   previewResolvedValue,
   removeLeadingDirectoryToken,
@@ -342,11 +343,12 @@ async function chooseDirectoryPath(): Promise<string | null> {
   if (isElectron()) {
     try {
       const result = await pickDirectory()
-      return result.path || null
+      if (result.path && isAbsolutePath(result.path)) return result.path
+      // Electron IPC may have failed silently, falling through to browser
+      // methods that can't expose the full path. Fall back to prompt.
     } catch (err) {
       if (err instanceof Error && /cancel/i.test(err.message)) return null
       console.error('Directory selection failed:', err)
-      return null
     }
   }
   // Browsers can't expose absolute paths via the File System Access API,
