@@ -94,8 +94,8 @@
           :aria-label="t('templateVariables.selectDirectory')"
           :class="
             cn(
-              'flex w-8 shrink-0 items-center justify-center self-stretch rounded-r-lg border-l border-node-component-border',
-              'text-component-node-foreground-secondary hover:bg-component-node-widget-background-hovered',
+              'flex w-8 shrink-0 items-center justify-center self-stretch rounded-r-lg border-0 border-l border-node-component-border outline-none',
+              'bg-component-node-widget-background text-text-secondary hover:bg-component-node-widget-background-hovered',
               'disabled:cursor-not-allowed disabled:opacity-50'
             )
           "
