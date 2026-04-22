@@ -10,7 +10,7 @@
  * This file is the behavioural spec — Task 2 GREEN implements against it.
  */
 import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
+import { resolve as resolvePath } from 'node:path'
 
 import * as fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
@@ -470,8 +470,15 @@ describe('computeWinnerSet', () => {
 
 describe('pure-module invariants', () => {
   it("tournamentBracket.ts has no vue / pinia / '@/' imports", () => {
-    const url = new URL('./tournamentBracket.ts', import.meta.url)
-    const source = readFileSync(fileURLToPath(url), 'utf8')
+    // Resolve relative to repo root via process.cwd() — happy-dom strips
+    // import.meta.url's file: scheme and fileURLToPath rejects it.
+    const source = readFileSync(
+      resolvePath(
+        process.cwd(),
+        'src/platform/moshpit/services/tournamentBracket.ts'
+      ),
+      'utf8'
+    )
     expect(source).not.toMatch(/from ['"]vue['"]/)
     expect(source).not.toMatch(/from ['"]pinia['"]/)
     expect(source).not.toMatch(/from ['"]@\//)
