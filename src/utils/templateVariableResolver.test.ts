@@ -207,23 +207,32 @@ describe('parseTemplateSegments', () => {
 
   it('parses a single variable', () => {
     expect(parseTemplateSegments('@project')).toEqual([
-      { type: 'variable', name: 'project' }
+      { type: 'variable', name: 'project', prefix: '@' }
     ])
   })
 
   it('parses mixed text and variables', () => {
     expect(parseTemplateSegments('output/@project/@nodeTitle-img')).toEqual([
       { type: 'text', value: 'output/' },
-      { type: 'variable', name: 'project' },
+      { type: 'variable', name: 'project', prefix: '@' },
       { type: 'text', value: '/' },
-      { type: 'variable', name: 'nodeTitle' },
+      { type: 'variable', name: 'nodeTitle', prefix: '@' },
       { type: 'text', value: '-img' }
     ])
   })
 
-  it('treats unknown @tokens as plain text', () => {
+  it('flags unknown @tokens as missing variable segments', () => {
     expect(parseTemplateSegments('@unknown')).toEqual([
-      { type: 'text', value: '@unknown' }
+      { type: 'variable', name: 'unknown', prefix: '@', missing: true }
+    ])
+  })
+
+  it('flags unknown @tokens alongside known ones', () => {
+    expect(parseTemplateSegments('@project/@ghost/file')).toEqual([
+      { type: 'variable', name: 'project', prefix: '@' },
+      { type: 'text', value: '/' },
+      { type: 'variable', name: 'ghost', prefix: '@', missing: true },
+      { type: 'text', value: '/file' }
     ])
   })
 
@@ -235,9 +244,56 @@ describe('parseTemplateSegments', () => {
     mockCustomVariables.value = [{ name: 'client', value: 'acme' }]
     expect(parseTemplateSegments('output/@client')).toEqual([
       { type: 'text', value: 'output/' },
-      { type: 'variable', name: 'client' }
+      { type: 'variable', name: 'client', prefix: '@' }
     ])
     mockCustomVariables.value = []
+  })
+
+  it('recognizes %width% and %height% runtime tokens', () => {
+    expect(parseTemplateSegments('out-%width%x%height%')).toEqual([
+      { type: 'text', value: 'out-' },
+      { type: 'variable', name: 'width', prefix: '%' },
+      { type: 'text', value: 'x' },
+      { type: 'variable', name: 'height', prefix: '%' }
+    ])
+  })
+
+  it('recognizes %batch_num% token', () => {
+    expect(parseTemplateSegments('img_%batch_num%')).toEqual([
+      { type: 'text', value: 'img_' },
+      { type: 'variable', name: 'batch_num', prefix: '%' }
+    ])
+  })
+
+  it('recognizes %date:...% tokens', () => {
+    expect(parseTemplateSegments('%date:yyyy-MM-dd%/out')).toEqual([
+      { type: 'variable', name: 'date:yyyy-MM-dd', prefix: '%' },
+      { type: 'text', value: '/out' }
+    ])
+  })
+
+  it('recognizes %Node.widget% references', () => {
+    expect(parseTemplateSegments('%KSampler.seed%-%CLIP.text%')).toEqual([
+      { type: 'variable', name: 'KSampler.seed', prefix: '%' },
+      { type: 'text', value: '-' },
+      { type: 'variable', name: 'CLIP.text', prefix: '%' }
+    ])
+  })
+
+  it('leaves unknown %...% patterns as plain text', () => {
+    expect(parseTemplateSegments('50% off')).toEqual([
+      { type: 'text', value: '50% off' }
+    ])
+  })
+
+  it('parses mixed @ and % tokens', () => {
+    expect(parseTemplateSegments('@project/%width%x%height%')).toEqual([
+      { type: 'variable', name: 'project', prefix: '@' },
+      { type: 'text', value: '/' },
+      { type: 'variable', name: 'width', prefix: '%' },
+      { type: 'text', value: 'x' },
+      { type: 'variable', name: 'height', prefix: '%' }
+    ])
   })
 })
 

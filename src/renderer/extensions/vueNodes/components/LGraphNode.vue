@@ -305,6 +305,7 @@ import { applyLightThemeColor } from '@/renderer/extensions/vueNodes/utils/nodeS
 import { app } from '@/scripts/app'
 import { useMissingModelStore } from '@/platform/missingModel/missingModelStore'
 import { useExecutionErrorStore } from '@/stores/executionErrorStore'
+import { useWidgetValidationStore } from '@/stores/widgetValidationStore'
 import { useMissingNodesErrorStore } from '@/platform/nodeReplacement/missingNodesErrorStore'
 import { useNodeOutputStore } from '@/stores/nodeOutputStore'
 import { useRightSidePanelStore } from '@/stores/workspace/rightSidePanelStore'
@@ -358,6 +359,7 @@ const { executing, progress } = useNodeExecutionState(nodeLocatorId)
 const executionErrorStore = useExecutionErrorStore()
 const missingModelStore = useMissingModelStore()
 const missingNodesErrorStore = useMissingNodesErrorStore()
+const widgetValidationStore = useWidgetValidationStore()
 const hasExecutionError = computed(
   () => executionErrorStore.lastExecutionErrorNodeId === nodeData.id
 )
@@ -369,6 +371,7 @@ const hasAnyError = computed((): boolean => {
     error ||
     executionErrorStore.getNodeErrors(nodeLocatorId.value) ||
     missingModelStore.hasMissingModelOnNode(nodeLocatorId.value) ||
+    widgetValidationStore.isNodeInvalid(nodeLocatorId.value) ||
     (lgraphNode.value &&
       (executionErrorStore.isContainerWithInternalError(lgraphNode.value) ||
         missingNodesErrorStore.isContainerWithMissingNode(lgraphNode.value) ||

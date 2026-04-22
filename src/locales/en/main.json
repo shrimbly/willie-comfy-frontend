@@ -3924,7 +3924,20 @@
     "dateYYYY": "Year (YYYY)",
     "dateMM": "Month (MM)",
     "dateDD": "Day (DD)",
-    "dateHHmmss": "Time (HH-mm-ss)"
+    "dateHHmmss": "Time (HH-mm-ss)",
+    "widthDesc": "Output image width (resolved at save)",
+    "heightDesc": "Output image height (resolved at save)",
+    "batchNumDesc": "Batch index (resolved per image)",
+    "dateFormatDesc": "Date formatted as {format}",
+    "nodeWidgetDesc": "Current value: {value}",
+    "nodeWidgetDescEmpty": "Current widget value",
+    "noMatches": "No matches",
+    "group": {
+      "variable": "Variables",
+      "token": "Runtime tokens",
+      "date": "Date formats",
+      "node": "From nodes"
+    }
   },
   "filenameVariables": {
     "title": "Filename Variables",

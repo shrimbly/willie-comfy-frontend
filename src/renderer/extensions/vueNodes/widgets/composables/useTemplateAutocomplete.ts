@@ -1,8 +1,7 @@
 import type { Ref } from 'vue'
 import { computed, ref } from 'vue'
 
-import type { TemplateVariable } from '@/utils/templateVariableResolver'
-import { getTemplateVariables } from '@/utils/templateVariableResolver'
+import type { TemplateSuggestion } from './templateSuggestions'
 
 function findAtQuery(
   value: string,
@@ -16,18 +15,17 @@ function findAtQuery(
 
 export function useTemplateAutocomplete(
   inputValue: Ref<string>,
-  inputEl: Ref<HTMLInputElement | null>
+  inputEl: Ref<HTMLInputElement | null>,
+  suggestions: Ref<TemplateSuggestion[]>
 ) {
   const isOpen = ref(false)
-  const highlightIndex = ref(0)
   const currentQuery = ref('')
   const atStart = ref(0)
 
-  const filteredSuggestions = computed<TemplateVariable[]>(() => {
-    const allVars = getTemplateVariables()
-    if (!currentQuery.value && isOpen.value) return allVars
+  const filteredSuggestions = computed<TemplateSuggestion[]>(() => {
     const q = currentQuery.value.toLowerCase()
-    return allVars.filter((v) => v.name.toLowerCase().startsWith(q))
+    if (!q) return suggestions.value
+    return suggestions.value.filter((s) => s.filterText.includes(q))
   })
 
   function handleInput() {
@@ -39,13 +37,12 @@ export function useTemplateAutocomplete(
       currentQuery.value = result.query
       atStart.value = result.start
       isOpen.value = true
-      highlightIndex.value = 0
     } else {
       isOpen.value = false
     }
   }
 
-  function selectSuggestion(variable: TemplateVariable) {
+  function selectSuggestion(suggestion: TemplateSuggestion) {
     const el = inputEl.value
     if (!el) return
 
@@ -53,7 +50,7 @@ export function useTemplateAutocomplete(
     const after = inputValue.value.slice(
       atStart.value + 1 + currentQuery.value.length
     )
-    const replacement = `@${variable.name}`
+    const replacement = suggestion.insertText
     inputValue.value = before + replacement + after
     isOpen.value = false
 
@@ -64,38 +61,10 @@ export function useTemplateAutocomplete(
     })
   }
 
-  function handleKeydown(e: KeyboardEvent) {
-    if (!isOpen.value || filteredSuggestions.value.length === 0) return
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault()
-        highlightIndex.value =
-          (highlightIndex.value + 1) % filteredSuggestions.value.length
-        break
-      case 'ArrowUp':
-        e.preventDefault()
-        highlightIndex.value =
-          (highlightIndex.value - 1 + filteredSuggestions.value.length) %
-          filteredSuggestions.value.length
-        break
-      case 'Enter':
-        e.preventDefault()
-        selectSuggestion(filteredSuggestions.value[highlightIndex.value])
-        break
-      case 'Escape':
-        e.preventDefault()
-        isOpen.value = false
-        break
-    }
-  }
-
   return {
     isOpen,
     filteredSuggestions,
-    highlightIndex,
     selectSuggestion,
-    handleInput,
-    handleKeydown
+    handleInput
   }
 }

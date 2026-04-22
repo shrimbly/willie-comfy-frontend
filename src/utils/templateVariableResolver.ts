@@ -70,6 +70,21 @@ function getCustomVariables(): TemplateVariable[] {
   }))
 }
 
+export function getCustomTemplateVariableValues(): {
+  name: string
+  value: string
+}[] {
+  return useSettingStore().get('Comfy.Filename.CustomVariables')
+}
+
+export function getCustomTemplateVariableNames(): Set<string> {
+  return new Set(
+    useSettingStore()
+      .get('Comfy.Filename.CustomVariables')
+      .map((v) => v.name)
+  )
+}
+
 function getCustomVariableValue(name: string): string | null {
   const custom = useSettingStore().get('Comfy.Filename.CustomVariables')
   const found = custom.find((v) => v.name === name)
@@ -108,16 +123,60 @@ export function resolveTemplateVariables(
 
 export type TemplateSegment =
   | { type: 'text'; value: string }
-  | { type: 'variable'; name: string }
+  | {
+      type: 'variable'
+      name: string
+      prefix: '@' | '%'
+      missing?: boolean
+    }
+
+const RUNTIME_TOKEN_NAMES = new Set([
+  'width',
+  'height',
+  'batch_num',
+  'year',
+  'month',
+  'day',
+  'hour',
+  'minute',
+  'second'
+])
+
+const NODE_WIDGET_PATTERN = /^[^.%\s][^.%]*\.[^.%\s]+$/
+const DATE_FORMAT_PATTERN = /^date:.+$/
+
+function isKnownPercentToken(inner: string): boolean {
+  if (RUNTIME_TOKEN_NAMES.has(inner)) return true
+  if (DATE_FORMAT_PATTERN.test(inner)) return true
+  if (NODE_WIDGET_PATTERN.test(inner)) return true
+  return false
+}
 
 export function parseTemplateSegments(value: string): TemplateSegment[] {
   const variableNames = getAllVariableNames()
   const segments: TemplateSegment[] = []
   let lastIndex = 0
 
-  for (const match of value.matchAll(/@(\w+)/g)) {
-    const name = match[1]
-    if (!variableNames.has(name)) continue
+  const combined = /@(\w+)|%([^%]+)%/g
+  for (const match of value.matchAll(combined)) {
+    const atName = match[1]
+    const percentInner = match[2]
+
+    let name: string | null = null
+    let prefix: '@' | '%' | null = null
+    let missing = false
+    if (atName !== undefined) {
+      name = atName
+      prefix = '@'
+      missing = !variableNames.has(atName)
+    } else if (
+      percentInner !== undefined &&
+      isKnownPercentToken(percentInner)
+    ) {
+      name = percentInner
+      prefix = '%'
+    }
+    if (name === null || prefix === null) continue
 
     if (match.index > lastIndex) {
       segments.push({
@@ -125,7 +184,11 @@ export function parseTemplateSegments(value: string): TemplateSegment[] {
         value: value.slice(lastIndex, match.index)
       })
     }
-    segments.push({ type: 'variable', name })
+    segments.push(
+      missing
+        ? { type: 'variable', name, prefix, missing: true }
+        : { type: 'variable', name, prefix }
+    )
     lastIndex = match.index + match[0].length
   }
 

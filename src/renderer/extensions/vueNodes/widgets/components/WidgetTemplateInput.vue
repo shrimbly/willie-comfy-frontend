@@ -1,9 +1,14 @@
 <template>
   <WidgetLayoutField :widget="layoutWidget">
-    <PopoverRoot v-model:open="autocomplete.isOpen.value">
-      <PopoverAnchor as-child>
+    <ComboboxRoot
+      v-model:open="autocomplete.isOpen.value"
+      ignore-filter
+      :reset-search-term-on-blur="false"
+      :reset-search-term-on-select="false"
+      :disabled="isReadOnly"
+    >
+      <ComboboxAnchor as-child>
         <div class="relative">
-          <!-- Display mode: badges for variables -->
           <div
             v-if="!isEditing"
             v-tooltip="tooltipText"
@@ -21,9 +26,18 @@
               <template v-for="(seg, i) in segments" :key="i">
                 <span
                   v-if="seg.type === 'variable'"
-                  class="inline-flex shrink-0 items-center rounded-sm bg-modal-card-tag-background px-1.5 py-px text-2xs text-modal-card-tag-foreground"
+                  :class="
+                    cn(
+                      'inline-flex shrink-0 items-center rounded-sm px-1.5 py-px text-2xs',
+                      seg.missing
+                        ? 'bg-destructive-background text-white'
+                        : isCustomSegment(seg)
+                          ? 'bg-(--color-azure-300) text-charcoal-800'
+                          : 'bg-modal-card-tag-background text-modal-card-tag-foreground'
+                    )
+                  "
                 >
-                  {{ seg.name }}
+                  {{ segmentChipLabel(seg) }}
                 </span>
                 <span v-else class="truncate">{{ seg.value }}</span>
               </template>
@@ -33,8 +47,7 @@
             </span>
           </div>
 
-          <!-- Edit mode: raw input with autocomplete -->
-          <input
+          <ComboboxInput
             v-else
             ref="inputRef"
             v-model="modelValue"
@@ -46,56 +59,106 @@
               )
             "
             :aria-label="widget.name"
-            :readonly="isReadOnly"
+            :disabled="isReadOnly"
             @input="autocomplete.handleInput"
-            @keydown="autocomplete.handleKeydown"
+            @keydown="onInputKeydown"
             @blur="isEditing = false"
           />
         </div>
-      </PopoverAnchor>
-      <PopoverContent
+      </ComboboxAnchor>
+      <ComboboxContent
+        position="popper"
         side="bottom"
         :side-offset="4"
         :collision-padding="8"
         :class="
           cn(
-            'z-1700 max-h-48 overflow-y-auto rounded-lg border',
-            'border-border-subtle bg-base-background p-2 shadow-sm',
+            'z-1700 max-h-72 w-max max-w-sm min-w-(--reka-combobox-trigger-width) overflow-y-auto',
+            'rounded-lg border border-border-default bg-base-background p-1 shadow-lg',
             'data-[side=top]:animate-slideDownAndFade data-[side=bottom]:animate-slideUpAndFade will-change-[opacity,transform]'
           )
         "
         @open-auto-focus.prevent
+        @close-auto-focus.prevent
       >
         <div
-          v-for="(variable, index) in autocomplete.filteredSuggestions.value"
-          :key="variable.name"
-          :class="
-            cn(
-              'flex cursor-pointer flex-col gap-0.5 rounded-lg p-2 leading-none',
-              index === autocomplete.highlightIndex.value &&
-                'bg-secondary-background-hover'
-            )
-          "
-          @pointerdown.prevent="autocomplete.selectSuggestion(variable)"
+          v-if="groupedSuggestions.length === 0"
+          class="p-2 text-xs text-muted-foreground"
         >
-          <span class="text-sm">{{ variable.name }}</span>
-          <span class="text-xs text-muted-foreground">
-            {{ $t(variable.description) }}
-          </span>
+          {{ $t('templateVariables.noMatches') }}
         </div>
-      </PopoverContent>
-    </PopoverRoot>
+        <ComboboxGroup v-for="group in groupedSuggestions" :key="group.group">
+          <div
+            class="px-2 pt-1.5 pb-1 text-2xs font-semibold tracking-wide text-muted-foreground uppercase"
+          >
+            {{ $t(`templateVariables.group.${group.group}`) }}
+          </div>
+          <ComboboxItem
+            v-for="suggestion in group.items"
+            :key="suggestion.key"
+            :value="suggestion.key"
+            :class="
+              cn(
+                'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none',
+                'data-highlighted:bg-secondary-background-hover data-highlighted:text-text-primary'
+              )
+            "
+            @mousedown.prevent
+            @select.prevent="autocomplete.selectSuggestion(suggestion)"
+          >
+            <span
+              :class="
+                cn(
+                  'inline-flex shrink-0 items-center rounded-sm px-1.5 py-px font-mono text-2xs',
+                  suggestion.isCustom
+                    ? 'bg-(--color-azure-300) text-charcoal-800'
+                    : 'bg-modal-card-tag-background text-modal-card-tag-foreground'
+                )
+              "
+            >
+              {{ suggestion.label }}
+            </span>
+            <span
+              v-if="suggestion.description"
+              class="truncate text-xs text-muted-foreground"
+            >
+              {{ suggestion.description }}
+            </span>
+          </ComboboxItem>
+        </ComboboxGroup>
+      </ComboboxContent>
+    </ComboboxRoot>
   </WidgetLayoutField>
 </template>
 
 <script setup lang="ts">
-import { PopoverAnchor, PopoverContent, PopoverRoot } from 'reka-ui'
-import { computed, nextTick, ref, useTemplateRef } from 'vue'
+import {
+  ComboboxAnchor,
+  ComboboxContent,
+  ComboboxGroup,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxRoot
+} from 'reka-ui'
+import type { ComponentPublicInstance } from 'vue'
+import {
+  computed,
+  nextTick,
+  onScopeDispose,
+  ref,
+  useTemplateRef,
+  watchEffect
+} from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import { useCanvasStore } from '@/renderer/core/canvas/canvasStore'
+import { useWidgetValidationStore } from '@/stores/widgetValidationStore'
 import { stripGraphPrefix } from '@/stores/widgetValueStore'
 import type { SimplifiedWidget } from '@/types/simplifiedWidget'
+import { applyTextReplacements } from '@/utils/searchAndReplace'
+import type { TemplateSegment } from '@/utils/templateVariableResolver'
 import {
+  getCustomTemplateVariableValues,
   parseTemplateSegments,
   previewResolvedValue
 } from '@/utils/templateVariableResolver'
@@ -104,6 +167,10 @@ import { cn } from '@/utils/tailwindUtil'
 import { WidgetInputBaseClass } from './layout'
 import WidgetLayoutField from './layout/WidgetLayoutField.vue'
 import { useTemplateAutocomplete } from '../composables/useTemplateAutocomplete'
+import {
+  buildTemplateSuggestions,
+  groupSuggestions
+} from '../composables/templateSuggestions'
 
 const { widget, size = 'medium' } = defineProps<{
   widget: SimplifiedWidget<string>
@@ -112,10 +179,28 @@ const { widget, size = 'medium' } = defineProps<{
 
 const modelValue = defineModel<string>({ default: '' })
 
-const isEditing = ref(false)
-const inputRef = useTemplateRef<HTMLInputElement>('inputRef')
+const { t } = useI18n()
+const canvasStore = useCanvasStore()
 
-const autocomplete = useTemplateAutocomplete(modelValue, inputRef)
+const isEditing = ref(false)
+const inputRef = useTemplateRef<ComponentPublicInstance>('inputRef')
+const inputEl = computed<HTMLInputElement | null>(
+  () => (inputRef.value?.$el as HTMLInputElement | null) ?? null
+)
+
+const allSuggestions = computed(() =>
+  buildTemplateSuggestions(canvasStore.canvas?.graph ?? null, t)
+)
+
+const autocomplete = useTemplateAutocomplete(
+  modelValue,
+  inputEl,
+  allSuggestions
+)
+
+const groupedSuggestions = computed(() =>
+  groupSuggestions(autocomplete.filteredSuggestions.value)
+)
 
 const isReadOnly = computed(() =>
   Boolean(widget.options?.read_only || widget.options?.disabled)
@@ -123,9 +208,47 @@ const isReadOnly = computed(() =>
 
 const segments = computed(() => parseTemplateSegments(modelValue.value))
 
+const customVariableMap = computed(() => {
+  const map = new Map<string, string>()
+  for (const v of getCustomTemplateVariableValues()) {
+    map.set(v.name, v.value)
+  }
+  return map
+})
+
+function isCustomSegment(seg: TemplateSegment): boolean {
+  if (seg.type !== 'variable') return false
+  return seg.prefix === '@' && customVariableMap.value.has(seg.name)
+}
+
+function segmentChipLabel(seg: TemplateSegment & { type: 'variable' }): string {
+  if (isCustomSegment(seg)) {
+    const value = customVariableMap.value.get(seg.name)
+    if (value) return `${seg.name}: ${value}`
+  }
+  return seg.name
+}
+
+const validationStore = useWidgetValidationStore()
+
+const hasInvalidRefs = computed(() =>
+  segments.value.some((s) => s.type === 'variable' && s.missing)
+)
+
+watchEffect(() => {
+  const locatorId = widget.nodeLocatorId
+  if (!locatorId) return
+  const invalid = !isEditing.value && hasInvalidRefs.value
+  validationStore.setNodeInvalid(locatorId, invalid)
+})
+
+onScopeDispose(() => {
+  const locatorId = widget.nodeLocatorId
+  if (locatorId) validationStore.setNodeInvalid(locatorId, false)
+})
+
 const tooltipText = computed(() => {
   if (!modelValue.value) return undefined
-  const canvasStore = useCanvasStore()
   const graph = canvasStore.canvas?.graph
   if (!graph || !widget.nodeLocatorId) return modelValue.value
 
@@ -133,7 +256,8 @@ const tooltipText = computed(() => {
   const node = graph.getNodeById(Number(nodeId))
   if (!node) return modelValue.value
 
-  return previewResolvedValue(graph, node, modelValue.value)
+  const withVars = previewResolvedValue(graph, node, modelValue.value)
+  return applyTextReplacements(graph, withVars)
 })
 
 const layoutWidget = computed(() => ({
@@ -146,6 +270,19 @@ async function startEditing() {
   if (isReadOnly.value) return
   isEditing.value = true
   await nextTick()
-  inputRef.value?.focus()
+  inputEl.value?.focus()
+}
+
+function onInputKeydown(e: KeyboardEvent) {
+  if (e.key !== 'Tab' || !autocomplete.isOpen.value) return
+  e.preventDefault()
+  const target = e.target as HTMLInputElement
+  target.dispatchEvent(
+    new KeyboardEvent('keydown', {
+      key: 'Enter',
+      bubbles: true,
+      cancelable: true
+    })
+  )
 }
 </script>

@@ -1,20 +1,31 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { nextTick, ref } from 'vue'
 
-vi.mock('@/utils/formatUtil', () => ({
-  formatDate: vi.fn((fmt: string) => fmt)
-}))
-
-vi.mock('@/platform/settings/settingStore', () => ({
-  useSettingStore: vi.fn(() => ({
-    get: (key: string) => {
-      if (key === 'Comfy.Filename.CustomVariables') return []
-      return undefined
-    }
-  }))
-}))
-
 import { useTemplateAutocomplete } from './useTemplateAutocomplete'
+import type { TemplateSuggestion } from './templateSuggestions'
+
+function suggestion(
+  label: string,
+  insertText = `@${label}`
+): TemplateSuggestion {
+  return {
+    key: `test:${label}`,
+    label,
+    insertText,
+    description: '',
+    filterText: label.toLowerCase(),
+    group: 'variable'
+  }
+}
+
+const mockSuggestions: TemplateSuggestion[] = [
+  suggestion('project'),
+  suggestion('workflowTitle'),
+  suggestion('groupTitle'),
+  suggestion('width', '%width%'),
+  suggestion('height', '%height%'),
+  suggestion('KSampler.seed', '%KSampler.seed%')
+]
 
 function makeInputEl(value: string, selectionStart: number) {
   return {
@@ -29,43 +40,67 @@ describe('useTemplateAutocomplete', () => {
   it('opens when @ is typed', () => {
     const inputValue = ref('@')
     const el = ref(makeInputEl('@', 1))
+    const suggestions = ref(mockSuggestions)
     const { handleInput, isOpen, filteredSuggestions } =
-      useTemplateAutocomplete(inputValue, el)
+      useTemplateAutocomplete(inputValue, el, suggestions)
 
     handleInput()
 
     expect(isOpen.value).toBe(true)
-    expect(filteredSuggestions.value.length).toBe(10)
+    expect(filteredSuggestions.value.length).toBe(mockSuggestions.length)
   })
 
   it('filters suggestions by partial query', () => {
     const inputValue = ref('@pro')
     const el = ref(makeInputEl('@pro', 4))
+    const suggestions = ref(mockSuggestions)
     const { handleInput, isOpen, filteredSuggestions } =
-      useTemplateAutocomplete(inputValue, el)
+      useTemplateAutocomplete(inputValue, el, suggestions)
 
     handleInput()
 
     expect(isOpen.value).toBe(true)
-    expect(filteredSuggestions.value.length).toBe(1)
-    expect(filteredSuggestions.value[0].name).toBe('project')
+    expect(filteredSuggestions.value.map((s) => s.label)).toEqual(['project'])
+  })
+
+  it('uses substring match across filterText', () => {
+    const inputValue = ref('@seed')
+    const el = ref(makeInputEl('@seed', 5))
+    const suggestions = ref(mockSuggestions)
+    const { handleInput, filteredSuggestions } = useTemplateAutocomplete(
+      inputValue,
+      el,
+      suggestions
+    )
+
+    handleInput()
+
+    expect(filteredSuggestions.value.map((s) => s.label)).toEqual([
+      'KSampler.seed'
+    ])
   })
 
   it('closes when no @ pattern is found', () => {
     const inputValue = ref('hello')
     const el = ref(makeInputEl('hello', 5))
-    const { handleInput, isOpen } = useTemplateAutocomplete(inputValue, el)
+    const suggestions = ref(mockSuggestions)
+    const { handleInput, isOpen } = useTemplateAutocomplete(
+      inputValue,
+      el,
+      suggestions
+    )
 
     handleInput()
 
     expect(isOpen.value).toBe(false)
   })
 
-  it('selects a suggestion and splices into text', async () => {
+  it('splices insertText for @ variables', async () => {
     const inputValue = ref('output/@pro')
     const el = ref(makeInputEl('output/@pro', 11))
+    const suggestions = ref(mockSuggestions)
     const { handleInput, selectSuggestion, filteredSuggestions } =
-      useTemplateAutocomplete(inputValue, el)
+      useTemplateAutocomplete(inputValue, el, suggestions)
 
     handleInput()
     selectSuggestion(filteredSuggestions.value[0])
@@ -74,50 +109,46 @@ describe('useTemplateAutocomplete', () => {
     expect(inputValue.value).toBe('output/@project')
   })
 
-  it('navigates suggestions with ArrowDown', () => {
-    const inputValue = ref('@')
-    const el = ref(makeInputEl('@', 1))
-    const { handleInput, handleKeydown, highlightIndex } =
-      useTemplateAutocomplete(inputValue, el)
+  it('splices %width% when picking a runtime token', async () => {
+    const inputValue = ref('out/@wid')
+    const el = ref(makeInputEl('out/@wid', 8))
+    const suggestions = ref(mockSuggestions)
+    const { handleInput, selectSuggestion, filteredSuggestions } =
+      useTemplateAutocomplete(inputValue, el, suggestions)
 
     handleInput()
+    selectSuggestion(filteredSuggestions.value[0])
+    await nextTick()
 
-    const event = new KeyboardEvent('keydown', { key: 'ArrowDown' })
-    Object.defineProperty(event, 'preventDefault', { value: () => {} })
-    handleKeydown(event)
-
-    expect(highlightIndex.value).toBe(1)
+    expect(inputValue.value).toBe('out/%width%')
   })
 
-  it('wraps around on ArrowUp from first item', () => {
-    const inputValue = ref('@')
-    const el = ref(makeInputEl('@', 1))
-    const { handleInput, handleKeydown, highlightIndex } =
-      useTemplateAutocomplete(inputValue, el)
+  it('splices %Node.widget% when picking a node reference', async () => {
+    const inputValue = ref('@ksampler')
+    const el = ref(makeInputEl('@ksampler', 9))
+    const suggestions = ref(mockSuggestions)
+    const { handleInput, selectSuggestion, filteredSuggestions } =
+      useTemplateAutocomplete(inputValue, el, suggestions)
 
     handleInput()
+    selectSuggestion(filteredSuggestions.value[0])
+    await nextTick()
 
-    const event = new KeyboardEvent('keydown', { key: 'ArrowUp' })
-    Object.defineProperty(event, 'preventDefault', { value: () => {} })
-    handleKeydown(event)
-
-    expect(highlightIndex.value).toBe(9)
+    expect(inputValue.value).toBe('%KSampler.seed%')
   })
 
-  it('closes on Escape', () => {
-    const inputValue = ref('@')
-    const el = ref(makeInputEl('@', 1))
-    const { handleInput, handleKeydown, isOpen } = useTemplateAutocomplete(
-      inputValue,
-      el
-    )
+  it('closes after selection', async () => {
+    const inputValue = ref('@pro')
+    const el = ref(makeInputEl('@pro', 4))
+    const suggestions = ref(mockSuggestions)
+    const { handleInput, selectSuggestion, filteredSuggestions, isOpen } =
+      useTemplateAutocomplete(inputValue, el, suggestions)
 
     handleInput()
     expect(isOpen.value).toBe(true)
 
-    const event = new KeyboardEvent('keydown', { key: 'Escape' })
-    Object.defineProperty(event, 'preventDefault', { value: () => {} })
-    handleKeydown(event)
+    selectSuggestion(filteredSuggestions.value[0])
+    await nextTick()
 
     expect(isOpen.value).toBe(false)
   })
