@@ -13,7 +13,7 @@
           'relative inline-flex h-4 w-7 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors',
           'focus-visible:ring-2 focus-visible:ring-primary-background focus-visible:ring-offset-1 focus-visible:outline-none',
           filterStore.showHidden
-            ? 'bg-primary-background'
+            ? 'bg-interface-menu-component-surface-selected'
             : 'bg-secondary-background'
         )
       "

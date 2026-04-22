@@ -21,7 +21,7 @@
           cn(
             'h-6 rounded-md px-2 text-xs',
             filterStore.activeGroupings.includes(axis)
-              ? 'bg-node-component-primary text-base-foreground'
+              ? 'bg-interface-menu-component-surface-selected text-base-foreground'
               : 'border border-(--interface-stroke) text-muted-foreground hover:text-base-foreground'
           )
         "
