@@ -1216,6 +1216,18 @@
       "toastSingle": "Pinned asset — broke auto-layout",
       "toastMulti": "Pinned {count} assets — broke auto-layout",
       "undoLabel": "Undo"
+    },
+    "contextMenu": {
+      "pinHere": "Pin here",
+      "unpin": "Unpin",
+      "download": "Download",
+      "downloadCount": "Download {count} assets",
+      "selectSimilar": "Select similar",
+      "resetAllPins": "Reset all pins",
+      "downloadStarted": "Download started",
+      "downloadStartedMulti": "Started download of {count} assets",
+      "selectSimilarNoMatch": "No similar assets",
+      "selectSimilarNoMatchDetail": "Target has no workflow metadata to match against"
     }
   },
   "tabMenu": {
