@@ -34,6 +34,7 @@ import { MOSHPIT_LAYOUT_INJECTION_KEY } from '@/platform/moshpit/composables/use
 import { getDateRangeForPreset } from '@/platform/moshpit/services/filterMath'
 import { useMoshpitFilterStore } from '@/platform/moshpit/stores/moshpitFilterStore'
 import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetadataStore'
+import { useMoshpitOverrideStore } from '@/platform/moshpit/stores/moshpitOverrideStore'
 import {
   MOSHPIT_SETTINGS_PANEL_ID,
   useMoshpitSidebarStore
@@ -81,6 +82,7 @@ watch(
 const filterStore = useMoshpitFilterStore()
 const assetsStore = useAssetsStore()
 const metaStore = useMoshpitMetadataStore()
+const overrideStore = useMoshpitOverrideStore()
 
 watch(
   () =>
@@ -152,5 +154,11 @@ onMounted(() => {
   // Trigger the fetch so the processing queue has candidates once a workflow
   // or time range is selected.
   void assetsStore.updateHistory()
+  // Quick 260423-m6c: hydrate per-asset sprite overrides (pinned world
+  // positions + manual scales) so pins/resizes survive page reloads. The
+  // store swallows its own errors; the extra `.catch` is double-safety.
+  overrideStore.hydrate().catch((err) => {
+    console.warn('[moshpit] override hydrate failed at boot', err)
+  })
 })
 </script>
