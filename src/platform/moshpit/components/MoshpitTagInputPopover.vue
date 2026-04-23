@@ -10,7 +10,6 @@
         @escape-key-down="openModel = false"
       >
         <input
-          ref="inputEl"
           v-model="draft"
           type="text"
           :placeholder="t('moshpit.curation.tags.placeholder')"
@@ -107,13 +106,13 @@ const inputClasses = cn(
 
 function chipClass(tristate: TriState): string {
   return cn(
-    'rounded-full px-2 py-0.5 text-xs border',
+    'rounded-full border px-2 py-0.5 text-xs',
     tristate === 'all' &&
       'border-interface-menu-component-surface-selected bg-interface-menu-component-surface-selected text-base-foreground',
     tristate === 'some' &&
       'border-warning bg-interface-panel-surface text-base-foreground',
     tristate === 'none' &&
-      'border-border-subtle bg-interface-panel-surface text-muted-foreground hover:bg-interface-panel-hover'
+      'hover:bg-interface-panel-hover border-border-subtle bg-interface-panel-surface text-muted-foreground'
   )
 }
 </script>
