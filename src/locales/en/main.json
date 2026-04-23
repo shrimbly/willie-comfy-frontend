@@ -3934,9 +3934,8 @@
     "noMatches": "No matches",
     "selectDirectory": "Select output directory",
     "removeDirectory": "Remove directory",
-    "outputRoot": "Output root",
+    "outputRoot": "Output",
     "loadingDirectories": "Loading directories...",
-    "noOutputDirectories": "No output subdirectories yet",
     "group": {
       "variable": "Variables",
       "token": "Runtime tokens",

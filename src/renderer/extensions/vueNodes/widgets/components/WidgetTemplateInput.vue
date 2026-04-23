@@ -115,58 +115,25 @@
             :collision-padding="8"
             :class="
               cn(
-                'z-1700 max-h-72 w-60 overflow-y-auto',
+                'z-1700 max-h-72 w-64 overflow-y-auto',
                 'rounded-lg border border-border-default bg-base-background p-1 shadow-lg',
                 'data-[side=top]:animate-slideDownAndFade data-[side=bottom]:animate-slideUpAndFade will-change-[opacity,transform]'
               )
             "
           >
             <div
-              :class="
-                cn(
-                  'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-xs',
-                  'hover:bg-secondary-background-hover'
-                )
-              "
-              @click="selectOutputRoot"
-            >
-              <i class="icon-[lucide--home] size-3.5 shrink-0" />
-              <span class="truncate">
-                {{ t('templateVariables.outputRoot') }}
-              </span>
-            </div>
-            <div
-              v-if="outputSubdirectories.length > 0"
-              class="my-1 border-b border-border-subtle"
-            />
-            <div
               v-if="outputSubdirectoriesLoading"
               class="px-2 py-1.5 text-xs text-muted-foreground"
             >
               {{ t('templateVariables.loadingDirectories') }}
             </div>
-            <div
-              v-else-if="outputSubdirectories.length === 0"
-              class="px-2 py-1.5 text-xs text-muted-foreground"
-            >
-              {{ t('templateVariables.noOutputDirectories') }}
-            </div>
-            <template v-else>
-              <div
-                v-for="dir in outputSubdirectories"
-                :key="dir"
-                :class="
-                  cn(
-                    'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-xs',
-                    'hover:bg-secondary-background-hover'
-                  )
-                "
-                @click="selectDirectory(dir)"
-              >
-                <i class="icon-[lucide--folder] size-3.5 shrink-0" />
-                <span class="truncate">{{ dir }}</span>
-              </div>
-            </template>
+            <FolderTreeNode
+              v-else
+              :node="outputFolderTree"
+              :selected-path="selectedTreePath"
+              :depth="0"
+              @select="handleFolderSelect"
+            />
           </PopoverContent>
         </PopoverRoot>
       </div>
@@ -258,6 +225,8 @@ import {
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import FolderTreeNode from '@/platform/assets/components/FolderTreeNode.vue'
+import type { FolderTreeNodeType } from '@/platform/assets/components/FolderTreeNode.vue'
 import { useCanvasStore } from '@/renderer/core/canvas/canvasStore'
 import { useAssetsStore } from '@/stores/assetsStore'
 import { useWidgetValidationStore } from '@/stores/widgetValidationStore'
@@ -405,21 +374,47 @@ const outputSubdirectoriesLoading = computed(
   () => assetsStore.historyLoading && assetsStore.historyAssets.length === 0
 )
 
-const outputSubdirectories = computed(() => {
+const OUTPUT_ROOT_PATH = 'output'
+const OUTPUT_ROOT_PREFIX = `${OUTPUT_ROOT_PATH}/`
+
+const outputFolderTree = computed<FolderTreeNodeType>(() => {
   const dirs = new Set<string>()
   for (const asset of assetsStore.historyAssets) {
     const name = asset.name
     if (!name) continue
-    const lastSlash = name.lastIndexOf('/')
-    if (lastSlash <= 0) continue
-    let dir = name.substring(0, lastSlash)
-    while (dir.length > 0) {
-      dirs.add(dir)
-      const parent = dir.lastIndexOf('/')
-      dir = parent > 0 ? dir.substring(0, parent) : ''
+    const parts = name.split('/')
+    for (let i = 1; i < parts.length; i++) {
+      dirs.add(parts.slice(0, i).join('/'))
     }
   }
-  return Array.from(dirs).sort((a, b) => a.localeCompare(b))
+
+  const root: FolderTreeNodeType = {
+    name: t('templateVariables.outputRoot'),
+    path: OUTPUT_ROOT_PATH,
+    children: []
+  }
+  const nodeMap = new Map<string, FolderTreeNodeType>()
+  nodeMap.set('', root)
+
+  for (const dir of Array.from(dirs).sort((a, b) => a.localeCompare(b))) {
+    const parts = dir.split('/')
+    const name = parts[parts.length - 1]
+    const parentDir = parts.slice(0, -1).join('/')
+    const node: FolderTreeNodeType = {
+      name,
+      path: `${OUTPUT_ROOT_PATH}/${dir}`,
+      children: []
+    }
+    nodeMap.set(dir, node)
+    ;(nodeMap.get(parentDir) ?? root).children.push(node)
+  }
+  return root
+})
+
+const selectedTreePath = computed(() => {
+  const match = /^%dir:([^%]+)%/.exec(modelValue.value)
+  if (!match) return OUTPUT_ROOT_PATH
+  return `${OUTPUT_ROOT_PREFIX}${match[1]}`
 })
 
 watchEffect(() => {
@@ -429,15 +424,16 @@ watchEffect(() => {
   }
 })
 
-function selectDirectory(path: string) {
+function handleFolderSelect(path: string) {
   if (isReadOnly.value) return
-  modelValue.value = setLeadingDirectoryToken(modelValue.value, path)
-  isDirectoryPickerOpen.value = false
-}
-
-function selectOutputRoot() {
-  if (isReadOnly.value) return
-  modelValue.value = removeLeadingDirectoryToken(modelValue.value)
+  if (path === OUTPUT_ROOT_PATH) {
+    modelValue.value = removeLeadingDirectoryToken(modelValue.value)
+  } else {
+    const relative = path.startsWith(OUTPUT_ROOT_PREFIX)
+      ? path.substring(OUTPUT_ROOT_PREFIX.length)
+      : path
+    modelValue.value = setLeadingDirectoryToken(modelValue.value, relative)
+  }
   isDirectoryPickerOpen.value = false
 }
 
