@@ -140,6 +140,7 @@ None.
 | 260423-kx4 | Sprite right-click context menu (Reka UI) — Pin/Unpin, Download, Select Similar, Reset All Pins                | 2026-04-23 | b548e405f | [260423-kx4-moshpit-sprite-context-menu-right-click-](./quick/260423-kx4-moshpit-sprite-context-menu-right-click-/) |
 | 260423-led | Floating action bar (bottom-center) + shared useMoshpitSpriteActions composable                                | 2026-04-23 | 6cd4583d5 | [260423-led-moshpit-floating-action-bar-visible-when](./quick/260423-led-moshpit-floating-action-bar-visible-when/) |
 | 260423-ltc | Corner resize handles (single-selection) — drag writes overrideStore.setScale with MIN/MAX clamp               | 2026-04-23 | f49078a2d | [260423-ltc-moshpit-sprite-resize-handles-corner-dra](./quick/260423-ltc-moshpit-sprite-resize-handles-corner-dra/) |
+| 260423-m6c | Persist overrides to IndexedDB (MoshpitDB v4) — pins + scales survive page reloads; hydrate on boot            | 2026-04-23 | ae70d53f8 | [260423-m6c-persist-moshpit-sprite-overrides-pins-sc](./quick/260423-m6c-persist-moshpit-sprite-overrides-pins-sc/) |
 
 ## Session Continuity
 
