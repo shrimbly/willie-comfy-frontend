@@ -3,90 +3,43 @@
     v-if="isVisible"
     role="toolbar"
     :aria-label="t('moshpit.actionBar.selectedCount', selectionStore.size)"
-    class="pointer-events-auto absolute bottom-4 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-border-subtle bg-interface-panel-surface px-3 py-2 shadow-interface"
+    class="pointer-events-auto absolute bottom-4 left-1/2 z-30 flex -translate-x-1/2 flex-row items-center gap-1 border border-interface-stroke bg-comfy-menu-bg p-2 shadow-interface"
   >
     <span
-      class="text-base-mute-foreground px-2 text-sm"
+      class="px-2 text-xs font-medium text-muted-foreground tabular-nums select-none"
       data-testid="moshpit-action-bar-count"
     >
       {{ t('moshpit.actionBar.selectedCount', selectionStore.size) }}
     </span>
-    <span class="h-4 w-px bg-border-subtle" aria-hidden="true" />
-    <button
-      type="button"
-      :class="buttonClasses"
-      :disabled="!canUnpin"
-      :aria-label="t('moshpit.actionBar.unpin')"
-      data-testid="moshpit-action-bar-unpin"
-      @click="onUnpinClick"
+
+    <div class="h-[27px] w-px self-center bg-node-divider" aria-hidden="true" />
+
+    <Button
+      v-for="btn in actionButtons"
+      :key="btn.id"
+      v-tooltip.top="btn.tooltip"
+      variant="secondary"
+      class="size-8 bg-comfy-menu-bg p-0 hover:bg-interface-button-hover-surface!"
+      :disabled="btn.disabled"
+      :aria-label="btn.tooltip"
+      :data-testid="btn.testId"
+      @click="btn.onClick"
     >
-      {{ t('moshpit.actionBar.unpin') }}
-    </button>
-    <button
-      type="button"
-      :class="buttonClasses"
-      :aria-label="t('moshpit.actionBar.download')"
-      data-testid="moshpit-action-bar-download"
-      @click="onDownloadClick"
-    >
-      {{ t('moshpit.actionBar.download') }}
-    </button>
-    <span class="h-4 w-px bg-border-subtle" aria-hidden="true" />
-    <button
-      type="button"
-      :class="buttonClasses"
-      :aria-label="t('moshpit.actionBar.favourite')"
-      data-testid="moshpit-action-bar-favourite"
-      @click="onFavouriteClick"
-    >
-      {{ t('moshpit.actionBar.favourite') }}
-    </button>
-    <button
-      type="button"
-      :class="buttonClasses"
-      :aria-label="t('moshpit.actionBar.tag')"
-      data-testid="moshpit-action-bar-tag"
-      @click="onTagClick"
-    >
-      {{ t('moshpit.actionBar.tag') }}
-    </button>
-    <button
-      type="button"
-      :class="buttonClasses"
-      :aria-label="t('moshpit.actionBar.hide')"
-      data-testid="moshpit-action-bar-hide"
-      @click="onHideClick"
-    >
-      {{ t('moshpit.actionBar.hide') }}
-    </button>
-    <button
-      type="button"
-      :class="buttonClasses"
-      :aria-label="t('moshpit.actionBar.folder')"
-      data-testid="moshpit-action-bar-folder"
-      @click="onFolderClick"
-    >
-      {{ t('moshpit.actionBar.folder') }}
-    </button>
-    <button
-      type="button"
-      :class="buttonClasses"
-      :aria-label="t('moshpit.actionBar.export')"
-      data-testid="moshpit-action-bar-export"
-      @click="onExportClick"
-    >
-      {{ t('moshpit.actionBar.export') }}
-    </button>
-    <span class="h-4 w-px bg-border-subtle" aria-hidden="true" />
-    <button
-      type="button"
-      :class="buttonClasses"
+      <i :class="cn(btn.icon, 'size-4')" aria-hidden="true" />
+    </Button>
+
+    <div class="h-[27px] w-px self-center bg-node-divider" aria-hidden="true" />
+
+    <Button
+      v-tooltip.top="t('moshpit.actionBar.clear')"
+      variant="secondary"
+      class="size-8 bg-comfy-menu-bg p-0 hover:bg-interface-button-hover-surface!"
       :aria-label="t('moshpit.actionBar.clear')"
       data-testid="moshpit-action-bar-clear"
       @click="onClearClick"
     >
-      {{ t('moshpit.actionBar.clear') }}
-    </button>
+      <i class="icon-[lucide--x] size-4" aria-hidden="true" />
+    </Button>
   </div>
 </template>
 
@@ -94,6 +47,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import Button from '@/components/ui/button/Button.vue'
 import { useMoshpitCuration } from '@/platform/moshpit/composables/useMoshpitCuration'
 import { useMoshpitSpriteActions } from '@/platform/moshpit/composables/useMoshpitSpriteActions'
 import { useMoshpitSelectionStore } from '@/platform/moshpit/stores/moshpitSelectionStore'
@@ -126,39 +80,84 @@ const canUnpin = computed(() =>
   actions.someSelectedArePinned(selectionStore.selected)
 )
 
-const buttonClasses = cn(
-  'hover:bg-interface-panel-hover rounded-md px-2 py-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-50'
-)
-
-function onUnpinClick(): void {
-  actions.unpinMany(selectionStore.selected)
+type ActionButton = {
+  id: string
+  testId: string
+  tooltip: string
+  icon: string
+  disabled?: boolean
+  onClick: () => void
 }
 
-function onDownloadClick(): void {
-  actions.downloadMany(selectionStore.selected)
-}
-
-function onFavouriteClick(): void {
-  curation.favouriteMany(selectionStore.selected)
-}
-
-function onTagClick(): void {
-  emit('open-tag-popover', { hashes: selectionStore.selected })
-}
-
-function onHideClick(): void {
-  curation.hideMany(selectionStore.selected)
-}
-
-function onFolderClick(): void {
-  emit('open-folder-picker', { hashes: selectionStore.selected })
-}
-
-function onExportClick(): void {
-  curation.exportMany(selectionStore.selected)
-}
+const actionButtons = computed<ActionButton[]>(() => [
+  {
+    id: 'unpin',
+    testId: 'moshpit-action-bar-unpin',
+    tooltip: t('moshpit.actionBar.unpin'),
+    icon: 'icon-[lucide--pin-off]',
+    disabled: !canUnpin.value,
+    onClick: () => actions.unpinMany(selectionStore.selected)
+  },
+  {
+    id: 'download',
+    testId: 'moshpit-action-bar-download',
+    tooltip: t('moshpit.actionBar.download'),
+    icon: 'icon-[lucide--download]',
+    onClick: () => actions.downloadMany(selectionStore.selected)
+  },
+  {
+    id: 'tournament',
+    testId: 'moshpit-action-bar-tournament',
+    tooltip: t('moshpit.actionBar.tournament'),
+    icon: 'icon-[lucide--swords]',
+    disabled: selectionStore.size < 2 || !resolveFullResUrl,
+    onClick: onTournamentClick
+  },
+  {
+    id: 'favourite',
+    testId: 'moshpit-action-bar-favourite',
+    tooltip: t('moshpit.actionBar.favourite'),
+    icon: 'icon-[lucide--heart]',
+    onClick: () => curation.favouriteMany(selectionStore.selected)
+  },
+  {
+    id: 'tag',
+    testId: 'moshpit-action-bar-tag',
+    tooltip: t('moshpit.actionBar.tag'),
+    icon: 'icon-[lucide--tag]',
+    onClick: () => emit('open-tag-popover', { hashes: selectionStore.selected })
+  },
+  {
+    id: 'hide',
+    testId: 'moshpit-action-bar-hide',
+    tooltip: t('moshpit.actionBar.hide'),
+    icon: 'icon-[lucide--eye-off]',
+    onClick: () => curation.hideMany(selectionStore.selected)
+  },
+  {
+    id: 'folder',
+    testId: 'moshpit-action-bar-folder',
+    tooltip: t('moshpit.actionBar.folder'),
+    icon: 'icon-[lucide--folder-plus]',
+    onClick: () =>
+      emit('open-folder-picker', { hashes: selectionStore.selected })
+  },
+  {
+    id: 'export',
+    testId: 'moshpit-action-bar-export',
+    tooltip: t('moshpit.actionBar.export'),
+    icon: 'icon-[lucide--file-output]',
+    onClick: () => curation.exportMany(selectionStore.selected)
+  }
+])
 
 function onClearClick(): void {
   selectionStore.clear()
+}
+
+function onTournamentClick(): void {
+  if (!resolveFullResUrl) return
+  if (selectionStore.size < 2) return
+  tournamentStore.enter(selectionStore.selected, resolveFullResUrl)
 }
 </script>
