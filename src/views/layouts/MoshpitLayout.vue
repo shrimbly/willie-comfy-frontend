@@ -34,6 +34,8 @@ import { MOSHPIT_LAYOUT_INJECTION_KEY } from '@/platform/moshpit/composables/use
 import { getDateRangeForPreset } from '@/platform/moshpit/services/filterMath'
 import { useMoshpitFilterStore } from '@/platform/moshpit/stores/moshpitFilterStore'
 import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetadataStore'
+import { useMoshpitCurationStore } from '@/platform/moshpit/stores/moshpitCurationStore'
+import { useMoshpitFoldersStore } from '@/platform/moshpit/stores/moshpitFoldersStore'
 import { useMoshpitOverrideStore } from '@/platform/moshpit/stores/moshpitOverrideStore'
 import {
   MOSHPIT_SETTINGS_PANEL_ID,
@@ -83,6 +85,8 @@ const filterStore = useMoshpitFilterStore()
 const assetsStore = useAssetsStore()
 const metaStore = useMoshpitMetadataStore()
 const overrideStore = useMoshpitOverrideStore()
+const curationStore = useMoshpitCurationStore()
+const foldersStore = useMoshpitFoldersStore()
 
 watch(
   () =>
@@ -159,6 +163,12 @@ onMounted(() => {
   // store swallows its own errors; the extra `.catch` is double-safety.
   overrideStore.hydrate().catch((err) => {
     console.warn('[moshpit] override hydrate failed at boot', err)
+  })
+  curationStore.hydrate().catch((err) => {
+    console.warn('[moshpit] curation hydrate failed at boot', err)
+  })
+  foldersStore.hydrate().catch((err) => {
+    console.warn('[moshpit] folders hydrate failed at boot', err)
   })
 })
 </script>
