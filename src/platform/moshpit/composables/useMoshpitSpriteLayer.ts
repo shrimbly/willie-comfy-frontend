@@ -59,6 +59,46 @@ import { useMoshpitSelectionStore } from '@/platform/moshpit/stores/moshpitSelec
 
 export const DEFAULT_CELL_SIZE = 560
 
+const HANDLE_SIZE_WORLD = 20
+const HANDLE_FILL = 0xffffff
+const HANDLE_STROKE = 0x000000
+const HANDLE_STROKE_WIDTH = 2
+
+export type ResizeCorner = 'tl' | 'tr' | 'bl' | 'br'
+
+/**
+ * Pure helper: determine whether `point` lies inside any of the four
+ * `handleSize × handleSize` hit-squares centred on the sprite AABB corners.
+ *
+ * @internal
+ */
+export function cornerHitTest(
+  point: { x: number; y: number },
+  sprite: { x: number; y: number; width: number; height: number },
+  handleSize: number
+): ResizeCorner | null {
+  const halfW = sprite.width / 2
+  const halfH = sprite.height / 2
+  const halfHandle = handleSize / 2
+  const corners: readonly [ResizeCorner, number, number][] = [
+    ['tl', sprite.x - halfW, sprite.y - halfH],
+    ['tr', sprite.x + halfW, sprite.y - halfH],
+    ['bl', sprite.x - halfW, sprite.y + halfH],
+    ['br', sprite.x + halfW, sprite.y + halfH]
+  ]
+  for (const [id, cx, cy] of corners) {
+    if (
+      point.x >= cx - halfHandle &&
+      point.x <= cx + halfHandle &&
+      point.y >= cy - halfHandle &&
+      point.y <= cy + halfHandle
+    ) {
+      return id
+    }
+  }
+  return null
+}
+
 /**
  * Injection key for passing the Phase 3 filtered-assets layout provider from
  * MoshpitLayout (where useMoshpitFilteredAssets is instantiated) down to
@@ -154,6 +194,15 @@ export interface SpriteLayerHandle {
    * entry), or null when the hash has no mounted sprite.
    */
   getSpriteWorldPos(hash: string): { x: number; y: number } | null
+  /**
+   * Returns the sprite hash + corner id whose resize handle contains the
+   * world point, or null. Only active for single-element selection (handles
+   * are only rendered in that case).
+   */
+  hitTestHandle(
+    worldX: number,
+    worldY: number
+  ): { hash: string; corner: ResizeCorner } | null
 }
 
 export function useMoshpitSpriteLayer(
@@ -178,8 +227,17 @@ export function useMoshpitSpriteLayer(
   selectionRings.cullable = true
   options.viewport.addChild(selectionRings)
 
+  // Resize handles — rendered above selection rings, only for single-element
+  // selections. Sibling container parented to the viewport so world-space pan
+  // /zoom applies uniformly (handles track the sprite as the user pans).
+  const resizeHandles = new Container()
+  resizeHandles.label = 'moshpit-resize-handles'
+  resizeHandles.cullable = true
+  options.viewport.addChild(resizeHandles)
+
   const spriteMap = new Map<string, SpriteEntry>()
   const ringMap = new Map<string, Graphics>()
+  const handleMap = new Map<string, Graphics[]>()
   let cancelled = false
 
   function computeLayoutSlots(hashes: readonly string[]): GridSlot[] {
@@ -328,6 +386,31 @@ export function useMoshpitSpriteLayer(
     return g
   }
 
+  function drawHandles(entry: SpriteEntry): Graphics[] {
+    const w = entry.sprite.width || cellSize
+    const h = entry.sprite.height || cellSize
+    const halfW = w / 2
+    const halfH = h / 2
+    const half = HANDLE_SIZE_WORLD / 2
+    const corners: readonly [number, number][] = [
+      [entry.sprite.x - halfW, entry.sprite.y - halfH],
+      [entry.sprite.x + halfW, entry.sprite.y - halfH],
+      [entry.sprite.x - halfW, entry.sprite.y + halfH],
+      [entry.sprite.x + halfW, entry.sprite.y + halfH]
+    ]
+    const graphics: Graphics[] = []
+    for (const [cx, cy] of corners) {
+      const g = new Graphics()
+      g.rect(-half, -half, HANDLE_SIZE_WORLD, HANDLE_SIZE_WORLD)
+        .fill({ color: HANDLE_FILL })
+        .stroke({ width: HANDLE_STROKE_WIDTH, color: HANDLE_STROKE })
+      g.x = cx
+      g.y = cy
+      graphics.push(g)
+    }
+    return graphics
+  }
+
   // Sync selection rings on every selection change, whenever sprites
   // re-layout (registry effect may reassign slots or swap textures), and
   // whenever an override mutates (pin / scale changes). The read of
@@ -363,6 +446,27 @@ export function useMoshpitSpriteLayer(
       ringMap.set(hash, ring)
       selectionRings.addChild(ring)
     }
+
+    // Resize handles render only for single-element selection. Rebuild from
+    // scratch on every pass — the selection size is bounded (0/1 here) and
+    // handle geometry depends on sprite width/height which may change with
+    // scale overrides.
+    for (const [hash, gs] of handleMap) {
+      for (const g of gs) {
+        resizeHandles.removeChild(g)
+        g.destroy()
+      }
+      handleMap.delete(hash)
+    }
+    if (ids.size === 1) {
+      const [onlyHash] = ids
+      const entry = spriteMap.get(onlyHash)
+      if (entry) {
+        const gs = drawHandles(entry)
+        handleMap.set(onlyHash, gs)
+        for (const g of gs) resizeHandles.addChild(g)
+      }
+    }
   })
 
   function hitTestPoint(worldX: number, worldY: number): string | null {
@@ -389,6 +493,28 @@ export function useMoshpitSpriteLayer(
 
   function getSpriteWorldPos(hash: string): { x: number; y: number } | null {
     return readSpriteWorldPos(spriteMap.get(hash))
+  }
+
+  function hitTestHandle(
+    worldX: number,
+    worldY: number
+  ): { hash: string; corner: ResizeCorner } | null {
+    if (selection.size !== 1) return null
+    const [hash] = selection.selected
+    if (!hash) return null
+    const entry = spriteMap.get(hash)
+    if (!entry) return null
+    const corner = cornerHitTest(
+      { x: worldX, y: worldY },
+      {
+        x: entry.sprite.x,
+        y: entry.sprite.y,
+        width: entry.sprite.width,
+        height: entry.sprite.height
+      },
+      HANDLE_SIZE_WORLD
+    )
+    return corner ? { hash, corner } : null
   }
 
   function hitTestRect(rect: SpriteHitRect): string[] {
@@ -425,11 +551,22 @@ export function useMoshpitSpriteLayer(
       ring.destroy()
     }
     ringMap.clear()
+    for (const [, gs] of handleMap) {
+      for (const g of gs) g.destroy()
+    }
+    handleMap.clear()
     selectionRings.destroy({ children: true })
+    resizeHandles.destroy({ children: true })
     container.destroy({ children: true })
   }
 
   onBeforeUnmount(destroy)
 
-  return { destroy, hitTestPoint, hitTestRect, getSpriteWorldPos }
+  return {
+    destroy,
+    hitTestPoint,
+    hitTestRect,
+    getSpriteWorldPos,
+    hitTestHandle
+  }
 }

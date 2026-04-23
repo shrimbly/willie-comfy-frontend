@@ -117,7 +117,8 @@ onMounted(async () => {
   spriteHitTestRef.value = {
     hitTestPoint: spriteLayerRef.hitTestPoint,
     hitTestRect: spriteLayerRef.hitTestRect,
-    getSpriteWorldPos: spriteLayerRef.getSpriteWorldPos
+    getSpriteWorldPos: spriteLayerRef.getSpriteWorldPos,
+    hitTestHandle: spriteLayerRef.hitTestHandle
   }
 
   viewportStore.setScreenSize(host.clientWidth, host.clientHeight)

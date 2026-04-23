@@ -51,6 +51,15 @@ export interface SpriteHitTester {
    * watchEffect writes override-resolved coords into the sprite entry.
    */
   getSpriteWorldPos(hash: string): { x: number; y: number } | null
+  /**
+   * Returns the sprite hash + corner id whose resize handle contains the
+   * world point, or null. Only yields a hit for single-element selection —
+   * resize handles are not rendered for multi-select or empty selection.
+   */
+  hitTestHandle(
+    worldX: number,
+    worldY: number
+  ): { hash: string; corner: 'tl' | 'tr' | 'bl' | 'br' } | null
 }
 
 export const MOSHPIT_SPRITE_HITTEST_INJECTION_KEY: InjectionKey<

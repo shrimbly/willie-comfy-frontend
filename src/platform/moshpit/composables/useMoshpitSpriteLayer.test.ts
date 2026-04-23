@@ -14,6 +14,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import type { GridSlot } from '../services/layoutMath'
 import {
+  cornerHitTest,
   readSpriteWorldPos,
   resolveSlot,
   resolveSpriteScale
@@ -105,6 +106,57 @@ describe('resolveSpriteScale (override-aware scale resolution)', () => {
       worldX: 0,
       worldY: 0
     })
+  })
+})
+
+describe('cornerHitTest (resize-handle corner hit-testing)', () => {
+  const sprite = { x: 100, y: 200, width: 80, height: 40 }
+  // Corners: tl=(60,180), tr=(140,180), bl=(60,220), br=(140,220)
+  const handleSize = 20
+
+  it('hits top-left corner', () => {
+    expect(cornerHitTest({ x: 60, y: 180 }, sprite, handleSize)).toBe('tl')
+  })
+
+  it('hits top-right corner', () => {
+    expect(cornerHitTest({ x: 140, y: 180 }, sprite, handleSize)).toBe('tr')
+  })
+
+  it('hits bottom-left corner', () => {
+    expect(cornerHitTest({ x: 60, y: 220 }, sprite, handleSize)).toBe('bl')
+  })
+
+  it('hits bottom-right corner', () => {
+    expect(cornerHitTest({ x: 140, y: 220 }, sprite, handleSize)).toBe('br')
+  })
+
+  it('misses at sprite center (not any corner)', () => {
+    expect(cornerHitTest({ x: 100, y: 200 }, sprite, handleSize)).toBeNull()
+  })
+
+  it('misses far outside the AABB', () => {
+    expect(cornerHitTest({ x: 1000, y: 1000 }, sprite, handleSize)).toBeNull()
+  })
+
+  it('misses at an edge midpoint (no corner within handle box)', () => {
+    // Top edge midpoint: (100, 180) — far from any corner's 20×20 square
+    expect(cornerHitTest({ x: 100, y: 180 }, sprite, handleSize)).toBeNull()
+  })
+
+  it('corner hit box is handleSize square centered on the corner', () => {
+    // tl at (60,180); half = 10. (51,179) is inside; (49,179) is outside.
+    expect(cornerHitTest({ x: 51, y: 179 }, sprite, handleSize)).toBe('tl')
+    expect(cornerHitTest({ x: 49, y: 179 }, sprite, handleSize)).toBeNull()
+  })
+
+  it('handle size is independent of sprite aspect (non-square sprite)', () => {
+    const wide = { x: 0, y: 0, width: 400, height: 40 }
+    // tl at (-200,-20)
+    expect(cornerHitTest({ x: -200, y: -20 }, wide, handleSize)).toBe('tl')
+    // br at (200,20)
+    expect(cornerHitTest({ x: 200, y: 20 }, wide, handleSize)).toBe('br')
+    // Not on any corner
+    expect(cornerHitTest({ x: 0, y: 0 }, wide, handleSize)).toBeNull()
   })
 })
 

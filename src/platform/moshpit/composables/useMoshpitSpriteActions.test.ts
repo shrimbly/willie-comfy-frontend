@@ -75,7 +75,8 @@ function makeHitTester(
   return {
     hitTestPoint: vi.fn(() => null),
     hitTestRect: vi.fn(() => []),
-    getSpriteWorldPos: vi.fn(getPos)
+    getSpriteWorldPos: vi.fn(getPos),
+    hitTestHandle: vi.fn(() => null)
   }
 }
 
