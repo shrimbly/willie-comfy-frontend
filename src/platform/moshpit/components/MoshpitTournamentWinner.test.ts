@@ -4,9 +4,11 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 
+import { useMoshpitFoldersStore } from '@/platform/moshpit/stores/moshpitFoldersStore'
 import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetadataStore'
 import { useMoshpitThumbStore } from '@/platform/moshpit/stores/moshpitThumbStore'
 import { useMoshpitTournamentStore } from '@/platform/moshpit/stores/moshpitTournamentStore'
+import { useToastStore } from '@/platform/updates/common/toastStore'
 
 import MoshpitTournamentWinner from './MoshpitTournamentWinner.vue'
 
@@ -163,5 +165,160 @@ describe('MoshpitTournamentWinner', () => {
     expect(
       screen.getByText('moshpit.tournament.winner.metadataUnavailable')
     ).toBeInTheDocument()
+  })
+})
+
+describe('MoshpitTournamentWinner — Save as folder', () => {
+  it('renders the "Save as folder" button in the footer', () => {
+    const hashes = ['h1', 'h2']
+    seedThumbs(hashes)
+    finishSingleElim(hashes)
+
+    renderWinner()
+
+    expect(
+      screen.getByTestId('moshpit-tournament-winner-save-folder')
+    ).toBeInTheDocument()
+  })
+
+  it('clicking Save as folder shows the inline folder name input', async () => {
+    const hashes = ['h1', 'h2']
+    seedThumbs(hashes)
+    finishSingleElim(hashes)
+
+    renderWinner()
+
+    const btn = screen.getByTestId('moshpit-tournament-winner-save-folder')
+    await userEvent.click(btn)
+
+    expect(
+      screen.getByTestId('moshpit-tournament-winner-folder-input')
+    ).toBeInTheDocument()
+    // button should be replaced by the form
+    expect(
+      screen.queryByTestId('moshpit-tournament-winner-save-folder')
+    ).not.toBeInTheDocument()
+  })
+
+  it('submitting a valid name calls foldersStore.createFromSelection with winner hashes', async () => {
+    const hashes = ['h1', 'h2']
+    seedThumbs(hashes)
+    finishSingleElim(hashes)
+
+    renderWinner()
+
+    const foldersStore = useMoshpitFoldersStore()
+    const createSpy = vi.spyOn(foldersStore, 'createFromSelection')
+
+    const btn = screen.getByTestId('moshpit-tournament-winner-save-folder')
+    await userEvent.click(btn)
+
+    const input = screen.getByTestId('moshpit-tournament-winner-folder-input')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'My Winners')
+    await userEvent.keyboard('{Enter}')
+
+    const store = useMoshpitTournamentStore()
+    expect(createSpy).toHaveBeenCalledWith('My Winners', store.winnerHashes)
+  })
+
+  it('shows an info toast on successful folder creation', async () => {
+    const hashes = ['h1', 'h2']
+    seedThumbs(hashes)
+    finishSingleElim(hashes)
+
+    renderWinner()
+
+    const toastStore = useToastStore()
+    const addSpy = vi.spyOn(toastStore, 'add')
+    const foldersStore = useMoshpitFoldersStore()
+    vi.spyOn(foldersStore, 'createFromSelection').mockReturnValue('folder-id')
+
+    const btn = screen.getByTestId('moshpit-tournament-winner-save-folder')
+    await userEvent.click(btn)
+
+    const input = screen.getByTestId('moshpit-tournament-winner-folder-input')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'Winners')
+    await userEvent.keyboard('{Enter}')
+
+    expect(addSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ severity: 'info' })
+    )
+    // input should collapse back to button after success
+    expect(
+      screen.getByTestId('moshpit-tournament-winner-save-folder')
+    ).toBeInTheDocument()
+  })
+
+  it('shows a warn toast and does NOT create a folder when name is empty', async () => {
+    const hashes = ['h1', 'h2']
+    seedThumbs(hashes)
+    finishSingleElim(hashes)
+
+    renderWinner()
+
+    const toastStore = useToastStore()
+    const addSpy = vi.spyOn(toastStore, 'add')
+    const foldersStore = useMoshpitFoldersStore()
+    const createSpy = vi.spyOn(foldersStore, 'createFromSelection')
+
+    const btn = screen.getByTestId('moshpit-tournament-winner-save-folder')
+    await userEvent.click(btn)
+
+    const input = screen.getByTestId('moshpit-tournament-winner-folder-input')
+    await userEvent.clear(input)
+    await userEvent.keyboard('{Enter}')
+
+    expect(addSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ severity: 'warn' })
+    )
+    expect(createSpy).not.toHaveBeenCalled()
+  })
+
+  it('clicking Cancel collapses the form back to the Save as folder button', async () => {
+    const hashes = ['h1', 'h2']
+    seedThumbs(hashes)
+    finishSingleElim(hashes)
+
+    renderWinner()
+
+    const btn = screen.getByTestId('moshpit-tournament-winner-save-folder')
+    await userEvent.click(btn)
+
+    const cancelBtn = screen.getByTestId(
+      'moshpit-tournament-winner-folder-cancel'
+    )
+    await userEvent.click(cancelBtn)
+
+    expect(
+      screen.getByTestId('moshpit-tournament-winner-save-folder')
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByTestId('moshpit-tournament-winner-folder-input')
+    ).not.toBeInTheDocument()
+  })
+
+  it('does NOT call tournamentStore.exit when saving a folder', async () => {
+    const hashes = ['h1', 'h2']
+    seedThumbs(hashes)
+    finishSingleElim(hashes)
+
+    renderWinner()
+
+    const tournamentStore = useMoshpitTournamentStore()
+    const exitSpy = vi.spyOn(tournamentStore, 'exit')
+    const foldersStore = useMoshpitFoldersStore()
+    vi.spyOn(foldersStore, 'createFromSelection').mockReturnValue('folder-id')
+
+    const btn = screen.getByTestId('moshpit-tournament-winner-save-folder')
+    await userEvent.click(btn)
+
+    const input = screen.getByTestId('moshpit-tournament-winner-folder-input')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'Good Ones')
+    await userEvent.keyboard('{Enter}')
+
+    expect(exitSpy).not.toHaveBeenCalled()
   })
 })
