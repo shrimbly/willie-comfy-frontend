@@ -33,20 +33,6 @@ const mockCustomVariables = vi.hoisted(() => ({
   value: [] as { name: string; value: string }[]
 }))
 
-vi.mock('@/utils/formatUtil', () => ({
-  formatDate: vi.fn((fmt: string) => {
-    const map: Record<string, string> = {
-      'yyyy-MM-dd': '2025-01-15',
-      'yyyy-MM-dd-HH-mm-ss': '2025-01-15-14-30-00',
-      yyyy: '2025',
-      MM: '01',
-      dd: '15',
-      'HH-mm-ss': '14-30-00'
-    }
-    return map[fmt] ?? fmt
-  })
-}))
-
 vi.mock('@/platform/settings/settingStore', () => ({
   useSettingStore: vi.fn(() => ({
     get: (key: string) => {
@@ -171,40 +157,13 @@ describe('resolveTemplateVariables', () => {
     mockCustomVariables.value = []
   })
 
-  it('resolves @DateYYYYMMDD', () => {
+  it('leaves %date:...% tokens untouched (resolved later by S&R)', () => {
     const result = resolveTemplateVariables(
       makeGraph(),
       makeNode('SaveImage'),
-      '@DateYYYYMMDD/output'
+      '@project/%date:yyyy-MM-dd%'
     )
-    expect(result).toBe('2025-01-15/output')
-  })
-
-  it('resolves @DateYYYYMMDDHHmmss', () => {
-    const result = resolveTemplateVariables(
-      makeGraph(),
-      makeNode('SaveImage'),
-      '@DateYYYYMMDDHHmmss'
-    )
-    expect(result).toBe('2025-01-15-14-30-00')
-  })
-
-  it('resolves @DateYYYY', () => {
-    const result = resolveTemplateVariables(
-      makeGraph(),
-      makeNode('SaveImage'),
-      '@DateYYYY'
-    )
-    expect(result).toBe('2025')
-  })
-
-  it('resolves date variables alongside other variables', () => {
-    const result = resolveTemplateVariables(
-      makeGraph(),
-      makeNode('SaveImage'),
-      '@project/@DateYYYYMMDD/@nodeTitle'
-    )
-    expect(result).toBe('My-project/2025-01-15/SaveImage')
+    expect(result).toBe('My-project/%date:yyyy-MM-dd%')
   })
 })
 
@@ -505,8 +464,8 @@ describe('isVariableResolvable', () => {
     mockParentGroup.value = { title: 'Render Group' }
   })
 
-  it('returns true for date variables unconditionally', () => {
-    expect(isVariableResolvable('DateYYYY', ctx())).toBe(true)
+  it('returns true for project variable unconditionally', () => {
+    expect(isVariableResolvable('project', ctx())).toBe(true)
   })
 
   it('returns false for unknown variable names', () => {
@@ -518,18 +477,11 @@ describe('getTemplateVariables', () => {
   it('returns built-in variables when no custom defined', () => {
     mockCustomVariables.value = []
     const vars = getTemplateVariables()
-    expect(vars).toHaveLength(10)
     expect(vars.map((v) => v.name)).toEqual([
       'project',
       'workflowTitle',
       'groupTitle',
-      'nodeTitle',
-      'DateYYYYMMDD',
-      'DateYYYYMMDDHHmmss',
-      'DateYYYY',
-      'DateMM',
-      'DateDD',
-      'DateHHmmss'
+      'nodeTitle'
     ])
   })
 
@@ -539,9 +491,14 @@ describe('getTemplateVariables', () => {
       { name: 'studio', value: 'pixar' }
     ]
     const vars = getTemplateVariables()
-    expect(vars).toHaveLength(12)
-    expect(vars[10].name).toBe('client')
-    expect(vars[11].name).toBe('studio')
+    expect(vars.map((v) => v.name)).toEqual([
+      'project',
+      'workflowTitle',
+      'groupTitle',
+      'nodeTitle',
+      'client',
+      'studio'
+    ])
     mockCustomVariables.value = []
   })
 })

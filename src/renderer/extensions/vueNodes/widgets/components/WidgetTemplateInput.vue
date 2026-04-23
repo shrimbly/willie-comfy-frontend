@@ -121,6 +121,7 @@
                   'data-[side=top]:animate-slideDownAndFade data-[side=bottom]:animate-slideUpAndFade will-change-[opacity,transform]'
                 )
               "
+              @wheel.stop
             >
               <div
                 v-if="outputSubdirectoriesLoading"
@@ -151,6 +152,7 @@
             'data-[side=top]:animate-slideDownAndFade data-[side=bottom]:animate-slideUpAndFade will-change-[opacity,transform]'
           )
         "
+        @wheel.stop
         @open-auto-focus.prevent
         @close-auto-focus.prevent
       >

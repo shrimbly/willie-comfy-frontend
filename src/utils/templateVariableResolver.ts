@@ -3,7 +3,6 @@ import type { LGraph, Subgraph } from '@/lib/litegraph/src/litegraph'
 
 import { useGraphHierarchy } from '@/composables/graph/useGraphHierarchy'
 import { useSettingStore } from '@/platform/settings/settingStore'
-import { formatDate } from '@/utils/formatUtil'
 import { useWorkflowStore } from '@/platform/workflow/management/stores/workflowStore'
 
 export interface TemplateVariable {
@@ -14,28 +13,11 @@ export interface TemplateVariable {
 // eslint-disable-next-line no-control-regex
 const FILESYSTEM_INVALID_CHARS = /[/?<>\\:*|"\x00-\x1F\x7F]/g
 
-const DATE_VARIABLES: { name: string; format: string; descKey: string }[] = [
-  { name: 'DateYYYYMMDD', format: 'yyyy-MM-dd', descKey: 'dateYYYYMMDD' },
-  {
-    name: 'DateYYYYMMDDHHmmss',
-    format: 'yyyy-MM-dd-HH-mm-ss',
-    descKey: 'dateYYYYMMDDHHmmss'
-  },
-  { name: 'DateYYYY', format: 'yyyy', descKey: 'dateYYYY' },
-  { name: 'DateMM', format: 'MM', descKey: 'dateMM' },
-  { name: 'DateDD', format: 'dd', descKey: 'dateDD' },
-  { name: 'DateHHmmss', format: 'HH-mm-ss', descKey: 'dateHHmmss' }
-]
-
 export const BUILT_IN_TEMPLATE_VARIABLES: TemplateVariable[] = [
   { name: 'project', description: 'templateVariables.projectDesc' },
   { name: 'workflowTitle', description: 'templateVariables.workflowTitleDesc' },
   { name: 'groupTitle', description: 'templateVariables.groupTitleDesc' },
-  { name: 'nodeTitle', description: 'templateVariables.nodeTitleDesc' },
-  ...DATE_VARIABLES.map((d) => ({
-    name: d.name,
-    description: `templateVariables.${d.descKey}`
-  }))
+  { name: 'nodeTitle', description: 'templateVariables.nodeTitleDesc' }
 ]
 
 const BUILT_IN_NAMES = new Set(BUILT_IN_TEMPLATE_VARIABLES.map((v) => v.name))
@@ -49,17 +31,12 @@ type VariableResolver = (
   node: LGraphNode
 ) => string | null
 
-const dateResolvers: Record<string, VariableResolver> = Object.fromEntries(
-  DATE_VARIABLES.map((d) => [d.name, () => formatDate(d.format, new Date())])
-)
-
 const resolvers: Record<string, VariableResolver> = {
   project: () => 'My-project',
   workflowTitle: () => useWorkflowStore().activeWorkflow?.filename ?? null,
   groupTitle: (_graph, node) =>
     useGraphHierarchy().findParentGroup(node)?.title ?? null,
-  nodeTitle: (_graph, node) => node.title ?? null,
-  ...dateResolvers
+  nodeTitle: (_graph, node) => node.title ?? null
 }
 
 function getCustomVariables(): TemplateVariable[] {
