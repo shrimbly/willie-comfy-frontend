@@ -59,14 +59,10 @@ import {
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
-import { getAssetUrl } from '@/platform/assets/utils/assetUrlUtil'
+import { useMoshpitSpriteActions } from '@/platform/moshpit/composables/useMoshpitSpriteActions'
 import { MOSHPIT_SPRITE_HITTEST_INJECTION_KEY } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
-import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetadataStore'
 import { useMoshpitOverrideStore } from '@/platform/moshpit/stores/moshpitOverrideStore'
 import { useMoshpitSelectionStore } from '@/platform/moshpit/stores/moshpitSelectionStore'
-import { useToastStore } from '@/platform/updates/common/toastStore'
-import { useAssetsStore } from '@/stores/assetsStore'
 
 defineOptions({ name: 'MoshpitSpriteContextMenu' })
 
@@ -81,9 +77,9 @@ if (!spriteHitTestRef) {
 
 const overrideStore = useMoshpitOverrideStore()
 const selectionStore = useMoshpitSelectionStore()
-const metadataStore = useMoshpitMetadataStore()
-const assetsStore = useAssetsStore()
-const toastStore = useToastStore()
+const actions = useMoshpitSpriteActions({
+  getHitTester: () => spriteHitTestRef?.value ?? null
+})
 
 const isOpen = ref(false)
 const anchorX = ref(0)
@@ -123,93 +119,27 @@ function close(): void {
 }
 
 function onPinHere(): void {
-  const hitTester = spriteHitTestRef?.value
-  if (!hitTester) {
-    close()
-    return
-  }
-  for (const hash of actionSet.value) {
-    if (overrideStore.isPinned(hash)) continue
-    const pos = hitTester.getSpriteWorldPos(hash)
-    if (!pos) continue
-    overrideStore.setPin(hash, pos)
-  }
+  actions.pinHereMany(actionSet.value)
   close()
 }
 
 function onUnpin(): void {
-  for (const hash of actionSet.value) {
-    overrideStore.unpin(hash)
-  }
+  actions.unpinMany(actionSet.value)
   close()
 }
 
-function buildHashToAssetMap(): Map<string, AssetItem> {
-  const map = new Map<string, AssetItem>()
-  for (const asset of assetsStore.historyAssets) {
-    const hash =
-      asset.asset_hash ?? metadataStore.getHashForAssetId(asset.id) ?? null
-    if (hash && !map.has(hash)) map.set(hash, asset)
-  }
-  return map
-}
-
-function triggerDownload(url: string, filename: string): void {
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-}
-
 function onDownload(): void {
-  const hashToAsset = buildHashToAssetMap()
-  let count = 0
-  for (const hash of actionSet.value) {
-    const asset = hashToAsset.get(hash)
-    if (!asset) continue
-    triggerDownload(getAssetUrl(asset), asset.name)
-    count += 1
-  }
-  if (count > 0) {
-    toastStore.add({
-      severity: 'info',
-      summary:
-        count > 1
-          ? t('moshpit.contextMenu.downloadStartedMulti', { count })
-          : t('moshpit.contextMenu.downloadStarted')
-    })
-  }
+  actions.downloadMany(actionSet.value)
   close()
 }
 
 function onSelectSimilar(): void {
-  const targetParams = metadataStore.getParams(targetHash.value)
-  const targetWorkflow = targetParams?.workflowFilename ?? null
-  if (!targetWorkflow) {
-    toastStore.add({
-      severity: 'info',
-      summary: t('moshpit.contextMenu.selectSimilarNoMatch'),
-      detail: t('moshpit.contextMenu.selectSimilarNoMatchDetail')
-    })
-    close()
-    return
-  }
-  const matches: string[] = []
-  for (const [hash, params] of metadataStore.paramsByHash) {
-    if (params.workflowFilename === targetWorkflow) matches.push(hash)
-  }
-  selectionStore.setSelection(matches)
+  actions.selectSimilar(targetHash.value)
   close()
 }
 
 function onResetAllPins(): void {
-  if (isResetAllDisabled.value) {
-    close()
-    return
-  }
-  overrideStore.clearAll()
+  actions.resetAllPins()
   close()
 }
 
