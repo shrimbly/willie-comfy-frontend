@@ -159,7 +159,15 @@
 4. Hidden assets remain on disk — no real deletion in v1
 5. Folders can be created from a tournament winner set in one action
 
-**Plans**: TBD
+**Plans:** 6 plans
+
+- [ ] 06-01-PLAN.md — MoshpitDB v5 + curationRepository + foldersRepository + curation/folders store mutation actions (CURATE-01/02/03/04 data foundation)
+- [ ] 06-02-PLAN.md — 'folder' ParamKey + filterMath integration + MoshpitLayout hydrate on mount (CURATE-02/03/04)
+- [ ] 06-03-PLAN.md — useMoshpitCuration orchestrator (undoable + toast + bulk flush) + useMoshpitCurationKeybindings (S/T/H/E/Cmd-Z) + moshpit.curation.\* i18n (CURATE-01..07)
+- [ ] 06-04-PLAN.md — MoshpitUndoToast + MoshpitFloatingActionBar curation buttons + MoshpitLayout toast mount (CURATE-01/02/04/05/06/07)
+- [ ] 06-05-PLAN.md — MoshpitTagInputPopover + MoshpitFolderPickerPopover + MoshpitFoldersSection sidebar + MoshpitSettingsPanel mount (CURATE-02/03)
+- [ ] 06-06-PLAN.md — MoshpitSpriteContextMenu curation items + tournament winner "Save as folder" + MoshpitView wiring + @moshpit Playwright spec + HUMAN-UAT [human checkpoint]
+
 **UI hint**: yes
 
 ### Phase 7: UX Edges & Performance Validation _(unchanged from old Phase 7; old Phase 6 cut)_
