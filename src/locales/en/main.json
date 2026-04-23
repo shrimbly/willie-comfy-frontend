@@ -1176,7 +1176,9 @@
         "paramsTitle": "Parameters",
         "lorasTitle": "LoRAs",
         "lorasEmpty": "No LoRAs",
-        "metadataUnavailable": "Metadata unavailable"
+        "metadataUnavailable": "Metadata unavailable",
+        "saveAsFolder": "Save as folder",
+        "saveAsFolderDefault": "Tournament {date}"
       },
       "bracket": {
         "title": "Bracket",

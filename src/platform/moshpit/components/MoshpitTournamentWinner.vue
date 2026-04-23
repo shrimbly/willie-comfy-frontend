@@ -11,15 +11,17 @@
   marked so the next phase can drop buttons in without template churn.
 -->
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import {
   PARAM_DIFF_KEY_ORDER,
   formatValue
 } from '@/platform/moshpit/services/metadataDiff'
+import { useMoshpitFoldersStore } from '@/platform/moshpit/stores/moshpitFoldersStore'
 import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetadataStore'
 import { useMoshpitTournamentStore } from '@/platform/moshpit/stores/moshpitTournamentStore'
+import { useToastStore } from '@/platform/updates/common/toastStore'
 import { cn } from '@/utils/tailwindUtil'
 
 import MoshpitTournamentAssetFrame from './MoshpitTournamentAssetFrame.vue'
@@ -35,6 +37,8 @@ const emit = defineEmits<{ confirm: [] }>()
 const { t } = useI18n()
 const tournamentStore = useMoshpitTournamentStore()
 const metadataStore = useMoshpitMetadataStore()
+const foldersStore = useMoshpitFoldersStore()
+const toastStore = useToastStore()
 
 const winners = computed(() => tournamentStore.winnerHashes)
 const isSingle = computed(() => winners.value.length === 1)
@@ -46,6 +50,44 @@ const title = computed(() =>
         count: winners.value.length
       })
 )
+
+const savingFolder = ref(false)
+const folderName = ref('')
+const folderInputEl = ref<HTMLInputElement | null>(null)
+
+watch(savingFolder, (val) => {
+  if (val) {
+    const now = new Date()
+    folderName.value = t('moshpit.tournament.winner.saveAsFolderDefault', {
+      date: now.toLocaleString()
+    })
+    void nextTick(() => folderInputEl.value?.focus())
+  }
+})
+
+function onSaveFolder(): void {
+  const trimmed = folderName.value.trim()
+  if (!trimmed || trimmed.length > 64) {
+    toastStore.add({
+      severity: 'warn',
+      summary: t('moshpit.curation.invalidFolder'),
+      life: 3000
+    })
+    return
+  }
+  const winnerList = [...tournamentStore.winnerHashes]
+  foldersStore.createFromSelection(trimmed, winnerList)
+  toastStore.add({
+    severity: 'info',
+    summary: t('moshpit.curation.folderCreated', {
+      name: trimmed,
+      count: winnerList.length
+    }),
+    life: 4000
+  })
+  savingFolder.value = false
+  folderName.value = ''
+}
 
 function getWins(hash: string): number {
   return tournamentStore.wins.get(hash) ?? 0
@@ -190,8 +232,49 @@ function onConfirm(): void {
     </div>
 
     <footer
-      class="flex items-center justify-end border-t border-(--interface-stroke) px-4 py-3"
+      class="flex items-center justify-between border-t border-(--interface-stroke) px-4 py-3"
     >
+      <div class="flex items-center gap-2">
+        <button
+          v-if="!savingFolder"
+          type="button"
+          class="inline-flex h-8 items-center rounded-sm border border-border-subtle px-4 text-xs font-medium text-base-foreground transition-colors hover:bg-interface-panel-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
+          data-testid="moshpit-tournament-winner-save-folder"
+          @click="savingFolder = true"
+        >
+          {{ t('moshpit.tournament.winner.saveAsFolder') }}
+        </button>
+        <form
+          v-else
+          class="flex items-center gap-2"
+          @submit.prevent="onSaveFolder"
+        >
+          <input
+            ref="folderInputEl"
+            v-model="folderName"
+            type="text"
+            :placeholder="t('moshpit.curation.folders.newFolderPlaceholder')"
+            maxlength="64"
+            data-testid="moshpit-tournament-winner-folder-input"
+            class="h-8 rounded-sm border border-border-subtle bg-interface-panel-surface px-2 text-xs text-base-foreground placeholder-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
+          />
+          <button
+            type="submit"
+            class="inline-flex h-8 items-center rounded-sm bg-primary-background px-3 text-xs font-medium text-base-foreground transition-colors hover:bg-primary-background-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
+            data-testid="moshpit-tournament-winner-folder-submit"
+          >
+            {{ t('g.save') }}
+          </button>
+          <button
+            type="button"
+            class="inline-flex h-8 items-center rounded-sm border border-border-subtle px-3 text-xs font-medium text-base-foreground transition-colors hover:bg-interface-panel-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
+            data-testid="moshpit-tournament-winner-folder-cancel"
+            @click="savingFolder = false"
+          >
+            {{ t('g.cancel') }}
+          </button>
+        </form>
+      </div>
       <button
         type="button"
         class="inline-flex h-8 items-center rounded-sm bg-primary-background px-4 text-xs font-medium text-base-foreground transition-colors hover:bg-primary-background-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus-ring)"
