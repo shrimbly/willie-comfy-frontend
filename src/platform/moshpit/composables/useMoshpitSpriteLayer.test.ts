@@ -12,7 +12,12 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { resolveSlot, resolveSpriteScale } from './useMoshpitSpriteLayer'
+import type { GridSlot } from '../services/layoutMath'
+import {
+  readSpriteWorldPos,
+  resolveSlot,
+  resolveSpriteScale
+} from './useMoshpitSpriteLayer'
 import { useMoshpitOverrideStore } from '../stores/moshpitOverrideStore'
 
 describe('resolveSlot (override-aware slot resolution)', () => {
@@ -99,6 +104,25 @@ describe('resolveSpriteScale (override-aware scale resolution)', () => {
       hash: 'A',
       worldX: 0,
       worldY: 0
+    })
+  })
+})
+
+describe('readSpriteWorldPos (sprite-entry world position extraction)', () => {
+  it('returns { x, y } from a slot-shaped entry', () => {
+    const slot: GridSlot = { hash: 'A', worldX: 120, worldY: -40 }
+    expect(readSpriteWorldPos({ slot })).toEqual({ x: 120, y: -40 })
+  })
+
+  it('returns null for a missing entry (unknown hash path)', () => {
+    expect(readSpriteWorldPos(undefined)).toBeNull()
+  })
+
+  it('tracks pinned coordinates when entry.slot has been override-resolved', () => {
+    const pinnedSlot: GridSlot = { hash: 'B', worldX: 500, worldY: 300 }
+    expect(readSpriteWorldPos({ slot: pinnedSlot })).toEqual({
+      x: 500,
+      y: 300
     })
   })
 })

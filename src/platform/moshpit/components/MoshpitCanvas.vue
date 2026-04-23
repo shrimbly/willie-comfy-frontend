@@ -116,7 +116,8 @@ onMounted(async () => {
   // Expose hit-testers to MoshpitView's pointer handlers.
   spriteHitTestRef.value = {
     hitTestPoint: spriteLayerRef.hitTestPoint,
-    hitTestRect: spriteLayerRef.hitTestRect
+    hitTestRect: spriteLayerRef.hitTestRect,
+    getSpriteWorldPos: spriteLayerRef.getSpriteWorldPos
   }
 
   viewportStore.setScreenSize(host.clientWidth, host.clientHeight)

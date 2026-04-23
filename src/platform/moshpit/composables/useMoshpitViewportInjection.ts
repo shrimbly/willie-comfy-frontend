@@ -44,6 +44,13 @@ export interface SpriteHitTester {
   hitTestPoint(worldX: number, worldY: number): string | null
   /** Returns every asset hash whose sprite AABB intersects the world rect. */
   hitTestRect(rect: SpriteHitRect): string[]
+  /**
+   * Returns the sprite's current rendered world position for `hash`, or null
+   * when the hash has no mounted sprite (filtered out, not yet loaded, or
+   * destroyed). The value tracks pin overrides because the sprite-layer
+   * watchEffect writes override-resolved coords into the sprite entry.
+   */
+  getSpriteWorldPos(hash: string): { x: number; y: number } | null
 }
 
 export const MOSHPIT_SPRITE_HITTEST_INJECTION_KEY: InjectionKey<

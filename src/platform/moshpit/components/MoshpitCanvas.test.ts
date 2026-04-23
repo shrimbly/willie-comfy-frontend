@@ -47,7 +47,8 @@ vi.mock('@/platform/moshpit/composables/useMoshpitSpriteLayer', () => ({
   useMoshpitSpriteLayer: vi.fn(() => ({
     destroy: vi.fn(),
     hitTestPoint: vi.fn(() => null),
-    hitTestRect: vi.fn(() => [])
+    hitTestRect: vi.fn(() => []),
+    getSpriteWorldPos: vi.fn(() => null)
   })),
   MOSHPIT_LAYOUT_INJECTION_KEY: Symbol('moshpit:layout'),
   DEFAULT_CELL_SIZE: 560,

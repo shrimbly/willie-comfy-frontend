@@ -49,7 +49,10 @@ function makeHitTester(hash: string | null): {
     hitTestPoint: vi
       .fn<(x: number, y: number) => string | null>()
       .mockReturnValue(hash),
-    hitTestRect: vi.fn<() => string[]>().mockReturnValue([])
+    hitTestRect: vi.fn<() => string[]>().mockReturnValue([]),
+    getSpriteWorldPos: vi
+      .fn<(hash: string) => { x: number; y: number } | null>()
+      .mockReturnValue(null)
   }
   const hitRef = ref(tester) as Ref<SpriteHitTester | null>
   return { ref: hitRef, tester }

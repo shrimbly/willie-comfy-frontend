@@ -129,12 +129,31 @@ export function resolveSpriteScale(
   return overrides.get(hash)?.scale ?? 1
 }
 
+/**
+ * Pure helper: extract the current world position from a sprite entry, or
+ * null for a missing entry. The entry's `slot` is written by `applySlot` to
+ * reflect the override-resolved coordinates, so this tracks pins without a
+ * separate lookup. @internal (test-only export).
+ */
+export function readSpriteWorldPos(
+  entry: { readonly slot: GridSlot } | undefined
+): { x: number; y: number } | null {
+  if (!entry) return null
+  return { x: entry.slot.worldX, y: entry.slot.worldY }
+}
+
 export interface SpriteLayerHandle {
   destroy(): void
   /** Returns the top-most asset hash whose sprite AABB contains the world point, or null. */
   hitTestPoint(worldX: number, worldY: number): string | null
   /** Returns every asset hash whose sprite AABB intersects the world rect. */
   hitTestRect(rect: SpriteHitRect): string[]
+  /**
+   * Returns the sprite's current rendered world position (override-aware,
+   * because the sprite-layer watchEffect writes resolved coords into the
+   * entry), or null when the hash has no mounted sprite.
+   */
+  getSpriteWorldPos(hash: string): { x: number; y: number } | null
 }
 
 export function useMoshpitSpriteLayer(
@@ -368,6 +387,10 @@ export function useMoshpitSpriteLayer(
     return null
   }
 
+  function getSpriteWorldPos(hash: string): { x: number; y: number } | null {
+    return readSpriteWorldPos(spriteMap.get(hash))
+  }
+
   function hitTestRect(rect: SpriteHitRect): string[] {
     const hits: string[] = []
     for (const [hash, entry] of spriteMap) {
@@ -408,5 +431,5 @@ export function useMoshpitSpriteLayer(
 
   onBeforeUnmount(destroy)
 
-  return { destroy, hitTestPoint, hitTestRect }
+  return { destroy, hitTestPoint, hitTestRect, getSpriteWorldPos }
 }
