@@ -8,7 +8,7 @@
 import { createTestingPinia } from '@pinia/testing'
 import { render, screen } from '@testing-library/vue'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 
 import MoshpitFoldersSection from './MoshpitFoldersSection.vue'
@@ -65,15 +65,12 @@ const DropdownMenuItemStub = {
 
 async function mountSection() {
   const pinia = createTestingPinia({ stubActions: false, createSpy: vi.fn })
-  const { useMoshpitFoldersStore } = await import(
-    '@/platform/moshpit/stores/moshpitFoldersStore'
-  )
-  const { useMoshpitCurationStore } = await import(
-    '@/platform/moshpit/stores/moshpitCurationStore'
-  )
-  const { useMoshpitFilterStore } = await import(
-    '@/platform/moshpit/stores/moshpitFilterStore'
-  )
+  const { useMoshpitFoldersStore } =
+    await import('@/platform/moshpit/stores/moshpitFoldersStore')
+  const { useMoshpitCurationStore } =
+    await import('@/platform/moshpit/stores/moshpitCurationStore')
+  const { useMoshpitFilterStore } =
+    await import('@/platform/moshpit/stores/moshpitFilterStore')
 
   const foldersStore = useMoshpitFoldersStore(pinia)
   const curationStore = useMoshpitCurationStore(pinia)
@@ -165,7 +162,8 @@ describe('MoshpitFoldersSection — new folder', () => {
 describe('MoshpitFoldersSection — delete', () => {
   it('delete menu item calls foldersStore.remove after window.confirm = true', async () => {
     const user = userEvent.setup()
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    // happy-dom does not define window.confirm — assign directly
+    window.confirm = vi.fn().mockReturnValue(true)
 
     const { foldersStore, idA } = await mountSection()
     const removeSpy = vi.spyOn(foldersStore, 'remove')
@@ -179,7 +177,7 @@ describe('MoshpitFoldersSection — delete', () => {
 
   it('delete menu item does NOT call foldersStore.remove when window.confirm = false', async () => {
     const user = userEvent.setup()
-    vi.spyOn(window, 'confirm').mockReturnValue(false)
+    window.confirm = vi.fn().mockReturnValue(false)
 
     const { foldersStore } = await mountSection()
     const removeSpy = vi.spyOn(foldersStore, 'remove')

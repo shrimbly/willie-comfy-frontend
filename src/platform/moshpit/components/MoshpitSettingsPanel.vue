@@ -27,6 +27,9 @@
         <MoshpitFilterChipRow />
       </div>
 
+      <!-- Folders section (CURATE-02/03) — after chip row, before within-sort -->
+      <MoshpitFoldersSection v-if="filterStore.isGated" class="mt-4" />
+
       <!-- Within-cluster sort dropdown (CSORT-01) -->
       <MoshpitWithinClusterSort v-if="filterStore.isGated" class="mt-4" />
 
@@ -62,6 +65,7 @@ import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import MoshpitFilterChipRow from '@/platform/moshpit/components/MoshpitFilterChipRow.vue'
+import MoshpitFoldersSection from '@/platform/moshpit/components/MoshpitFoldersSection.vue'
 import MoshpitGridSpacingControl from '@/platform/moshpit/components/MoshpitGridSpacingControl.vue'
 import MoshpitGroupingToggles from '@/platform/moshpit/components/MoshpitGroupingToggles.vue'
 import MoshpitShowHiddenToggle from '@/platform/moshpit/components/MoshpitShowHiddenToggle.vue'
