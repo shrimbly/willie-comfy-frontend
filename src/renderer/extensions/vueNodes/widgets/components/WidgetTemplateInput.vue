@@ -108,33 +108,35 @@
               <i class="icon-[lucide--folder-search] size-4" />
             </button>
           </PopoverTrigger>
-          <PopoverContent
-            side="bottom"
-            align="end"
-            :side-offset="4"
-            :collision-padding="8"
-            :class="
-              cn(
-                'z-1700 max-h-72 w-64 overflow-y-auto',
-                'rounded-lg border border-border-default bg-base-background p-1 shadow-lg',
-                'data-[side=top]:animate-slideDownAndFade data-[side=bottom]:animate-slideUpAndFade will-change-[opacity,transform]'
-              )
-            "
-          >
-            <div
-              v-if="outputSubdirectoriesLoading"
-              class="px-2 py-1.5 text-xs text-muted-foreground"
+          <PopoverPortal>
+            <PopoverContent
+              side="bottom"
+              align="end"
+              :side-offset="4"
+              :collision-padding="8"
+              :class="
+                cn(
+                  'z-1700 max-h-72 w-64 overflow-y-auto',
+                  'rounded-lg border border-border-default bg-base-background p-1 shadow-lg',
+                  'data-[side=top]:animate-slideDownAndFade data-[side=bottom]:animate-slideUpAndFade will-change-[opacity,transform]'
+                )
+              "
             >
-              {{ t('templateVariables.loadingDirectories') }}
-            </div>
-            <FolderTreeNode
-              v-else
-              :node="outputFolderTree"
-              :selected-path="selectedTreePath"
-              :depth="0"
-              @select="handleFolderSelect"
-            />
-          </PopoverContent>
+              <div
+                v-if="outputSubdirectoriesLoading"
+                class="px-2 py-1.5 text-xs text-muted-foreground"
+              >
+                {{ t('templateVariables.loadingDirectories') }}
+              </div>
+              <FolderTreeNode
+                v-else
+                :node="outputFolderTree"
+                :selected-path="selectedTreePath"
+                :depth="0"
+                @select="handleFolderSelect"
+              />
+            </PopoverContent>
+          </PopoverPortal>
         </PopoverRoot>
       </div>
       <ComboboxContent
@@ -211,6 +213,7 @@ import {
   ComboboxItem,
   ComboboxRoot,
   PopoverContent,
+  PopoverPortal,
   PopoverRoot,
   PopoverTrigger
 } from 'reka-ui'
