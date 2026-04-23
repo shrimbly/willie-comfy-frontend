@@ -273,6 +273,34 @@ describe('useMoshpitSpriteDrag', () => {
     expect(setPinSpy).toHaveBeenCalledWith('asset-3', { x: 110, y: 110 })
   })
 
+  it('multi-select: unpinned sprites preserve relative offsets via getSpriteWorldPos anchor (regression: bug would collapse them)', () => {
+    const { handle, hitRef } = mountHarness({ hash: 'asset-1' })
+    const selection = useMoshpitSelectionStore()
+    selection.setSelection(['asset-1', 'asset-2', 'asset-3'])
+
+    // All three are unpinned but sit at distinct auto-layout positions.
+    const tester = hitRef.value!
+    vi.mocked(tester.getSpriteWorldPos).mockImplementation((hash) => {
+      if (hash === 'asset-1') return { x: 100, y: 100 }
+      if (hash === 'asset-2') return { x: 200, y: 100 }
+      if (hash === 'asset-3') return { x: 100, y: 200 }
+      return null
+    })
+
+    const overrideStore = useMoshpitOverrideStore()
+    const setPinSpy = vi.spyOn(overrideStore, 'setPin')
+
+    handle.onPointerDown(
+      makePointerEvent('pointerdown', { clientX: 100, clientY: 100 })
+    )
+    // delta = (50, 50). Each sprite should end at its own anchor + delta.
+    dispatchDocPointerEvent('pointermove', { clientX: 150, clientY: 150 })
+
+    expect(setPinSpy).toHaveBeenCalledWith('asset-1', { x: 150, y: 150 })
+    expect(setPinSpy).toHaveBeenCalledWith('asset-2', { x: 250, y: 150 })
+    expect(setPinSpy).toHaveBeenCalledWith('asset-3', { x: 150, y: 250 })
+  })
+
   it('multi-select: drag set = [hash] when selection.size <= 1 OR draggedHash is not in selection', () => {
     const { handle } = mountHarness({ hash: 'asset-1' })
     const selection = useMoshpitSelectionStore()

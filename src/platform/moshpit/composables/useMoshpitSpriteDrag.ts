@@ -141,7 +141,11 @@ export function useMoshpitSpriteDrag(
     for (const hash of dragSet) {
       const snap = overrideStore.get(hash)
       preDragSnapshots.set(hash, snap)
-      const anchor = snap?.pinnedWorldPos ?? worldStart
+      // Anchor precedence: existing pin > current sprite world pos > pointer
+      // world start. Using the sprite's current position for unpinned hashes
+      // is what preserves relative offsets in multi-select drag.
+      const anchor =
+        snap?.pinnedWorldPos ?? hitTester.getSpriteWorldPos(hash) ?? worldStart
       anchorByHash.set(hash, { x: anchor.x, y: anchor.y })
     }
 
