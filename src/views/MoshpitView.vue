@@ -7,6 +7,7 @@
     class="relative size-full overflow-hidden outline-none"
     @pointerdown="onContainerPointerDown"
     @keydown="onContainerKeydown"
+    @contextmenu="onContextMenu"
   >
     <MoshpitCanvas v-if="containerEl" :container-el="containerEl" />
     <MoshpitClusterOverlay />
@@ -16,6 +17,7 @@
       :overlay-style="marquee.overlayStyle.value"
     />
     <MoshpitTournamentOverlay :resolve-full-res-url="resolveFullResUrl" />
+    <MoshpitSpriteContextMenu ref="contextMenuRef" />
   </div>
 </template>
 
@@ -29,6 +31,7 @@ import MoshpitCanvas from '@/platform/moshpit/components/MoshpitCanvas.vue'
 import MoshpitClusterOverlay from '@/platform/moshpit/components/MoshpitClusterOverlay.vue'
 import MoshpitEmptyGateOverlay from '@/platform/moshpit/components/MoshpitEmptyGateOverlay.vue'
 import MoshpitMarqueeOverlay from '@/platform/moshpit/components/MoshpitMarqueeOverlay.vue'
+import MoshpitSpriteContextMenu from '@/platform/moshpit/components/MoshpitSpriteContextMenu.vue'
 import MoshpitTournamentOverlay from '@/platform/moshpit/components/MoshpitTournamentOverlay.vue'
 import type { MarqueeRect } from '@/platform/moshpit/composables/useMoshpitMarquee'
 import { useMoshpitMarquee } from '@/platform/moshpit/composables/useMoshpitMarquee'
@@ -50,6 +53,9 @@ const CLICK_DRAG_THRESHOLD_PX = 5
 defineOptions({ name: 'MoshpitView' })
 
 const containerEl = ref<HTMLElement | null>(null)
+const contextMenuRef = ref<InstanceType<
+  typeof MoshpitSpriteContextMenu
+> | null>(null)
 
 const viewportRef = shallowRef<Viewport | null>(null)
 provide(MOSHPIT_VIEWPORT_INJECTION_KEY, viewportRef)
@@ -162,6 +168,19 @@ function onContainerPointerUp(e: PointerEvent) {
   if (isToggle) selectionStore.toggle(hit)
   else if (isAdd) selectionStore.add(hit)
   else selectionStore.setSelection([hit])
+}
+
+function onContextMenu(e: MouseEvent) {
+  const el = containerEl.value
+  const vp = viewportRef.value
+  const hitTester = spriteHitTestRef.value
+  if (!el || !vp || !hitTester) return
+  const bounds = el.getBoundingClientRect()
+  const world = vp.toWorld(e.clientX - bounds.left, e.clientY - bounds.top)
+  const hit = hitTester.hitTestPoint(world.x, world.y)
+  if (hit === null) return
+  e.preventDefault()
+  contextMenuRef.value?.open(e.clientX, e.clientY, hit)
 }
 
 function onContainerKeydown(e: KeyboardEvent) {
