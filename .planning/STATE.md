@@ -130,11 +130,12 @@ None.
 
 ### Quick Tasks Completed
 
-| #          | Description                                                       | Date       | Commit    | Directory                                                                                                           |
-| ---------- | ----------------------------------------------------------------- | ---------- | --------- | ------------------------------------------------------------------------------------------------------------------- |
-| 260423-89u | Align Moshpit sidebar and filter UI to native ComfyUI styling     | 2026-04-23 | c6b2c211a | [260423-89u-align-moshpit-sidebar-and-filter-ui-to-n](./quick/260423-89u-align-moshpit-sidebar-and-filter-ui-to-n/) |
-| 260423-9iv | Add tournament bracket tree sidebar to Moshpit tournament overlay | 2026-04-23 | c8c30fff1 | [260423-9iv-add-tournament-bracket-tree-sidebar-to-m](./quick/260423-9iv-add-tournament-bracket-tree-sidebar-to-m/) |
-| 260423-dab | Align tournament overlay to native ComfyUI modal patterns         | 2026-04-23 | 84e4f286f | [260423-dab-align-tournament-overlay-to-native-comfy](./quick/260423-dab-align-tournament-overlay-to-native-comfy/) |
+| #          | Description                                                                                                    | Date       | Commit    | Directory                                                                                                           |
+| ---------- | -------------------------------------------------------------------------------------------------------------- | ---------- | --------- | ------------------------------------------------------------------------------------------------------------------- |
+| 260423-89u | Align Moshpit sidebar and filter UI to native ComfyUI styling                                                  | 2026-04-23 | c6b2c211a | [260423-89u-align-moshpit-sidebar-and-filter-ui-to-n](./quick/260423-89u-align-moshpit-sidebar-and-filter-ui-to-n/) |
+| 260423-9iv | Add tournament bracket tree sidebar to Moshpit tournament overlay                                              | 2026-04-23 | c8c30fff1 | [260423-9iv-add-tournament-bracket-tree-sidebar-to-m](./quick/260423-9iv-add-tournament-bracket-tree-sidebar-to-m/) |
+| 260423-dab | Align tournament overlay to native ComfyUI modal patterns                                                      | 2026-04-23 | 84e4f286f | [260423-dab-align-tournament-overlay-to-native-comfy](./quick/260423-dab-align-tournament-overlay-to-native-comfy/) |
+| 260423-j4f | Add per-asset sprite override store + layered rendering (foundation for manual move/resize/copy/hide/download) | 2026-04-23 | 248b8a71e | [260423-j4f-add-sprite-controls-to-moshpit-canvas-ma](./quick/260423-j4f-add-sprite-controls-to-moshpit-canvas-ma/) |
 
 ## Session Continuity
 
