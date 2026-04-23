@@ -101,6 +101,18 @@ function resolveVariable(
   return getCustomVariableValue(name)
 }
 
+export interface TemplateContext {
+  graph: LGraph | Subgraph
+  node: LGraphNode
+}
+
+export function isVariableResolvable(
+  name: string,
+  context: TemplateContext
+): boolean {
+  return resolveVariable(name, context.graph, context.node) !== null
+}
+
 function getAllVariableNames(): Set<string> {
   const names = new Set(BUILT_IN_NAMES)
   for (const v of getCustomVariables()) {
@@ -194,7 +206,10 @@ function isKnownPercentToken(inner: string): boolean {
   return false
 }
 
-export function parseTemplateSegments(value: string): TemplateSegment[] {
+export function parseTemplateSegments(
+  value: string,
+  context?: TemplateContext
+): TemplateSegment[] {
   const variableNames = getAllVariableNames()
   const segments: TemplateSegment[] = []
   let lastIndex = 0
@@ -210,7 +225,11 @@ export function parseTemplateSegments(value: string): TemplateSegment[] {
     if (atName !== undefined) {
       name = atName
       prefix = '@'
-      missing = !variableNames.has(atName)
+      if (!variableNames.has(atName)) {
+        missing = true
+      } else if (context && !isVariableResolvable(atName, context)) {
+        missing = true
+      }
     } else if (
       percentInner !== undefined &&
       isKnownPercentToken(percentInner)

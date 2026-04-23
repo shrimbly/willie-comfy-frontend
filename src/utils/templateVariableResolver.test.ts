@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   getTemplateVariables,
   isAbsolutePath,
+  isVariableResolvable,
   parseTemplateSegments,
   previewResolvedValue,
   removeLeadingDirectoryToken,
@@ -18,9 +19,13 @@ vi.mock('@/platform/workflow/management/stores/workflowStore', () => ({
   }))
 }))
 
+const mockParentGroup = vi.hoisted(() => ({
+  value: { title: 'Render Group' } as { title: string } | null
+}))
+
 vi.mock('@/composables/graph/useGraphHierarchy', () => ({
   useGraphHierarchy: vi.fn(() => ({
-    findParentGroup: vi.fn(() => ({ title: 'Render Group' }))
+    findParentGroup: vi.fn(() => mockParentGroup.value)
   }))
 }))
 
@@ -465,6 +470,47 @@ describe('setLeadingDirectoryToken / removeLeadingDirectoryToken', () => {
 
   it('leaves non-leading dir tokens alone when removing', () => {
     expect(removeLeadingDirectoryToken('text/%dir:/a%x')).toBe('text/%dir:/a%x')
+  })
+})
+
+describe('parseTemplateSegments with context', () => {
+  const ctx = () =>
+    ({ graph: makeGraph(), node: makeNode('SaveImage') }) as never
+
+  it('marks @groupTitle as missing when node has no parent group', () => {
+    mockParentGroup.value = null
+    expect(parseTemplateSegments('@groupTitle/file', ctx())).toEqual([
+      { type: 'variable', name: 'groupTitle', prefix: '@', missing: true },
+      { type: 'text', value: '/file' }
+    ])
+    mockParentGroup.value = { title: 'Render Group' }
+  })
+
+  it('leaves @groupTitle resolvable when a parent group exists', () => {
+    mockParentGroup.value = { title: 'Render Group' }
+    expect(parseTemplateSegments('@groupTitle/file', ctx())).toEqual([
+      { type: 'variable', name: 'groupTitle', prefix: '@' },
+      { type: 'text', value: '/file' }
+    ])
+  })
+})
+
+describe('isVariableResolvable', () => {
+  const ctx = () =>
+    ({ graph: makeGraph(), node: makeNode('SaveImage') }) as never
+
+  it('returns false for groupTitle when node has no parent group', () => {
+    mockParentGroup.value = null
+    expect(isVariableResolvable('groupTitle', ctx())).toBe(false)
+    mockParentGroup.value = { title: 'Render Group' }
+  })
+
+  it('returns true for date variables unconditionally', () => {
+    expect(isVariableResolvable('DateYYYY', ctx())).toBe(true)
+  })
+
+  it('returns false for unknown variable names', () => {
+    expect(isVariableResolvable('notARealVar', ctx())).toBe(false)
   })
 })
 

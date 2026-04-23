@@ -1,7 +1,9 @@
+import type { LGraphNode } from '@/lib/litegraph/src/LGraphNode'
 import type { LGraph, Subgraph } from '@/lib/litegraph/src/litegraph'
 import {
   BUILT_IN_TEMPLATE_VARIABLES,
-  getCustomTemplateVariableValues
+  getCustomTemplateVariableValues,
+  isVariableResolvable
 } from '@/utils/templateVariableResolver'
 import { collectAllNodes } from '@/utils/graphTraversalUtil'
 
@@ -43,17 +45,23 @@ export type TranslateFn = (
   values?: Record<string, string>
 ) => string
 
-function buildVariableSuggestions(t: TranslateFn): TemplateSuggestion[] {
-  const builtIn: TemplateSuggestion[] = BUILT_IN_TEMPLATE_VARIABLES.map(
-    (v) => ({
-      key: `var:${v.name}`,
-      label: v.name,
-      insertText: `@${v.name}`,
-      description: t(v.description),
-      filterText: v.name.toLowerCase(),
-      group: 'variable'
-    })
-  )
+function buildVariableSuggestions(
+  t: TranslateFn,
+  graph: LGraph | Subgraph | null,
+  node: LGraphNode | null
+): TemplateSuggestion[] {
+  const resolvableBuiltIns = BUILT_IN_TEMPLATE_VARIABLES.filter((v) => {
+    if (!graph || !node) return true
+    return isVariableResolvable(v.name, { graph, node })
+  })
+  const builtIn: TemplateSuggestion[] = resolvableBuiltIns.map((v) => ({
+    key: `var:${v.name}`,
+    label: v.name,
+    insertText: `@${v.name}`,
+    description: t(v.description),
+    filterText: v.name.toLowerCase(),
+    group: 'variable'
+  }))
   const custom: TemplateSuggestion[] = getCustomTemplateVariableValues().map(
     (v) => ({
       key: `var:custom:${v.name}`,
@@ -147,10 +155,11 @@ function formatWidgetValue(value: unknown): string {
 
 export function buildTemplateSuggestions(
   graph: LGraph | Subgraph | null,
-  t: TranslateFn
+  t: TranslateFn,
+  node: LGraphNode | null = null
 ): TemplateSuggestion[] {
   return [
-    ...buildVariableSuggestions(t),
+    ...buildVariableSuggestions(t, graph, node),
     ...buildTokenSuggestions(t),
     ...buildDateSuggestions(t),
     ...buildNodeSuggestions(graph, t)

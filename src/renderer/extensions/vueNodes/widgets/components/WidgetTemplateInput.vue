@@ -272,8 +272,19 @@ const inputEl = computed<HTMLInputElement | null>(
   () => (inputRef.value?.$el as HTMLInputElement | null) ?? null
 )
 
+const currentNode = computed(() => {
+  const graph = canvasStore.canvas?.graph
+  if (!graph || !widget.nodeLocatorId) return null
+  const nodeId = stripGraphPrefix(widget.nodeLocatorId)
+  return graph.getNodeById(Number(nodeId)) ?? null
+})
+
 const allSuggestions = computed(() =>
-  buildTemplateSuggestions(canvasStore.canvas?.graph ?? null, t)
+  buildTemplateSuggestions(
+    canvasStore.canvas?.graph ?? null,
+    t,
+    currentNode.value
+  )
 )
 
 const autocomplete = useTemplateAutocomplete(
@@ -290,7 +301,12 @@ const isReadOnly = computed(() =>
   Boolean(widget.options?.read_only || widget.options?.disabled)
 )
 
-const segments = computed(() => parseTemplateSegments(modelValue.value))
+const segments = computed(() => {
+  const graph = canvasStore.canvas?.graph
+  const node = currentNode.value
+  const context = graph && node ? { graph, node } : undefined
+  return parseTemplateSegments(modelValue.value, context)
+})
 
 const customVariableMap = computed(() => {
   const map = new Map<string, string>()
@@ -333,13 +349,10 @@ onScopeDispose(() => {
 
 const pathTooltip = computed(() => {
   if (!modelValue.value) return undefined
-  const graph = canvasStore.canvas?.graph
   const withDir = resolveDirectoryTokens(modelValue.value)
-  if (!graph || !widget.nodeLocatorId) return withDir
-
-  const nodeId = stripGraphPrefix(widget.nodeLocatorId)
-  const node = graph.getNodeById(Number(nodeId))
-  if (!node) return withDir
+  const graph = canvasStore.canvas?.graph
+  const node = currentNode.value
+  if (!graph || !node) return withDir
 
   const withVars = previewResolvedValue(graph, node, withDir)
   return applyTextReplacements(graph, withVars)
