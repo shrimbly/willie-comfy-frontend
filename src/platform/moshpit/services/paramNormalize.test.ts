@@ -305,6 +305,167 @@ describe('normalizeParams', () => {
   })
 })
 
+describe('UNETLoader model extraction', () => {
+  const NOW = 1700000000000
+
+  it('extracts model from UNETLoader.unet_name when no CheckpointLoaderSimple is present', () => {
+    const graph = {
+      '3': {
+        class_type: 'KSampler',
+        inputs: {
+          cfg: 1,
+          steps: 20,
+          sampler_name: 'euler',
+          scheduler: 'simple',
+          seed: 1
+        }
+      },
+      '4': {
+        class_type: 'UNETLoader',
+        inputs: { unet_name: 'flux1-dev.safetensors', weight_dtype: 'default' }
+      }
+    }
+    const result = normalizeParams({ prompt: JSON.stringify(graph) }, NOW)
+    expect(result.model).toBe('flux1-dev.safetensors')
+  })
+
+  it('prefers CheckpointLoaderSimple.ckpt_name when both loaders coexist', () => {
+    const graph = {
+      '3': {
+        class_type: 'KSampler',
+        inputs: {
+          cfg: 1,
+          steps: 20,
+          sampler_name: 'euler',
+          scheduler: 'simple',
+          seed: 1
+        }
+      },
+      '4': {
+        class_type: 'CheckpointLoaderSimple',
+        inputs: { ckpt_name: 'sd_xl.safetensors' }
+      },
+      '5': {
+        class_type: 'UNETLoader',
+        inputs: { unet_name: 'flux1-dev.safetensors', weight_dtype: 'default' }
+      }
+    }
+    const result = normalizeParams({ prompt: JSON.stringify(graph) }, NOW)
+    expect(result.model).toBe('sd_xl.safetensors')
+  })
+
+  it('returns undefined when UNETLoader has no unet_name input', () => {
+    const graph = {
+      '4': { class_type: 'UNETLoader', inputs: {} }
+    }
+    const result = normalizeParams({ prompt: JSON.stringify(graph) }, NOW)
+    expect(result.model).toBeUndefined()
+  })
+
+  it('handles backslash paths verbatim', () => {
+    const graph = {
+      '4': {
+        class_type: 'UNETLoader',
+        inputs: {
+          unet_name: 'z-image\\\\z-image-turbo_fp8_scaled_e5m2_KJ.safetensors',
+          weight_dtype: 'default'
+        }
+      }
+    }
+    const result = normalizeParams({ prompt: JSON.stringify(graph) }, NOW)
+    expect(result.model).toBe(
+      'z-image\\\\z-image-turbo_fp8_scaled_e5m2_KJ.safetensors'
+    )
+  })
+})
+
+describe('KSamplerAdvanced seed extraction', () => {
+  const NOW = 1700000000000
+
+  it('extracts seed from KSamplerAdvanced.noise_seed', () => {
+    const graph = {
+      '3': {
+        class_type: 'KSamplerAdvanced',
+        inputs: {
+          noise_seed: 306593012722872,
+          cfg: 1.0,
+          sampler_name: 'euler',
+          scheduler: 'simple',
+          steps: 20
+        }
+      }
+    }
+    const result = normalizeParams({ prompt: JSON.stringify(graph) }, NOW)
+    expect(result.seed).toBe(306593012722872)
+  })
+
+  it('prefers seed over noise_seed when both are present', () => {
+    const graph = {
+      '3': {
+        class_type: 'KSamplerAdvanced',
+        inputs: {
+          seed: 1,
+          noise_seed: 2,
+          cfg: 1.0,
+          sampler_name: 'euler',
+          scheduler: 'simple',
+          steps: 20
+        }
+      }
+    }
+    const result = normalizeParams({ prompt: JSON.stringify(graph) }, NOW)
+    expect(result.seed).toBe(1)
+  })
+
+  it('still extracts seed from KSampler.seed (regression guard)', () => {
+    const samplerPrompt = {
+      '3': {
+        class_type: 'KSampler',
+        inputs: {
+          cfg: 7.5,
+          steps: 20,
+          sampler_name: 'euler',
+          scheduler: 'normal',
+          seed: 42,
+          positive: ['6', 0],
+          negative: ['7', 0]
+        }
+      },
+      '4': {
+        class_type: 'CheckpointLoaderSimple',
+        inputs: { ckpt_name: 'sd_xl.safetensors' }
+      },
+      '6': { class_type: 'CLIPTextEncode', inputs: { text: 'masterpiece' } },
+      '7': { class_type: 'CLIPTextEncode', inputs: { text: 'ugly' } }
+    }
+    const result = normalizeParams(
+      { prompt: JSON.stringify(samplerPrompt) },
+      NOW
+    )
+    expect(result.seed).toBe(42)
+  })
+
+  it('extracts cfg/steps/sampler/scheduler from KSamplerAdvanced unchanged', () => {
+    const graph = {
+      '3': {
+        class_type: 'KSamplerAdvanced',
+        inputs: {
+          noise_seed: 7,
+          cfg: 3.5,
+          sampler_name: 'dpmpp_2m',
+          scheduler: 'karras',
+          steps: 28
+        }
+      }
+    }
+    const result = normalizeParams({ prompt: JSON.stringify(graph) }, NOW)
+    expect(result.cfg).toBe(3.5)
+    expect(result.steps).toBe(28)
+    expect(result.sampler).toBe('dpmpp_2m')
+    expect(result.scheduler).toBe('karras')
+  })
+})
+
 describe('saveNodeIdentity (D-08)', () => {
   const NOW = 1700000000000
 
