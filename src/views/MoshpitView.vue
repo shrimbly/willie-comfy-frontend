@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 import type { Viewport } from 'pixi-viewport'
-import { provide, ref, shallowRef } from 'vue'
+import { provide, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { getAssetUrl } from '@/platform/assets/utils/assetUrlUtil'
@@ -64,7 +64,9 @@ import {
   MOSHPIT_SPRITE_HITTEST_INJECTION_KEY,
   MOSHPIT_VIEWPORT_INJECTION_KEY
 } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
+import { useMoshpitFilterStore } from '@/platform/moshpit/stores/moshpitFilterStore'
 import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetadataStore'
+import { useMoshpitOverrideStore } from '@/platform/moshpit/stores/moshpitOverrideStore'
 import { useMoshpitSelectionStore } from '@/platform/moshpit/stores/moshpitSelectionStore'
 import { useMoshpitSidebarStore } from '@/platform/moshpit/stores/moshpitSidebarStore'
 import { useMoshpitTournamentStore } from '@/platform/moshpit/stores/moshpitTournamentStore'
@@ -92,7 +94,16 @@ const tournamentStore = useMoshpitTournamentStore()
 const metadataStore = useMoshpitMetadataStore()
 const assetsStore = useAssetsStore()
 const toastStore = useToastStore()
+const filterStore = useMoshpitFilterStore()
+const overrideStore = useMoshpitOverrideStore()
 const { t } = useI18n()
+
+watch(
+  () => filterStore.activeGroupings,
+  () => {
+    overrideStore.clearAll()
+  }
+)
 
 function screenRectToWorld(rect: MarqueeRect): MarqueeRect | null {
   const vp = viewportRef.value
