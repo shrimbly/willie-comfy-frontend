@@ -138,9 +138,10 @@ const KSAMPLER_CLASS_TYPES = new Set([
   'KSampler (Efficient)'
 ])
 
-const CHECKPOINT_CLASS_TYPES = new Set([
+const MODEL_LOADER_CLASS_TYPES = new Set([
   'CheckpointLoaderSimple',
-  'CheckpointLoader'
+  'CheckpointLoader',
+  'UNETLoader'
 ])
 
 const LORA_CLASS_TYPES = new Set([
@@ -322,7 +323,7 @@ export function normalizeParams(
   const graph: PromptGraph = parsed
 
   const samplerNode = findNodeByClassTypes(graph, KSAMPLER_CLASS_TYPES)
-  const checkpointNode = findNodeByClassTypes(graph, CHECKPOINT_CLASS_TYPES)
+  const modelLoaderNode = findNodeByClassTypes(graph, MODEL_LOADER_CLASS_TYPES)
   const loraNodes = findAllNodesByClassTypes(graph, LORA_CLASS_TYPES)
   const latentNode = findNodeByClassTypes(graph, LATENT_CLASS_TYPES)
 
@@ -331,7 +332,7 @@ export function normalizeParams(
   const workflowFingerprint = computeWorkflowFingerprint(graph)
 
   const samplerInputs = samplerNode?.inputs
-  const checkpointInputs = checkpointNode?.inputs
+  const modelLoaderInputs = modelLoaderNode?.inputs
   const latentInputs = latentNode?.inputs
 
   const cfg =
@@ -350,14 +351,11 @@ export function normalizeParams(
     typeof samplerInputs?.['scheduler'] === 'string'
       ? samplerInputs['scheduler']
       : undefined
-  const seed =
-    typeof samplerInputs?.['seed'] === 'number'
-      ? samplerInputs['seed']
-      : undefined
-  const model =
-    typeof checkpointInputs?.['ckpt_name'] === 'string'
-      ? checkpointInputs['ckpt_name']
-      : undefined
+  const rawSeed = samplerInputs?.['seed'] ?? samplerInputs?.['noise_seed']
+  const seed = typeof rawSeed === 'number' ? rawSeed : undefined
+  const rawModel =
+    modelLoaderInputs?.['ckpt_name'] ?? modelLoaderInputs?.['unet_name']
+  const model = typeof rawModel === 'string' ? rawModel : undefined
   const width =
     typeof latentInputs?.['width'] === 'number'
       ? latentInputs['width']
