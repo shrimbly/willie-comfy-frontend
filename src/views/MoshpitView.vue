@@ -38,6 +38,7 @@ import MoshpitTournamentOverlay from '@/platform/moshpit/components/MoshpitTourn
 import type { MarqueeRect } from '@/platform/moshpit/composables/useMoshpitMarquee'
 import { useMoshpitMarquee } from '@/platform/moshpit/composables/useMoshpitMarquee'
 import { useMoshpitSpriteDrag } from '@/platform/moshpit/composables/useMoshpitSpriteDrag'
+import { useMoshpitSpriteResize } from '@/platform/moshpit/composables/useMoshpitSpriteResize'
 import type { SpriteHitTester } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
 import {
   MOSHPIT_SPRITE_HITTEST_INJECTION_KEY,
@@ -96,6 +97,12 @@ const marquee = useMoshpitMarquee({
   }
 })
 
+const spriteResize = useMoshpitSpriteResize({
+  containerEl,
+  viewportRef,
+  hitTestRef: spriteHitTestRef
+})
+
 const spriteDrag = useMoshpitSpriteDrag({
   containerEl,
   viewportRef,
@@ -127,9 +134,11 @@ function onContainerPointerDown(e: PointerEvent) {
   containerEl.value?.focus()
   if (e.button !== 0) return
   sidebarStore.collapseOnFirstClick()
-  // Drag-to-pin takes precedence when on-sprite with no modifiers. If it
-  // engages, bail out — no click candidacy, no marquee.
+  // Resize handles take absolute precedence over drag-to-pin when the pointer
+  // is on a corner handle. Resize engages only for single-element selections;
+  // off-handle pointers fall through to the drag-to-pin path unchanged.
   if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+    if (spriteResize.onPointerDown(e)) return
     if (spriteDrag.onPointerDown(e)) return
   }
   // Marquee only engages with Cmd (mac) or Ctrl (windows/linux) held — plain
