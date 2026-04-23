@@ -96,10 +96,10 @@ SORT-01..05 shipped in Phase 3 but are superseded by lineage groupings. The UI w
 
 ### Curation
 
-- [ ] **CURATE-01**: User can favourite / unfavourite selected assets via right-click or `S`
-- [ ] **CURATE-02**: User can add free-text tags to selected assets via right-click or `T`; tags become filterable
-- [ ] **CURATE-03**: User can add selected assets to user-defined folders; folders are a curation layer, not filesystem moves — and the way to persist a shortlist for later tournamenting
-- [ ] **CURATE-04**: User can hide / unhide selected assets via right-click or `H`; hidden assets are filtered from default view but remain on disk
+- [x] **CURATE-01**: User can favourite / unfavourite selected assets via right-click or `S`
+- [x] **CURATE-02**: User can add free-text tags to selected assets via right-click or `T`; tags become filterable
+- [x] **CURATE-03**: User can add selected assets to user-defined folders; folders are a curation layer, not filesystem moves — and the way to persist a shortlist for later tournamenting
+- [x] **CURATE-04**: User can hide / unhide selected assets via right-click or `H`; hidden assets are filtered from default view but remain on disk
 - [ ] **CURATE-05**: User can export selected assets at full resolution via right-click or `E`
 - [ ] **CURATE-06**: Curation actions (tag, untag, hide, unhide, folder add/remove, bulk favourite) trigger a toast with an ~8s Undo button
 - [ ] **CURATE-07**: `Cmd`/`Ctrl`-Z within the toast window undoes the last curation action; after the toast fades, actions are permanent
@@ -244,10 +244,10 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | PEEK-01     | 5     | Complete              |
 | PEEK-02     | 5     | Complete              |
 | PEEK-03     | 5     | Complete              |
-| CURATE-01   | 6     | Pending               |
-| CURATE-02   | 6     | Pending               |
-| CURATE-03   | 6     | Pending               |
-| CURATE-04   | 6     | Pending               |
+| CURATE-01   | 6     | Complete              |
+| CURATE-02   | 6     | Complete              |
+| CURATE-03   | 6     | Complete              |
+| CURATE-04   | 6     | Complete              |
 | CURATE-05   | 6     | Pending               |
 | CURATE-06   | 6     | Pending               |
 | CURATE-07   | 6     | Pending               |

@@ -161,7 +161,7 @@
 
 **Plans:** 6 plans
 
-- [ ] 06-01-PLAN.md — MoshpitDB v5 + curationRepository + foldersRepository + curation/folders store mutation actions (CURATE-01/02/03/04 data foundation)
+- [x] 06-01-PLAN.md — MoshpitDB v5 + curationRepository + foldersRepository + curation/folders store mutation actions (CURATE-01/02/03/04 data foundation)
 - [ ] 06-02-PLAN.md — 'folder' ParamKey + filterMath integration + MoshpitLayout hydrate on mount (CURATE-02/03/04)
 - [ ] 06-03-PLAN.md — useMoshpitCuration orchestrator (undoable + toast + bulk flush) + useMoshpitCurationKeybindings (S/T/H/E/Cmd-Z) + moshpit.curation.\* i18n (CURATE-01..07)
 - [ ] 06-04-PLAN.md — MoshpitUndoToast + MoshpitFloatingActionBar curation buttons + MoshpitLayout toast mount (CURATE-01/02/04/05/06/07)

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-06-PLAN.md (Phase 05 shipped, HUMAN-UAT approved)
-last_updated: '2026-04-23T05:54:29.800Z'
+stopped_at: Completed 06-01-PLAN.md
+last_updated: '2026-04-23T07:08:08.836Z'
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 47
-  completed_plans: 41
-  percent: 87
+  completed_plans: 42
+  percent: 89
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 
 **Project:** Moshpit (ComfyUI Autocanvas)
 **Core Value:** Prove that a lineage-grouped spatial canvas with shortlist-then-tournament curation is a faster, more intuitive way to pick the best generations from a large set.
-**Current Focus:** Phase 06 — Curation (next)
+**Current Focus:** Phase 06 — curation-was-phase-5
 
 ## Current Position
 
-Phase: 05 (tournament-mode-replaces-old-comparison-mode-framing) — COMPLETE
-Plan: 6 of 6 complete
+Phase: 06 (curation-was-phase-5) — EXECUTING
+Plan: 1 of 6
 
 - **Milestone:** v1
 - **Phase:** 6
 - **Plan:** Not started
-- **Status:** Ready to execute
+- **Status:** Executing Phase 06
 
 Progress: `[██████████] 5 / 7 phases`
 
@@ -41,20 +41,21 @@ Progress: `[██████████] 5 / 7 phases`
 - Plans complete: 34 / 35 (across phases 1–3 + Phase 4 Plans 01–05)
 - Requirements mapped: 74 / 74 (v1 total post-pivot)
 
-| Phase-Plan   | Duration | Tasks   | Files                   |
-| ------------ | -------- | ------- | ----------------------- |
-| 04-01        | ~10 min  | 2       | 4 created + 1 modified  |
-| Phase 04 P02 | ~7 min   | 2 tasks | 5 modified files        |
-| Phase 04 P03 | 75 min   | 4 tasks | 13 files                |
-| Phase 04 P04 | ~29 min  | 4 tasks | 16 files                |
-| Phase 04 P05 | ~10min   | 1 tasks | 3 files                 |
-| Phase 04 P06 | 55min    | 6 tasks | 10 files                |
-| Phase 05 P01 | ~30min   | 2 tasks | 2 files                 |
-| Phase 05 P02 | ~3min    | 2 tasks | 2 files                 |
-| Phase 05 P03 | ~7min    | 3 tasks | 4 files                 |
-| Phase 05 P04 | ~6min    | 2 tasks | 4 files                 |
-| Phase 05 P05 | ~7min    | 1 tasks | 2 files                 |
-| Phase 05 P06 | ~95min   | 5 tasks | 6 created + 15 modified |
+| Phase-Plan                        | Duration | Tasks   | Files                   |
+| --------------------------------- | -------- | ------- | ----------------------- |
+| 04-01                             | ~10 min  | 2       | 4 created + 1 modified  |
+| Phase 04 P02                      | ~7 min   | 2 tasks | 5 modified files        |
+| Phase 04 P03                      | 75 min   | 4 tasks | 13 files                |
+| Phase 04 P04                      | ~29 min  | 4 tasks | 16 files                |
+| Phase 04 P05                      | ~10min   | 1 tasks | 3 files                 |
+| Phase 04 P06                      | 55min    | 6 tasks | 10 files                |
+| Phase 05 P01                      | ~30min   | 2 tasks | 2 files                 |
+| Phase 05 P02                      | ~3min    | 2 tasks | 2 files                 |
+| Phase 05 P03                      | ~7min    | 3 tasks | 4 files                 |
+| Phase 05 P04                      | ~6min    | 2 tasks | 4 files                 |
+| Phase 05 P05                      | ~7min    | 1 tasks | 2 files                 |
+| Phase 05 P06                      | ~95min   | 5 tasks | 6 created + 15 modified |
+| Phase 06-curation-was-phase-5 P01 | 8min     | 2 tasks | 11 files                |
 
 ## Accumulated Context
 
@@ -117,6 +118,9 @@ Progress: `[██████████] 5 / 7 phases`
 - [Phase 05]: Plan 05-04: Tournament visual primitives shipped — AssetFrame uses Image() preloader + Tailwind opacity transition for crossfade (no JS tween). Pair applies dynamic clip-path via inline :style; divider drag updates store.wipePosition via getBoundingClientRect. Semantic tokens verified vs style.css — use bg-base-background / bg-base-foreground / ring-(--focus-ring) / bg-interface-panel-surface (plan-suggested bg-background / bg-foreground / ring-primary don't exist). TDD RED commits skipped for UI glue per plan — vue/no-unused-properties and testing-library/no-container linters forced single feat: commits with tests-first in working tree.
 - [Phase 05]: Plan 05-05: MoshpitMetadataPeekPanel shipped — Tailwind transition-[transform] duration-200 ease-out slide gated by store.isPeekOpen (no JS tween); scalar diff rows highlighted bg-node-component-surface; LoRA rows text-success/text-danger/text-warning; i18n via moshpit.peek._ keys; Plan 06 drops moshpit.peek.lora.state_ keys (state conveyed by colour alone).
 - [Phase 05]: Plan 05-06: Phase 05 shipped. Overlay + Enter gate + i18n + UAT signed off 2026-04-23. Post-UAT work in-scope: canvas selection gestures (click/ctrl+click/shift+click/marquee with Cmd/Ctrl gate) added because MoshpitCanvas had none; tournament keybindings moved from DialogContent template-ref (Reka returns component instance, not HTMLElement) to window capture phase gated on isActive; overlap clipPath inverted so divider IS the A↔B seam; pick-pulse feedback (CSS gradient, pickPulseId scalar); winner screen on tournament completion with Enter/Esc/Space ack; modal framing reframed as bounded dialog with stronger backdrop + z-50 above MoshpitLayout. 625/625 moshpit unit tests green, typecheck clean. @moshpit Playwright spec still deferred (Phase 4 tsconfig:browser blocker).
+- [Phase 06-curation-was-phase-5]: MOSHPIT_DB_VERSION=5; v4→v5 migration adds folders store with idempotency guard; no per-record migration needed
+- [Phase 06-curation-was-phase-5]: Caps enforced at mutation time: tag length 64, tag count 50/asset, folder count 200
+- [Phase 06-curation-was-phase-5]: moshpitFoldersStore.remove() scrubs dangling folder ids from CurationRecord.folders[] before deleting FolderRecord (Pitfall 4)
 
 ### Active Todos
 
@@ -144,8 +148,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-23T00:00:00.000Z
-**Stopped at:** Completed 05-06-PLAN.md (Phase 05 shipped, HUMAN-UAT approved)
+**Last session:** 2026-04-23T07:08:08.831Z
+**Stopped at:** Completed 06-01-PLAN.md
 
 **Context for next session:**
 
