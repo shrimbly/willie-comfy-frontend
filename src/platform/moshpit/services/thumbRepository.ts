@@ -110,6 +110,15 @@ export function openMoshpitDB(): Promise<IDBPDatabase<MoshpitDB>> {
           console.warn(`[moshpit] v2→v3 migration skipped ${skipped} records`)
         }
       }
+      // v3 → v4: add the `overrides` object store for persisting
+      // moshpitOverrideStore records (pinned world positions + manual scales).
+      // No data migration needed — the in-memory override store is populated
+      // by user action after hydration, so pre-v4 users simply start empty.
+      if (oldVersion < 4) {
+        if (!db.objectStoreNames.contains('overrides')) {
+          db.createObjectStore('overrides', { keyPath: 'contentHash' })
+        }
+      }
     },
     blocked() {
       console.warn(
@@ -123,6 +132,16 @@ export function openMoshpitDB(): Promise<IDBPDatabase<MoshpitDB>> {
     }
   })
   return cachedDB
+}
+
+/**
+ * Shared accessor for the MoshpitDB connection. Used by sibling repositories
+ * (e.g. `overrideRepository.ts`) so a single `openDB` handle is reused across
+ * all stores. Calling this before any thumb/meta operation is safe — it
+ * delegates to `openMoshpitDB()`.
+ */
+export function getMoshpitDB(): Promise<IDBPDatabase<MoshpitDB>> {
+  return openMoshpitDB()
 }
 
 export function defaultCuration(): CurationRecord {

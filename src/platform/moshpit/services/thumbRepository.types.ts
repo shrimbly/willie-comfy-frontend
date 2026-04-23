@@ -31,6 +31,18 @@ export interface AssetMetaRecord {
   readonly params: NormalizedParams
 }
 
+/**
+ * Per-asset sprite-layer override persisted at MoshpitDB v4. Mirrors the
+ * in-memory `OverrideRecord` in `moshpitOverrideStore.ts`, plus the
+ * `contentHash` keyPath used by the IDB object store.
+ */
+export interface OverridePersistedRecord {
+  readonly contentHash: string
+  readonly pinnedWorldPos?: { readonly x: number; readonly y: number }
+  readonly scale?: number
+  readonly pinnedAt: number
+}
+
 /** idb typed schema — passed as generic to `openDB<MoshpitDB>`. */
 export interface MoshpitDB extends DBSchema {
   thumbs: {
@@ -41,6 +53,10 @@ export interface MoshpitDB extends DBSchema {
     key: string
     value: AssetMetaRecord
   }
+  overrides: {
+    key: string
+    value: OverridePersistedRecord
+  }
 }
 
 export const MOSHPIT_DB_NAME = 'moshpit-v1'
@@ -50,8 +66,11 @@ export const MOSHPIT_DB_NAME = 'moshpit-v1'
  * v3 (Phase 4 Plan 02): `params.saveNodeIdentity` added — re-derived from
  *   rec.metadata by a cursor-based upgrade (D-11). Per-record try/catch with
  *   aggregate skip counter; upgrade transaction never aborts (Pitfall 4).
+ * v4 (Quick 260423-m6c): `overrides` object store added to persist
+ *   moshpitOverrideStore mutations (pinned world positions + manual scales).
+ *   Keyed by contentHash; no upgrade pass on existing stores.
  *
  * Increment again if Phase 5 adds indexes (e.g. by-tag on assetMeta);
  * always provide an `upgrade` branch for the new version number.
  */
-export const MOSHPIT_DB_VERSION = 3
+export const MOSHPIT_DB_VERSION = 4

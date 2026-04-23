@@ -354,7 +354,7 @@ describe('thumbRepository v2→v3 migration (D-11)', () => {
   it('fresh DB opens at v3 with thumbs + assetMeta stores and no errors', async () => {
     const { openMoshpitDB } = await import('./thumbRepository')
     const db = await openMoshpitDB()
-    expect(db.version).toBe(3)
+    expect(db.version).toBe(4)
     expect(db.objectStoreNames.contains('thumbs')).toBe(true)
     expect(db.objectStoreNames.contains('assetMeta')).toBe(true)
     expect(errorSpy).not.toHaveBeenCalled()
@@ -412,7 +412,7 @@ describe('thumbRepository v2→v3 migration (D-11)', () => {
 
     const { openMoshpitDB, getAssetMeta } = await import('./thumbRepository')
     const db = await openMoshpitDB()
-    expect(db.version).toBe(3)
+    expect(db.version).toBe(4)
 
     const withTitle = await getAssetMeta('has-title')
     expect(withTitle?.params.saveNodeIdentity).toBe('Final Output')
@@ -537,11 +537,11 @@ describe('thumbRepository v2→v3 migration (D-11)', () => {
 
     const { openMoshpitDB, getAssetMeta } = await import('./thumbRepository')
     const db1 = await openMoshpitDB()
-    expect(db1.version).toBe(3)
+    expect(db1.version).toBe(4)
     const first = await getAssetMeta('once')
 
     const db2 = await openMoshpitDB()
-    expect(db2.version).toBe(3)
+    expect(db2.version).toBe(4)
     const second = await getAssetMeta('once')
 
     expect(first?.params.saveNodeIdentity).toBe('SaveImage')
