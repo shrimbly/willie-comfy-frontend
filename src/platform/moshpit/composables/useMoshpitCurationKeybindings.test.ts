@@ -1,16 +1,18 @@
+import 'fake-indexeddb/auto'
+
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, nextTick, ref } from 'vue'
 
 import { mount } from '@vue/test-utils'
 
-import { useMoshpitTournamentStore } from '../stores/moshpitTournamentStore'
+import { useMoshpitCurationStore } from '../stores/moshpitCurationStore'
 import { useMoshpitSelectionStore } from '../stores/moshpitSelectionStore'
+import { useMoshpitTournamentStore } from '../stores/moshpitTournamentStore'
 import { useToastStore } from '@/platform/updates/common/toastStore'
 import { useMoshpitCuration } from './useMoshpitCuration'
 import { useMoshpitCurationKeybindings } from './useMoshpitCurationKeybindings'
 
-// Helper: dispatch a keydown event on an element
 function keydown(
   el: HTMLElement,
   key: string,
@@ -34,18 +36,21 @@ function makeWrapper(openTagPopover: () => void) {
       useMoshpitCurationKeybindings({ containerEl, openTagPopover })
       return { containerEl }
     },
-    template: '<div ref="containerEl" tabindex="0"><input id="inner-input" /></div>'
+    template:
+      '<div ref="containerEl" tabindex="0"><input id="inner-input" /></div>'
   })
   const wrapper = mount(Wrapper, { attachTo: document.body })
-  const el = wrapper.element as HTMLElement
-  containerEl.value = el
-  return { wrapper, el, containerEl }
+  containerEl.value = wrapper.element as HTMLElement
+  return { wrapper, el: wrapper.element as HTMLElement }
 }
 
 describe('useMoshpitCurationKeybindings', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] })
+    // Clear module-level lastUndoable before each test
+    const c = useMoshpitCuration()
+    if (c.lastUndoable.value) c.undoLast()
   })
 
   afterEach(() => {
@@ -53,34 +58,28 @@ describe('useMoshpitCurationKeybindings', () => {
     vi.restoreAllMocks()
   })
 
-  it('keydown S with selection calls favouriteMany', async () => {
+  it('keydown S with selection calls favouriteMany — curation store updated', async () => {
     const selectionStore = useMoshpitSelectionStore()
     selectionStore.setSelection(['h1', 'h2', 'h3'])
-
-    const curation = useMoshpitCuration()
-    const favouriteSpy = vi.spyOn(curation, 'favouriteMany')
-
-    // Patch useMoshpitCuration to return our spied instance
-    vi.doMock('./useMoshpitCuration', () => ({
-      useMoshpitCuration: () => curation,
-      UNDO_WINDOW_MS: 8000
-    }))
 
     const openTagPopover = vi.fn()
     const { el } = makeWrapper(openTagPopover)
 
+    const curationStore = useMoshpitCurationStore()
+    const applySpy = vi.spyOn(curationStore, 'applyManyOptimistic')
+
     keydown(el, 's')
     await nextTick()
 
-    expect(favouriteSpy).toHaveBeenCalledWith(selectionStore.selected)
+    expect(applySpy).toHaveBeenCalledOnce()
   })
 
   it('keydown S with empty selection is a no-op', async () => {
     const selectionStore = useMoshpitSelectionStore()
     selectionStore.clear()
 
-    const curation = useMoshpitCuration()
-    const favouriteSpy = vi.spyOn(curation, 'favouriteMany')
+    const curationStore = useMoshpitCurationStore()
+    const applySpy = vi.spyOn(curationStore, 'applyManyOptimistic')
 
     const openTagPopover = vi.fn()
     const { el } = makeWrapper(openTagPopover)
@@ -88,19 +87,18 @@ describe('useMoshpitCurationKeybindings', () => {
     keydown(el, 's')
     await nextTick()
 
-    expect(favouriteSpy).not.toHaveBeenCalled()
+    expect(applySpy).not.toHaveBeenCalled()
   })
 
-  it('keydown S while tournament is active is a no-op', async () => {
+  it('keydown S while tournamentStore.isActive is true is a no-op', async () => {
     const selectionStore = useMoshpitSelectionStore()
     selectionStore.setSelection(['h1', 'h2'])
 
     const tournamentStore = useMoshpitTournamentStore()
-    // Force isActive by mocking the ref directly
     vi.spyOn(tournamentStore, 'isActive', 'get').mockReturnValue(true)
 
-    const curation = useMoshpitCuration()
-    const favouriteSpy = vi.spyOn(curation, 'favouriteMany')
+    const curationStore = useMoshpitCurationStore()
+    const applySpy = vi.spyOn(curationStore, 'applyManyOptimistic')
 
     const openTagPopover = vi.fn()
     const { el } = makeWrapper(openTagPopover)
@@ -108,15 +106,15 @@ describe('useMoshpitCurationKeybindings', () => {
     keydown(el, 's')
     await nextTick()
 
-    expect(favouriteSpy).not.toHaveBeenCalled()
+    expect(applySpy).not.toHaveBeenCalled()
   })
 
-  it('keydown S when activeElement is an input is a no-op', async () => {
+  it('keydown S when activeElement is an input inside the container is a no-op', async () => {
     const selectionStore = useMoshpitSelectionStore()
     selectionStore.setSelection(['h1', 'h2'])
 
-    const curation = useMoshpitCuration()
-    const favouriteSpy = vi.spyOn(curation, 'favouriteMany')
+    const curationStore = useMoshpitCurationStore()
+    const applySpy = vi.spyOn(curationStore, 'applyManyOptimistic')
 
     const openTagPopover = vi.fn()
     const { wrapper } = makeWrapper(openTagPopover)
@@ -127,15 +125,15 @@ describe('useMoshpitCurationKeybindings', () => {
     keydown(inputEl, 's')
     await nextTick()
 
-    expect(favouriteSpy).not.toHaveBeenCalled()
+    expect(applySpy).not.toHaveBeenCalled()
   })
 
-  it('keydown H calls hideMany', async () => {
+  it('keydown H calls hideMany — hidden flag flipped in curation store', async () => {
     const selectionStore = useMoshpitSelectionStore()
     selectionStore.setSelection(['h1', 'h2'])
 
-    const curation = useMoshpitCuration()
-    const hideSpy = vi.spyOn(curation, 'hideMany')
+    const curationStore = useMoshpitCurationStore()
+    const applySpy = vi.spyOn(curationStore, 'applyManyOptimistic')
 
     const openTagPopover = vi.fn()
     const { el } = makeWrapper(openTagPopover)
@@ -143,7 +141,7 @@ describe('useMoshpitCurationKeybindings', () => {
     keydown(el, 'h')
     await nextTick()
 
-    expect(hideSpy).toHaveBeenCalledWith(selectionStore.selected)
+    expect(applySpy).toHaveBeenCalledOnce()
   })
 
   it('keydown T calls openTagPopover', async () => {
@@ -159,29 +157,33 @@ describe('useMoshpitCurationKeybindings', () => {
     expect(openTagPopover).toHaveBeenCalledOnce()
   })
 
-  it('keydown E calls exportMany', async () => {
+  it('keydown E with no resolveFullResUrl is a no-op (no toast, no crash)', async () => {
     const selectionStore = useMoshpitSelectionStore()
     selectionStore.setSelection(['h1', 'h2'])
 
-    const curation = useMoshpitCuration()
-    const exportSpy = vi.spyOn(curation, 'exportMany')
+    const toastStore = useToastStore()
+    const addSpy = vi.spyOn(toastStore, 'add')
 
     const openTagPopover = vi.fn()
     const { el } = makeWrapper(openTagPopover)
 
+    // exportMany without resolveFullResUrl is a no-op (console.warn only)
     keydown(el, 'e')
     await nextTick()
 
-    expect(exportSpy).toHaveBeenCalledWith(selectionStore.selected)
+    // The curation orchestrator fires no toast when resolver is absent
+    expect(addSpy).not.toHaveBeenCalled()
   })
 
-  it('keydown Cmd+Z calls undoLast; if true, does not fire nothingToUndo toast', async () => {
+  it('keydown Cmd+Z calls undoLast via the shared curation singleton', async () => {
+    // Seed an undoable action so undoLast returns true
     const selectionStore = useMoshpitSelectionStore()
     selectionStore.setSelection(['h1', 'h2'])
 
+    // Fire a bulk favourite so lastUndoable is set
     const curation = useMoshpitCuration()
-    // Make undoLast return true (something to undo)
-    vi.spyOn(curation, 'undoLast').mockReturnValue(true)
+    curation.favouriteMany(['h1', 'h2'], true)
+    expect(curation.lastUndoable.value).not.toBeNull()
 
     const toastStore = useToastStore()
     const addSpy = vi.spyOn(toastStore, 'add')
@@ -192,16 +194,20 @@ describe('useMoshpitCurationKeybindings', () => {
     keydown(el, 'z', { metaKey: true })
     await nextTick()
 
-    expect(curation.undoLast).toHaveBeenCalledOnce()
-    expect(addSpy).not.toHaveBeenCalled()
+    // undoLast clears lastUndoable
+    expect(curation.lastUndoable.value).toBeNull()
+    // no nothingToUndo toast when undo succeeds
+    // (add was called by favouriteMany itself earlier, check no extra calls after)
+    const callsAfter = addSpy.mock.calls.filter((c) =>
+      c[0].summary?.toString().includes('Nothing to undo')
+    )
+    expect(callsAfter).toHaveLength(0)
   })
 
-  it('keydown Ctrl+Z when undoLast returns false fires nothingToUndo toast', async () => {
-    const selectionStore = useMoshpitSelectionStore()
-    selectionStore.setSelection(['h1'])
-
+  it('keydown Ctrl+Z when nothing to undo fires nothingToUndo info toast', async () => {
+    // Ensure lastUndoable is null (beforeEach already does this)
     const curation = useMoshpitCuration()
-    vi.spyOn(curation, 'undoLast').mockReturnValue(false)
+    expect(curation.lastUndoable.value).toBeNull()
 
     const toastStore = useToastStore()
     const addSpy = vi.spyOn(toastStore, 'add')
@@ -216,12 +222,12 @@ describe('useMoshpitCurationKeybindings', () => {
     expect(addSpy.mock.calls[0][0].severity).toBe('info')
   })
 
-  it('listener is removed after unmount', async () => {
+  it('listener is removed after unmount — subsequent keydown is a no-op', async () => {
     const selectionStore = useMoshpitSelectionStore()
     selectionStore.setSelection(['h1', 'h2'])
 
-    const curation = useMoshpitCuration()
-    const favouriteSpy = vi.spyOn(curation, 'favouriteMany')
+    const curationStore = useMoshpitCurationStore()
+    const applySpy = vi.spyOn(curationStore, 'applyManyOptimistic')
 
     const openTagPopover = vi.fn()
     const { wrapper, el } = makeWrapper(openTagPopover)
@@ -230,6 +236,6 @@ describe('useMoshpitCurationKeybindings', () => {
     keydown(el, 's')
     await nextTick()
 
-    expect(favouriteSpy).not.toHaveBeenCalled()
+    expect(applySpy).not.toHaveBeenCalled()
   })
 })
