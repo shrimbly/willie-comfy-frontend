@@ -1228,6 +1228,12 @@
       "downloadStartedMulti": "Started download of {count} assets",
       "selectSimilarNoMatch": "No similar assets",
       "selectSimilarNoMatchDetail": "Target has no workflow metadata to match against"
+    },
+    "actionBar": {
+      "selectedCount": "{count} selected | {count} selected",
+      "unpin": "Unpin",
+      "download": "Download",
+      "clear": "Clear"
     }
   },
   "tabMenu": {

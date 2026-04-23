@@ -17,6 +17,7 @@
       :overlay-style="marquee.overlayStyle.value"
     />
     <MoshpitTournamentOverlay :resolve-full-res-url="resolveFullResUrl" />
+    <MoshpitFloatingActionBar />
     <MoshpitSpriteContextMenu ref="contextMenuRef" />
   </div>
 </template>
@@ -30,6 +31,7 @@ import { getAssetUrl } from '@/platform/assets/utils/assetUrlUtil'
 import MoshpitCanvas from '@/platform/moshpit/components/MoshpitCanvas.vue'
 import MoshpitClusterOverlay from '@/platform/moshpit/components/MoshpitClusterOverlay.vue'
 import MoshpitEmptyGateOverlay from '@/platform/moshpit/components/MoshpitEmptyGateOverlay.vue'
+import MoshpitFloatingActionBar from '@/platform/moshpit/components/MoshpitFloatingActionBar.vue'
 import MoshpitMarqueeOverlay from '@/platform/moshpit/components/MoshpitMarqueeOverlay.vue'
 import MoshpitSpriteContextMenu from '@/platform/moshpit/components/MoshpitSpriteContextMenu.vue'
 import MoshpitTournamentOverlay from '@/platform/moshpit/components/MoshpitTournamentOverlay.vue'
