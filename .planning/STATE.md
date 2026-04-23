@@ -15,7 +15,7 @@ progress:
 
 # Project State
 
-**Last updated:** 2026-04-24 — Completed quick task 260424-70j: Fix Moshpit metadata extraction — support UNETLoader as model source and KSamplerAdvanced noise_seed
+**Last updated:** 2026-04-24 — Completed quick task 260424-859: Clear sprite overrides (pins + scales) when grouping axes change — enforce regroup
 
 ## Project Reference
 
@@ -153,6 +153,7 @@ None.
 | 260423-ltc | Corner resize handles (single-selection) — drag writes overrideStore.setScale with MIN/MAX clamp               | 2026-04-23 | f49078a2d | [260423-ltc-moshpit-sprite-resize-handles-corner-dra](./quick/260423-ltc-moshpit-sprite-resize-handles-corner-dra/) |
 | 260423-m6c | Persist overrides to IndexedDB (MoshpitDB v4) — pins + scales survive page reloads; hydrate on boot            | 2026-04-23 | ae70d53f8 | [260423-m6c-persist-moshpit-sprite-overrides-pins-sc](./quick/260423-m6c-persist-moshpit-sprite-overrides-pins-sc/) |
 | 260424-70j | Fix Moshpit metadata extraction — support UNETLoader as model source and KSamplerAdvanced noise_seed           | 2026-04-24 | fd9eab7b7 | [260424-70j-fix-moshpit-metadata-extraction-support-](./quick/260424-70j-fix-moshpit-metadata-extraction-support-/) |
+| 260424-859 | Clear sprite overrides (pins + scales) when grouping axes change — enforce regroup                             | 2026-04-24 | f5fc3bbe1 | [260424-859-clear-sprite-overrides-pins-scales-when-](./quick/260424-859-clear-sprite-overrides-pins-scales-when-/) |
 
 ## Session Continuity
 
