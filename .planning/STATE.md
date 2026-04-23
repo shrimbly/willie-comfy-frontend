@@ -138,6 +138,7 @@ None.
 | 260423-j4f | Add per-asset sprite override store + layered rendering (foundation for manual move/resize/copy/hide/download) | 2026-04-23 | 248b8a71e | [260423-j4f-add-sprite-controls-to-moshpit-canvas-ma](./quick/260423-j4f-add-sprite-controls-to-moshpit-canvas-ma/) |
 | 260423-kdv | Drag-to-pin sprites — left-drag writes to moshpitOverrideStore, breaks auto-layout with toast                  | 2026-04-23 | 2e78d48b9 | [260423-kdv-drag-to-pin-sprites-in-moshpit-canvas-le](./quick/260423-kdv-drag-to-pin-sprites-in-moshpit-canvas-le/) |
 | 260423-kx4 | Sprite right-click context menu (Reka UI) — Pin/Unpin, Download, Select Similar, Reset All Pins                | 2026-04-23 | b548e405f | [260423-kx4-moshpit-sprite-context-menu-right-click-](./quick/260423-kx4-moshpit-sprite-context-menu-right-click-/) |
+| 260423-led | Floating action bar (bottom-center) + shared useMoshpitSpriteActions composable                                | 2026-04-23 | 6cd4583d5 | [260423-led-moshpit-floating-action-bar-visible-when](./quick/260423-led-moshpit-floating-action-bar-visible-when/) |
 
 ## Session Continuity
 
