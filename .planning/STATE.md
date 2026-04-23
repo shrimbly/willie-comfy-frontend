@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-01-PLAN.md
-last_updated: '2026-04-23T07:08:08.836Z'
+stopped_at: Completed 06-02-PLAN.md
+last_updated: '2026-04-23T07:16:02.337Z'
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 47
-  completed_plans: 42
-  percent: 89
+  completed_plans: 43
+  percent: 91
 ---
 
 # Project State
@@ -56,6 +56,7 @@ Progress: `[██████████] 5 / 7 phases`
 | Phase 05 P05                      | ~7min    | 1 tasks | 2 files                 |
 | Phase 05 P06                      | ~95min   | 5 tasks | 6 created + 15 modified |
 | Phase 06-curation-was-phase-5 P01 | 8min     | 2 tasks | 11 files                |
+| Phase 06-curation-was-phase-5 P02 | 15 min   | 2 tasks | 6 files                 |
 
 ## Accumulated Context
 
@@ -121,6 +122,8 @@ Progress: `[██████████] 5 / 7 phases`
 - [Phase 06-curation-was-phase-5]: MOSHPIT_DB_VERSION=5; v4→v5 migration adds folders store with idempotency guard; no per-record migration needed
 - [Phase 06-curation-was-phase-5]: Caps enforced at mutation time: tag length 64, tag count 50/asset, folder count 200
 - [Phase 06-curation-was-phase-5]: moshpitFoldersStore.remove() scrubs dangling folder ids from CurationRecord.folders[] before deleting FolderRecord (Pitfall 4)
+- [Phase 06-curation-was-phase-5]: 'folder' added to PRIMARY_FILTER_PARAMS — folders are primary surface, not advanced
+- [Phase 06-curation-was-phase-5]: paramValueOptions 'folder' case returns folder ids (not names) — UI resolves names via foldersStore
 
 ### Active Todos
 
@@ -148,8 +151,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-23T07:08:08.831Z
-**Stopped at:** Completed 06-01-PLAN.md
+**Last session:** 2026-04-23T07:16:02.334Z
+**Stopped at:** Completed 06-02-PLAN.md
 
 **Context for next session:**
 
