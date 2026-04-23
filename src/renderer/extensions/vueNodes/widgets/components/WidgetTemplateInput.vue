@@ -116,14 +116,15 @@
               :side-offset="4"
               :collision-padding="8"
               data-capture-wheel="true"
+              :style="{ zIndex: 2147483000 }"
               :class="
                 cn(
-                  'z-9999 max-h-72 w-64 overflow-y-auto',
+                  'max-h-72 w-64 overflow-y-auto',
                   'rounded-lg border border-border-default bg-base-background p-1 shadow-lg',
                   'data-[side=top]:animate-slideDownAndFade data-[side=bottom]:animate-slideUpAndFade will-change-[opacity,transform]'
                 )
               "
-              @wheel.stop.prevent="handlePopoverWheel"
+              @wheel.capture.stop.prevent="handlePopoverWheel"
             >
               <div
                 v-if="outputSubdirectoriesLoading"
@@ -142,69 +143,72 @@
           </PopoverPortal>
         </PopoverRoot>
       </div>
-      <ComboboxContent
-        position="popper"
-        side="bottom"
-        :side-offset="4"
-        :collision-padding="8"
-        data-capture-wheel="true"
-        :class="
-          cn(
-            'z-9999 max-h-72 w-max max-w-sm min-w-(--reka-combobox-trigger-width) overflow-y-auto',
-            'rounded-lg border border-border-default bg-base-background p-1 shadow-lg',
-            'data-[side=top]:animate-slideDownAndFade data-[side=bottom]:animate-slideUpAndFade will-change-[opacity,transform]'
-          )
-        "
-        @wheel.stop.prevent="handlePopoverWheel"
-        @open-auto-focus.prevent
-        @close-auto-focus.prevent
-      >
-        <div
-          v-if="groupedSuggestions.length === 0"
-          class="p-2 text-xs text-muted-foreground"
+      <ComboboxPortal>
+        <ComboboxContent
+          position="popper"
+          side="bottom"
+          :side-offset="4"
+          :collision-padding="8"
+          data-capture-wheel="true"
+          :style="{ zIndex: 2147483000 }"
+          :class="
+            cn(
+              'max-h-72 w-max max-w-sm min-w-(--reka-combobox-trigger-width) overflow-y-auto',
+              'rounded-lg border border-border-default bg-base-background p-1 shadow-lg',
+              'data-[side=top]:animate-slideDownAndFade data-[side=bottom]:animate-slideUpAndFade will-change-[opacity,transform]'
+            )
+          "
+          @wheel.capture.stop.prevent="handlePopoverWheel"
+          @open-auto-focus.prevent
+          @close-auto-focus.prevent
         >
-          {{ $t('templateVariables.noMatches') }}
-        </div>
-        <ComboboxGroup v-for="group in groupedSuggestions" :key="group.group">
           <div
-            class="px-2 pt-1.5 pb-1 text-2xs font-semibold tracking-wide text-muted-foreground uppercase"
+            v-if="groupedSuggestions.length === 0"
+            class="p-2 text-xs text-muted-foreground"
           >
-            {{ $t(`templateVariables.group.${group.group}`) }}
+            {{ $t('templateVariables.noMatches') }}
           </div>
-          <ComboboxItem
-            v-for="suggestion in group.items"
-            :key="suggestion.key"
-            :value="suggestion.key"
-            :class="
-              cn(
-                'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none',
-                'data-highlighted:bg-secondary-background-hover data-highlighted:text-text-primary'
-              )
-            "
-            @mousedown.prevent
-            @select.prevent="autocomplete.selectSuggestion(suggestion)"
-          >
-            <span
+          <ComboboxGroup v-for="group in groupedSuggestions" :key="group.group">
+            <div
+              class="px-2 pt-1.5 pb-1 text-2xs font-semibold tracking-wide text-muted-foreground uppercase"
+            >
+              {{ $t(`templateVariables.group.${group.group}`) }}
+            </div>
+            <ComboboxItem
+              v-for="suggestion in group.items"
+              :key="suggestion.key"
+              :value="suggestion.key"
               :class="
                 cn(
-                  'inline-flex shrink-0 items-center rounded-sm px-1.5 py-px font-mono text-2xs',
-                  suggestion.isCustom
-                    ? 'bg-(--color-azure-300) text-charcoal-800'
-                    : 'bg-modal-card-tag-background text-modal-card-tag-foreground'
+                  'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none',
+                  'data-highlighted:bg-secondary-background-hover data-highlighted:text-text-primary'
                 )
               "
+              @mousedown.prevent
+              @select.prevent="autocomplete.selectSuggestion(suggestion)"
             >
-              {{ suggestion.label }}
-            </span>
-            <span
-              v-if="suggestion.description"
-              class="truncate text-xs text-muted-foreground"
-            >
-              {{ suggestion.description }}
-            </span>
-          </ComboboxItem>
-        </ComboboxGroup>
-      </ComboboxContent>
+              <span
+                :class="
+                  cn(
+                    'inline-flex shrink-0 items-center rounded-sm px-1.5 py-px font-mono text-2xs',
+                    suggestion.isCustom
+                      ? 'bg-(--color-azure-300) text-charcoal-800'
+                      : 'bg-modal-card-tag-background text-modal-card-tag-foreground'
+                  )
+                "
+              >
+                {{ suggestion.label }}
+              </span>
+              <span
+                v-if="suggestion.description"
+                class="truncate text-xs text-muted-foreground"
+              >
+                {{ suggestion.description }}
+              </span>
+            </ComboboxItem>
+          </ComboboxGroup>
+        </ComboboxContent>
+      </ComboboxPortal>
     </ComboboxRoot>
   </WidgetLayoutField>
 </template>
@@ -216,6 +220,7 @@ import {
   ComboboxGroup,
   ComboboxInput,
   ComboboxItem,
+  ComboboxPortal,
   ComboboxRoot,
   PopoverContent,
   PopoverPortal,
