@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { createI18n } from 'vue-i18n'
 
+import { useMoshpitFilterStore } from '@/platform/moshpit/stores/moshpitFilterStore'
+import { useMoshpitOverrideStore } from '@/platform/moshpit/stores/moshpitOverrideStore'
 import { useMoshpitSelectionStore } from '@/platform/moshpit/stores/moshpitSelectionStore'
 import { useMoshpitTournamentStore } from '@/platform/moshpit/stores/moshpitTournamentStore'
 import { useToastStore } from '@/platform/updates/common/toastStore'
@@ -131,5 +133,54 @@ describe('MoshpitView Enter-key tournament entry gate (D-14)', () => {
     // Second Enter neither fires a toast nor disturbs the store.
     expect(toastStore.messagesToAdd.length).toBe(baselineMessages)
     expect(tournamentStore.isActive).toBe(true)
+  })
+})
+
+describe('MoshpitView override-clear on grouping change', () => {
+  it('clears all sprite overrides when activeGroupings changes', async () => {
+    mountView()
+    const overrideStore = useMoshpitOverrideStore()
+    const filterStore = useMoshpitFilterStore()
+
+    overrideStore.setPin('abc', { x: 10, y: 20 })
+    overrideStore.setScale('xyz', 1.5)
+    await nextTick()
+    expect(overrideStore.records.size).toBe(2)
+
+    filterStore.toggleGrouping('workflow')
+    await nextTick()
+
+    expect(overrideStore.records.size).toBe(0)
+    expect(overrideStore.isPinned('abc')).toBe(false)
+  })
+
+  it('does not clear overrides when within-cluster sort changes', async () => {
+    mountView()
+    const overrideStore = useMoshpitOverrideStore()
+    const filterStore = useMoshpitFilterStore()
+
+    overrideStore.setPin('abc', { x: 10, y: 20 })
+    overrideStore.setScale('xyz', 1.5)
+    await nextTick()
+
+    filterStore.setWithinClusterSort('oldestFirst')
+    await nextTick()
+
+    expect(overrideStore.records.size).toBe(2)
+  })
+
+  it('does not clear overrides when grid spacing changes', async () => {
+    mountView()
+    const overrideStore = useMoshpitOverrideStore()
+    const filterStore = useMoshpitFilterStore()
+
+    overrideStore.setPin('abc', { x: 10, y: 20 })
+    overrideStore.setScale('xyz', 1.5)
+    await nextTick()
+
+    filterStore.setGridSpacing(600)
+    await nextTick()
+
+    expect(overrideStore.records.size).toBe(2)
   })
 })
