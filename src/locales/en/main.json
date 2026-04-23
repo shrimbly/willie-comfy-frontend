@@ -1257,7 +1257,28 @@
       "invalidTag": "Tag must be 1–64 characters",
       "invalidFolder": "Folder name must be 1–64 characters",
       "folderLimitReached": "Folder limit reached (200)",
-      "tagLimitReached": "Tag limit reached for one or more assets (50)"
+      "tagLimitReached": "Tag limit reached for one or more assets (50)",
+      "tags": {
+        "placeholder": "Add a tag\u2026",
+        "inputLabel": "Tag input",
+        "chipHintAll": "Applied to all selected",
+        "chipHintSome": "Applied to some selected",
+        "chipHintNone": "Not applied"
+      },
+      "folders": {
+        "title": "Folders",
+        "empty": "No folders yet",
+        "newFolder": "New folder\u2026",
+        "newFromSelection": "New folder from selection",
+        "newFolderPlaceholder": "Folder name",
+        "inputLabel": "Folder name input",
+        "memberCount": "{count} asset | {count} assets",
+        "defaultName": "Shortlist {date}",
+        "sectionLabel": "Folders list",
+        "confirmDelete": "Delete folder \"{name}\"? Assets remain in place.",
+        "rename": "Rename",
+        "delete": "Delete"
+      }
     }
   },
   "tabMenu": {
