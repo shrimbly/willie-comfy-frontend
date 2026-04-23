@@ -32,6 +32,7 @@ import MoshpitMarqueeOverlay from '@/platform/moshpit/components/MoshpitMarqueeO
 import MoshpitTournamentOverlay from '@/platform/moshpit/components/MoshpitTournamentOverlay.vue'
 import type { MarqueeRect } from '@/platform/moshpit/composables/useMoshpitMarquee'
 import { useMoshpitMarquee } from '@/platform/moshpit/composables/useMoshpitMarquee'
+import { useMoshpitSpriteDrag } from '@/platform/moshpit/composables/useMoshpitSpriteDrag'
 import type { SpriteHitTester } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
 import {
   MOSHPIT_SPRITE_HITTEST_INJECTION_KEY,
@@ -87,6 +88,12 @@ const marquee = useMoshpitMarquee({
   }
 })
 
+const spriteDrag = useMoshpitSpriteDrag({
+  containerEl,
+  viewportRef,
+  hitTestRef: spriteHitTestRef
+})
+
 /**
  * Tournament full-res URL resolver. Looks up an asset by contentHash and
  * returns its `/view?filename=...` URL via getAssetUrl. OSS-path assets have
@@ -112,6 +119,11 @@ function onContainerPointerDown(e: PointerEvent) {
   containerEl.value?.focus()
   if (e.button !== 0) return
   sidebarStore.collapseOnFirstClick()
+  // Drag-to-pin takes precedence when on-sprite with no modifiers. If it
+  // engages, bail out — no click candidacy, no marquee.
+  if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+    if (spriteDrag.onPointerDown(e)) return
+  }
   // Marquee only engages with Cmd (mac) or Ctrl (windows/linux) held — plain
   // left-drag stays with pixi-viewport for pan. Track click candidacy either
   // way so a plain left-click (no drag) can still hit-test for sprite select.

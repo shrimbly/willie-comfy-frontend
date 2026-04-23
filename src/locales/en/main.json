@@ -1211,6 +1211,11 @@
         "sectionTitle": "LoRAs",
         "empty": "No LoRAs in either asset"
       }
+    },
+    "pin": {
+      "toastSingle": "Pinned asset — broke auto-layout",
+      "toastMulti": "Pinned {count} assets — broke auto-layout",
+      "undoLabel": "Undo"
     }
   },
   "tabMenu": {
