@@ -89,22 +89,86 @@
             />
           </div>
         </ComboboxAnchor>
-        <button
-          type="button"
-          :disabled="isReadOnly"
-          :aria-label="t('templateVariables.selectDirectory')"
-          :class="
-            cn(
-              'flex w-8 shrink-0 items-center justify-center self-stretch rounded-r-lg border-0 border-l border-node-component-border outline-none',
-              'bg-component-node-widget-background text-base-foreground hover:bg-component-node-widget-background-hovered',
-              'disabled:cursor-not-allowed disabled:opacity-50'
-            )
-          "
-          @click.stop="onPickDirectory"
-          @mousedown.prevent
-        >
-          <i class="icon-[lucide--folder-search] size-4" />
-        </button>
+        <PopoverRoot v-model:open="isDirectoryPickerOpen">
+          <PopoverTrigger as-child>
+            <button
+              type="button"
+              :disabled="isReadOnly"
+              :aria-label="t('templateVariables.selectDirectory')"
+              :class="
+                cn(
+                  'flex w-8 shrink-0 items-center justify-center self-stretch rounded-r-lg border-0 border-l border-node-component-border outline-none',
+                  'bg-component-node-widget-background text-base-foreground hover:bg-component-node-widget-background-hovered',
+                  'disabled:cursor-not-allowed disabled:opacity-50'
+                )
+              "
+              @click.stop
+              @mousedown.prevent
+            >
+              <i class="icon-[lucide--folder-search] size-4" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            side="bottom"
+            align="end"
+            :side-offset="4"
+            :collision-padding="8"
+            :class="
+              cn(
+                'z-1700 max-h-72 w-60 overflow-y-auto',
+                'rounded-lg border border-border-default bg-base-background p-1 shadow-lg',
+                'data-[side=top]:animate-slideDownAndFade data-[side=bottom]:animate-slideUpAndFade will-change-[opacity,transform]'
+              )
+            "
+          >
+            <div
+              :class="
+                cn(
+                  'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-xs',
+                  'hover:bg-secondary-background-hover'
+                )
+              "
+              @click="selectOutputRoot"
+            >
+              <i class="icon-[lucide--home] size-3.5 shrink-0" />
+              <span class="truncate">
+                {{ t('templateVariables.outputRoot') }}
+              </span>
+            </div>
+            <div
+              v-if="outputSubdirectories.length > 0"
+              class="my-1 border-b border-border-subtle"
+            />
+            <div
+              v-if="outputSubdirectoriesLoading"
+              class="px-2 py-1.5 text-xs text-muted-foreground"
+            >
+              {{ t('templateVariables.loadingDirectories') }}
+            </div>
+            <div
+              v-else-if="outputSubdirectories.length === 0"
+              class="px-2 py-1.5 text-xs text-muted-foreground"
+            >
+              {{ t('templateVariables.noOutputDirectories') }}
+            </div>
+            <template v-else>
+              <div
+                v-for="dir in outputSubdirectories"
+                :key="dir"
+                :class="
+                  cn(
+                    'flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-xs',
+                    'hover:bg-secondary-background-hover'
+                  )
+                "
+                @click="selectDirectory(dir)"
+              >
+                <i class="icon-[lucide--folder] size-3.5 shrink-0" />
+                <span class="truncate">{{ dir }}</span>
+              </div>
+            </template>
+          </PopoverContent>
+        </PopoverRoot>
       </div>
       <ComboboxContent
         position="popper"
@@ -178,7 +242,10 @@ import {
   ComboboxGroup,
   ComboboxInput,
   ComboboxItem,
-  ComboboxRoot
+  ComboboxRoot,
+  PopoverContent,
+  PopoverRoot,
+  PopoverTrigger
 } from 'reka-ui'
 import type { ComponentPublicInstance } from 'vue'
 import {
@@ -192,15 +259,14 @@ import {
 import { useI18n } from 'vue-i18n'
 
 import { useCanvasStore } from '@/renderer/core/canvas/canvasStore'
+import { useAssetsStore } from '@/stores/assetsStore'
 import { useWidgetValidationStore } from '@/stores/widgetValidationStore'
 import { stripGraphPrefix } from '@/stores/widgetValueStore'
 import type { SimplifiedWidget } from '@/types/simplifiedWidget'
-import { isElectron, pickDirectory } from '@/utils/directoryPickerUtil'
 import { applyTextReplacements } from '@/utils/searchAndReplace'
 import type { TemplateSegment } from '@/utils/templateVariableResolver'
 import {
   getCustomTemplateVariableValues,
-  isAbsolutePath,
   parseTemplateSegments,
   previewResolvedValue,
   removeLeadingDirectoryToken,
@@ -333,40 +399,46 @@ function onInputKeydown(e: KeyboardEvent) {
   )
 }
 
-async function onPickDirectory() {
-  if (isReadOnly.value) return
-  const selected = await chooseDirectoryPath()
-  if (!selected) return
-  modelValue.value = setLeadingDirectoryToken(modelValue.value, selected)
-}
+const assetsStore = useAssetsStore()
+const isDirectoryPickerOpen = ref(false)
+const outputSubdirectoriesLoading = computed(
+  () => assetsStore.historyLoading && assetsStore.historyAssets.length === 0
+)
 
-async function chooseDirectoryPath(): Promise<string | null> {
-  if (isElectron()) {
-    try {
-      const result = await pickDirectory()
-      if (result.path && isAbsolutePath(result.path)) return result.path
-      // Electron IPC may have failed silently, falling through to browser
-      // methods that can't expose the full path. Fall back to prompt.
-    } catch (err) {
-      if (err instanceof Error && /cancel/i.test(err.message)) return null
-      console.error('Directory selection failed:', err)
+const outputSubdirectories = computed(() => {
+  const dirs = new Set<string>()
+  for (const asset of assetsStore.historyAssets) {
+    const name = asset.name
+    if (!name) continue
+    const lastSlash = name.lastIndexOf('/')
+    if (lastSlash <= 0) continue
+    let dir = name.substring(0, lastSlash)
+    while (dir.length > 0) {
+      dirs.add(dir)
+      const parent = dir.lastIndexOf('/')
+      dir = parent > 0 ? dir.substring(0, parent) : ''
     }
   }
-  // Browsers can't expose absolute paths via the File System Access API,
-  // so prompt the user to paste/type the path instead.
-  const currentLeadingPath = leadingDirectoryPath(modelValue.value)
-  const input = window.prompt(
-    t('templateVariables.pasteDirectoryPath'),
-    currentLeadingPath ?? ''
-  )
-  if (input === null) return null
-  const trimmed = input.trim()
-  return trimmed.length > 0 ? trimmed : null
+  return Array.from(dirs).sort((a, b) => a.localeCompare(b))
+})
+
+watchEffect(() => {
+  if (!isDirectoryPickerOpen.value) return
+  if (assetsStore.historyAssets.length === 0 && !assetsStore.historyLoading) {
+    void assetsStore.updateHistory()
+  }
+})
+
+function selectDirectory(path: string) {
+  if (isReadOnly.value) return
+  modelValue.value = setLeadingDirectoryToken(modelValue.value, path)
+  isDirectoryPickerOpen.value = false
 }
 
-function leadingDirectoryPath(value: string): string | null {
-  const match = /^%dir:([^%]+)%/.exec(value)
-  return match ? match[1] : null
+function selectOutputRoot() {
+  if (isReadOnly.value) return
+  modelValue.value = removeLeadingDirectoryToken(modelValue.value)
+  isDirectoryPickerOpen.value = false
 }
 
 function removeDirectory() {
