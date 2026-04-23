@@ -17,8 +17,24 @@
       :overlay-style="marquee.overlayStyle.value"
     />
     <MoshpitTournamentOverlay :resolve-full-res-url="resolveFullResUrl" />
-    <MoshpitFloatingActionBar />
-    <MoshpitSpriteContextMenu ref="contextMenuRef" />
+    <MoshpitFloatingActionBar
+      :resolve-full-res-url="resolveFullResUrl"
+      @open-tag-popover="openTagPopover($event.hashes)"
+      @open-folder-picker="openFolderPopover($event.hashes)"
+    />
+    <MoshpitSpriteContextMenu
+      ref="contextMenuRef"
+      @open-tag-popover="openTagPopover($event.hashes)"
+      @open-folder-picker="openFolderPopover($event.hashes)"
+    />
+    <MoshpitTagInputPopover
+      v-model:open="tagPopoverOpen"
+      :hashes="popoverHashes"
+    />
+    <MoshpitFolderPickerPopover
+      v-model:open="folderPopoverOpen"
+      :hashes="popoverHashes"
+    />
   </div>
 </template>
 
@@ -32,13 +48,17 @@ import MoshpitCanvas from '@/platform/moshpit/components/MoshpitCanvas.vue'
 import MoshpitClusterOverlay from '@/platform/moshpit/components/MoshpitClusterOverlay.vue'
 import MoshpitEmptyGateOverlay from '@/platform/moshpit/components/MoshpitEmptyGateOverlay.vue'
 import MoshpitFloatingActionBar from '@/platform/moshpit/components/MoshpitFloatingActionBar.vue'
+import MoshpitFolderPickerPopover from '@/platform/moshpit/components/MoshpitFolderPickerPopover.vue'
 import MoshpitMarqueeOverlay from '@/platform/moshpit/components/MoshpitMarqueeOverlay.vue'
 import MoshpitSpriteContextMenu from '@/platform/moshpit/components/MoshpitSpriteContextMenu.vue'
+import MoshpitTagInputPopover from '@/platform/moshpit/components/MoshpitTagInputPopover.vue'
 import MoshpitTournamentOverlay from '@/platform/moshpit/components/MoshpitTournamentOverlay.vue'
 import type { MarqueeRect } from '@/platform/moshpit/composables/useMoshpitMarquee'
 import { useMoshpitMarquee } from '@/platform/moshpit/composables/useMoshpitMarquee'
 import { useMoshpitSpriteDrag } from '@/platform/moshpit/composables/useMoshpitSpriteDrag'
 import { useMoshpitSpriteResize } from '@/platform/moshpit/composables/useMoshpitSpriteResize'
+import { useMoshpitCuration } from '@/platform/moshpit/composables/useMoshpitCuration'
+import { useMoshpitCurationKeybindings } from '@/platform/moshpit/composables/useMoshpitCurationKeybindings'
 import type { SpriteHitTester } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
 import {
   MOSHPIT_SPRITE_HITTEST_INJECTION_KEY,
@@ -125,6 +145,30 @@ function resolveFullResUrl(hash: string): string | null {
   }
   return null
 }
+
+// Bind useMoshpitCuration at the top level so the module-singleton lastUndoable
+// is initialised with resolveFullResUrl — this means context menu and keybindings
+// all share the same resolver via the singleton.
+useMoshpitCuration({ resolveFullResUrl })
+
+const tagPopoverOpen = ref(false)
+const folderPopoverOpen = ref(false)
+const popoverHashes = ref<readonly string[]>([])
+
+function openTagPopover(hashes?: readonly string[]): void {
+  popoverHashes.value = hashes ?? [...selectionStore.selected]
+  tagPopoverOpen.value = true
+}
+
+function openFolderPopover(hashes?: readonly string[]): void {
+  popoverHashes.value = hashes ?? [...selectionStore.selected]
+  folderPopoverOpen.value = true
+}
+
+useMoshpitCurationKeybindings({
+  containerEl,
+  openTagPopover: () => openTagPopover()
+})
 
 let clickDownX = 0
 let clickDownY = 0
