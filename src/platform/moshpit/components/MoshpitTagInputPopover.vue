@@ -64,7 +64,6 @@ const curation = useMoshpitCuration()
 const curationStore = useMoshpitCurationStore()
 const paramValueOptions = useMoshpitParamValueOptions(() => 'tags')
 
-const inputEl = ref<HTMLInputElement | null>(null)
 const draft = ref('')
 
 type TriState = 'all' | 'some' | 'none'

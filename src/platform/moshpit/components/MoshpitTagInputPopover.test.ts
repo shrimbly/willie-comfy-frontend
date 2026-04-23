@@ -10,7 +10,6 @@ import { createTestingPinia } from '@pinia/testing'
 import { render, screen } from '@testing-library/vue'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ref } from 'vue'
 import { createI18n } from 'vue-i18n'
 
 const { tagManySpy, untagManySpy } = vi.hoisted(() => ({
@@ -29,7 +28,7 @@ vi.mock('@/platform/moshpit/composables/useMoshpitCuration', () => ({
     removeFromFolderMany: vi.fn(),
     exportMany: vi.fn(),
     undoLast: vi.fn(),
-    lastUndoable: ref(null)
+    lastUndoable: { value: null }
   })
 }))
 
@@ -81,7 +80,6 @@ function renderPopover(
   props: { open: boolean; hashes: readonly string[] },
   pinia = createTestingPinia({ stubActions: false, createSpy: vi.fn })
 ) {
-  const openRef = ref(props.open)
   return render(MoshpitTagInputPopover, {
     props: { open: props.open, hashes: props.hashes },
     global: {
@@ -150,12 +148,9 @@ describe('MoshpitTagInputPopover — chip tri-state', () => {
     untagManySpy.mockClear()
   })
 
-  it('chip click calls tagMany when tristate is none', async () => {
-    const user = userEvent.setup()
-    // Seed pinia so metadataStore has hashes and curationStore has tag state
+  it('chip click calls tagMany when tristate is none', () => {
     const pinia = createTestingPinia({ stubActions: false, createSpy: vi.fn })
-    // We rely on the fact that with no seeded data, tristate will be 'none'
-    // useMoshpitParamValueOptions will return empty tags unless seeded
+    // With no seeded tags, useMoshpitParamValueOptions returns empty — no chips render
     renderPopover({ open: true, hashes: ['h1', 'h2'] }, pinia)
 
     // With no existing tags, no chips render — just verify component mounts cleanly
