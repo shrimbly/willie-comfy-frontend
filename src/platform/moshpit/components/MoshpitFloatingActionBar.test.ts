@@ -18,6 +18,28 @@ import { useAssetsStore } from '@/stores/assetsStore'
 
 import MoshpitFloatingActionBar from './MoshpitFloatingActionBar.vue'
 
+const { favouriteManySpy, hideManySpy, exportManySpy } = vi.hoisted(() => ({
+  favouriteManySpy: vi.fn(),
+  hideManySpy: vi.fn(),
+  exportManySpy: vi.fn()
+}))
+
+vi.mock('@/platform/moshpit/composables/useMoshpitCuration', () => ({
+  useMoshpitCuration: vi.fn(() => ({
+    favouriteMany: favouriteManySpy,
+    hideMany: hideManySpy,
+    exportMany: exportManySpy,
+    tagMany: vi.fn(),
+    untagMany: vi.fn(),
+    hideMany: hideManySpy,
+    unhideMany: vi.fn(),
+    addToFolderMany: vi.fn(),
+    removeFromFolderMany: vi.fn(),
+    undoLast: vi.fn(),
+    lastUndoable: { value: null }
+  }))
+}))
+
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
@@ -30,7 +52,12 @@ const i18n = createI18n({
           selectedCount: '{count} selected | {count} selected',
           unpin: 'Unpin',
           download: 'Download',
-          clear: 'Clear'
+          clear: 'Clear',
+          favourite: 'Favourite',
+          tag: 'Tag',
+          hide: 'Hide',
+          folder: 'Folder',
+          export: 'Export'
         },
         contextMenu: {
           downloadStarted: 'Download started',
@@ -183,5 +210,129 @@ describe('MoshpitFloatingActionBar — Download', () => {
     await userEvent.click(btn)
 
     expect(clickSpy).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('MoshpitFloatingActionBar — curation buttons presence', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('renders all five curation buttons when selection is active', async () => {
+    renderBar()
+    const selection = useMoshpitSelectionStore()
+    selection.setSelection(['h1', 'h2', 'h3'])
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('moshpit-action-bar-favourite')
+      ).not.toBeNull()
+    })
+    expect(screen.getByTestId('moshpit-action-bar-tag')).not.toBeNull()
+    expect(screen.getByTestId('moshpit-action-bar-hide')).not.toBeNull()
+    expect(screen.getByTestId('moshpit-action-bar-folder')).not.toBeNull()
+    expect(screen.getByTestId('moshpit-action-bar-export')).not.toBeNull()
+  })
+})
+
+describe('MoshpitFloatingActionBar — Favourite', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('calls favouriteMany with the current selection', async () => {
+    renderBar()
+    const selection = useMoshpitSelectionStore()
+    selection.setSelection(['h1', 'h2', 'h3'])
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('moshpit-action-bar-favourite')
+      ).not.toBeNull()
+    })
+    await userEvent.click(screen.getByTestId('moshpit-action-bar-favourite'))
+    expect(favouriteManySpy).toHaveBeenCalledWith(['h1', 'h2', 'h3'])
+  })
+})
+
+describe('MoshpitFloatingActionBar — Hide', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('calls hideMany with the current selection', async () => {
+    renderBar()
+    const selection = useMoshpitSelectionStore()
+    selection.setSelection(['h1', 'h2'])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('moshpit-action-bar-hide')).not.toBeNull()
+    })
+    await userEvent.click(screen.getByTestId('moshpit-action-bar-hide'))
+    expect(hideManySpy).toHaveBeenCalledWith(['h1', 'h2'])
+  })
+})
+
+describe('MoshpitFloatingActionBar — Export', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('calls exportMany with the current selection', async () => {
+    renderBar()
+    const selection = useMoshpitSelectionStore()
+    selection.setSelection(['h1', 'h2'])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('moshpit-action-bar-export')).not.toBeNull()
+    })
+    await userEvent.click(screen.getByTestId('moshpit-action-bar-export'))
+    expect(exportManySpy).toHaveBeenCalledWith(['h1', 'h2'])
+  })
+})
+
+describe('MoshpitFloatingActionBar — Tag emit', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('emits open-tag-popover with selected hashes on Tag click', async () => {
+    const { emitted } = render(MoshpitFloatingActionBar, {
+      global: {
+        plugins: [
+          createTestingPinia({ stubActions: false, createSpy: vi.fn }),
+          i18n
+        ]
+      }
+    })
+    const selection = useMoshpitSelectionStore()
+    selection.setSelection(['h1', 'h2'])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('moshpit-action-bar-tag')).not.toBeNull()
+    })
+    await userEvent.click(screen.getByTestId('moshpit-action-bar-tag'))
+
+    expect(emitted<unknown[]>()['open-tag-popover']).toHaveLength(1)
+    expect(emitted<unknown[]>()['open-tag-popover'][0]).toEqual([
+      { hashes: ['h1', 'h2'] }
+    ])
+  })
+})
+
+describe('MoshpitFloatingActionBar — Folder emit', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  it('emits open-folder-picker with selected hashes on Folder click', async () => {
+    const { emitted } = render(MoshpitFloatingActionBar, {
+      global: {
+        plugins: [
+          createTestingPinia({ stubActions: false, createSpy: vi.fn }),
+          i18n
+        ]
+      }
+    })
+    const selection = useMoshpitSelectionStore()
+    selection.setSelection(['h1', 'h2'])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('moshpit-action-bar-folder')).not.toBeNull()
+    })
+    await userEvent.click(screen.getByTestId('moshpit-action-bar-folder'))
+
+    expect(emitted<unknown[]>()['open-folder-picker']).toHaveLength(1)
+    expect(emitted<unknown[]>()['open-folder-picker'][0]).toEqual([
+      { hashes: ['h1', 'h2'] }
+    ])
   })
 })
