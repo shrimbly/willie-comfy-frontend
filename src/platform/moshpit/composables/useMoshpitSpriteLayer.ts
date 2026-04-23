@@ -18,12 +18,18 @@
  *     which sprites should exist right now
  *   - `useMoshpitThumbStore().getUrl` — blob URL for a sprite texture; the
  *     watchEffect tracks this via reads inside `syncSprites`
+ *   - `useMoshpitOverrideStore().get(hash)` — per-asset pinned world position
+ *     + scale overrides. Read inside `syncSprites` (via `resolveSlot` /
+ *     `resolveSpriteScale`) so the registry watchEffect auto-tracks the
+ *     dependency. No separate watcher needed.
  *
  * Reactivity contract:
  *   - `watchEffect(() => syncSprites(registry.entries.value))` — re-runs
  *     whenever ANY reactive dep read inside `syncSprites` mutates, including
- *     `thumbStore.urlByHash` (via `registry.entries.value[i].thumbUrl`) and
- *     `metaStore.assetIdToHash` (via the registry's OSS-path fallback).
+ *     `thumbStore.urlByHash` (via `registry.entries.value[i].thumbUrl`),
+ *     `metaStore.assetIdToHash` (via the registry's OSS-path fallback), and
+ *     `overrides.records` (via `overrides.get(hash)` reads inside
+ *     `resolveSlot` / `resolveSpriteScale`).
  *     Do NOT use `watch(() => registry.entries.value.length, ...)` — it
  *     misses thumbReady events that don't change asset count.
  *
@@ -48,6 +54,7 @@ import type { SpriteHitRect } from '@/platform/moshpit/composables/useMoshpitVie
 import { layoutSeedHash } from '@/platform/moshpit/services/contentHash'
 import type { GridSlot } from '@/platform/moshpit/services/layoutMath'
 import { computeJitteredGrid } from '@/platform/moshpit/services/layoutMath'
+import { useMoshpitOverrideStore } from '@/platform/moshpit/stores/moshpitOverrideStore'
 import { useMoshpitSelectionStore } from '@/platform/moshpit/stores/moshpitSelectionStore'
 
 export const DEFAULT_CELL_SIZE = 560
@@ -90,6 +97,38 @@ interface SpriteEntry {
   slot: GridSlot
 }
 
+/**
+ * Pure helper: layer the override store's pinnedWorldPos onto a
+ * layoutProvider-produced slot. Returns the provided slot unchanged when
+ * no pin exists. Exported for unit tests — kept out of any barrel so the
+ * module's public surface remains the two composable-level exports.
+ * @internal
+ */
+export function resolveSlot(
+  overrides: ReturnType<typeof useMoshpitOverrideStore>,
+  hash: string,
+  provided: GridSlot
+): GridSlot {
+  const record = overrides.get(hash)
+  if (!record?.pinnedWorldPos) return provided
+  return {
+    hash,
+    worldX: record.pinnedWorldPos.x,
+    worldY: record.pinnedWorldPos.y
+  }
+}
+
+/**
+ * Pure helper: resolve the sprite scale for a given hash, defaulting to 1
+ * when no override exists. @internal (test-only export).
+ */
+export function resolveSpriteScale(
+  overrides: ReturnType<typeof useMoshpitOverrideStore>,
+  hash: string
+): number {
+  return overrides.get(hash)?.scale ?? 1
+}
+
 export interface SpriteLayerHandle {
   destroy(): void
   /** Returns the top-most asset hash whose sprite AABB contains the world point, or null. */
@@ -105,6 +144,7 @@ export function useMoshpitSpriteLayer(
   const queue = options.queue
   const registry = useMoshpitAssetRegistry()
   const selection = useMoshpitSelectionStore()
+  const overrides = useMoshpitOverrideStore()
 
   const container = new Container()
   container.label = 'moshpit-sprites'
@@ -166,10 +206,11 @@ export function useMoshpitSpriteLayer(
   // when syncSprites fires again before the first load resolves.
   const pendingLoads = new Set<string>()
 
-  function applySlot(entry: SpriteEntry, slot: GridSlot): void {
+  function applySlot(entry: SpriteEntry, slot: GridSlot, scale: number): void {
     entry.slot = slot
     entry.sprite.x = slot.worldX
     entry.sprite.y = slot.worldY
+    entry.sprite.scale.set(scale)
   }
 
   function syncSprites(
@@ -194,14 +235,23 @@ export function useMoshpitSpriteLayer(
     }
 
     // Add / update sprites. `entry.thumbUrl` is the reactive dep that makes
-    // thumbReady events trigger this watchEffect.
+    // thumbReady events trigger this watchEffect. `resolveSlot` /
+    // `resolveSpriteScale` read from the override store — those reads are
+    // tracked by the enclosing watchEffect so pin/scale mutations re-run
+    // sync without a separate watcher.
     for (const entry of entries) {
       if (!entry.thumbUrl) continue
-      const slot = slotByHash.get(entry.contentHash)
-      if (!slot) continue
+      const providerSlot = slotByHash.get(entry.contentHash)
+      if (!providerSlot) continue
+      const resolvedSlot = resolveSlot(
+        overrides,
+        entry.contentHash,
+        providerSlot
+      )
+      const spriteScale = resolveSpriteScale(overrides, entry.contentHash)
       const existing = spriteMap.get(entry.contentHash)
       if (existing) {
-        applySlot(existing, slot)
+        applySlot(existing, resolvedSlot, spriteScale)
         continue
       }
       if (pendingLoads.has(entry.contentHash)) continue
@@ -215,11 +265,13 @@ export function useMoshpitSpriteLayer(
         // removed from the registry while the texture was loading.
         if (cancelled) return
         if (spriteMap.has(hash)) return
-        const latestSlot = slotByHash.get(hash)
-        if (!latestSlot) return
+        const latestProvided = slotByHash.get(hash)
+        if (!latestProvided) return
+        const latestSlot = resolveSlot(overrides, hash, latestProvided)
+        const latestScale = resolveSpriteScale(overrides, hash)
         const sprite = makeSpriteFromTexture(hash, texture)
         const newEntry: SpriteEntry = { sprite, slot: latestSlot }
-        applySlot(newEntry, latestSlot)
+        applySlot(newEntry, latestSlot, latestScale)
         spriteMap.set(hash, newEntry)
         container.addChild(sprite)
       })
@@ -257,29 +309,37 @@ export function useMoshpitSpriteLayer(
     return g
   }
 
-  // Sync selection rings on every selection change AND whenever sprites
-  // re-layout (registry effect above may reassign slots or swap textures).
-  // watchEffect tracks `selection.selected` and reads from spriteMap — the
-  // sprite entries are not reactive, so we re-run from the registry effect
-  // too via `syncSprites` (which implicitly triggers a microtask).
+  // Sync selection rings on every selection change, whenever sprites
+  // re-layout (registry effect may reassign slots or swap textures), and
+  // whenever an override mutates (pin / scale changes). The read of
+  // `overrides.size` below registers a coarse reactive dep so any override
+  // mutation re-fires this effect without a separate watcher.
+  //
+  // Rings are rebuilt from scratch on every pass rather than patched in
+  // place: `drawRing` reads `sprite.width/height` (which Pixi scales by
+  // `sprite.scale.x`), so rebuilding is the minimum-invasive way to make
+  // ring dimensions track scale override changes. The selection set is
+  // expected to be small (tournament shortlists, curation clicks), so the
+  // destroy+recreate cost is bounded; if this shows up in perf profiles
+  // later, cache sprite width/height on the ring and skip the rebuild.
   const stopSelectionEffect = watchEffect(() => {
     const ids = new Set(selection.selected)
+    // Track override mutations as a coarse reactive dep.
+    void overrides.size
     for (const [hash, ring] of ringMap) {
       if (!ids.has(hash)) {
         selectionRings.removeChild(ring)
         ring.destroy()
         ringMap.delete(hash)
+        continue
       }
+      selectionRings.removeChild(ring)
+      ring.destroy()
+      ringMap.delete(hash)
     }
     for (const hash of ids) {
       const entry = spriteMap.get(hash)
       if (!entry) continue
-      const existing = ringMap.get(hash)
-      if (existing) {
-        existing.x = entry.slot.worldX
-        existing.y = entry.slot.worldY
-        continue
-      }
       const ring = drawRing(entry)
       ringMap.set(hash, ring)
       selectionRings.addChild(ring)
