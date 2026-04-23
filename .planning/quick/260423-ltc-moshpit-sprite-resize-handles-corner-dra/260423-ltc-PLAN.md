@@ -586,38 +586,38 @@ returned handle, and `SpriteHitTester` now requires it.
 
    a. Add import:
    `ts
-      import { useMoshpitSpriteResize } from '@/platform/moshpit/composables/useMoshpitSpriteResize'
-      `
+import { useMoshpitSpriteResize } from '@/platform/moshpit/composables/useMoshpitSpriteResize'
+`
 
    b. Instantiate the composable just before `useMoshpitSpriteDrag`:
    `ts
-      const spriteResize = useMoshpitSpriteResize({
-        containerEl,
-        viewportRef,
-        hitTestRef: spriteHitTestRef
-      })
-      `
+const spriteResize = useMoshpitSpriteResize({
+  containerEl,
+  viewportRef,
+  hitTestRef: spriteHitTestRef
+})
+`
 
    c. In `onContainerPointerDown`, add resize as the FIRST gesture after the
    button + sidebar checks — before drag-to-pin:
    `ts
-      function onContainerPointerDown(e: PointerEvent) {
-        containerEl.value?.focus()
-        if (e.button !== 0) return
-        sidebarStore.collapseOnFirstClick()
-        // Resize handles take absolute precedence: if the pointer is on a
-        // corner handle, engage resize and short-circuit everything else.
-        if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
-          if (spriteResize.onPointerDown(e)) return
-          if (spriteDrag.onPointerDown(e)) return
-        }
-        if (e.ctrlKey || e.metaKey) marquee.onPointerDown(e)
-        clickDownX = e.clientX
-        clickDownY = e.clientY
-        clickPointerId = e.pointerId
-        document.addEventListener('pointerup', onContainerPointerUp, { once: true })
-      }
-      `
+function onContainerPointerDown(e: PointerEvent) {
+  containerEl.value?.focus()
+  if (e.button !== 0) return
+  sidebarStore.collapseOnFirstClick()
+  // Resize handles take absolute precedence: if the pointer is on a
+  // corner handle, engage resize and short-circuit everything else.
+  if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+    if (spriteResize.onPointerDown(e)) return
+    if (spriteDrag.onPointerDown(e)) return
+  }
+  if (e.ctrlKey || e.metaKey) marquee.onPointerDown(e)
+  clickDownX = e.clientX
+  clickDownY = e.clientY
+  clickPointerId = e.pointerId
+  document.addEventListener('pointerup', onContainerPointerUp, { once: true })
+}
+`
    The two `onPointerDown` calls are independent — `spriteResize` returns
    false when not on a handle, so `spriteDrag` gets a clean shot. Modifier-
    held pointers skip both and fall through to marquee / click-select
