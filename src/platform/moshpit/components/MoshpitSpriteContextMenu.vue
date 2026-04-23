@@ -1,80 +1,79 @@
 <template>
-  <ContextMenuRoot v-model:open="isOpen" :modal="false">
-    <ContextMenuTrigger as-child>
+  <DropdownMenuRoot v-model:open="isOpen" :modal="false">
+    <DropdownMenuTrigger as-child>
       <div
         :style="{
           position: 'fixed',
           left: anchorX + 'px',
           top: anchorY + 'px',
           width: '0',
-          height: '0',
-          pointerEvents: 'none'
+          height: '0'
         }"
         aria-hidden="true"
       />
-    </ContextMenuTrigger>
-    <ContextMenuPortal>
-      <ContextMenuContent
+    </DropdownMenuTrigger>
+    <DropdownMenuPortal>
+      <DropdownMenuContent
         class="z-1000 min-w-56 rounded-lg border border-border-subtle bg-base-background px-2 py-3 shadow-interface"
       >
-        <ContextMenuItem
+        <DropdownMenuItem
           v-if="!isTargetPinned"
           :class="itemClasses"
           @select="onPinHere"
         >
           {{ t('moshpit.contextMenu.pinHere') }}
-        </ContextMenuItem>
-        <ContextMenuItem v-else :class="itemClasses" @select="onUnpin">
+        </DropdownMenuItem>
+        <DropdownMenuItem v-else :class="itemClasses" @select="onUnpin">
           {{ t('moshpit.contextMenu.unpin') }}
-        </ContextMenuItem>
-        <ContextMenuItem :class="itemClasses" @select="onDownload">
+        </DropdownMenuItem>
+        <DropdownMenuItem :class="itemClasses" @select="onDownload">
           {{ downloadLabel }}
-        </ContextMenuItem>
-        <ContextMenuSeparator class="my-1 h-px bg-border-subtle" />
-        <ContextMenuItem :class="itemClasses" @select="onSelectSimilar">
+        </DropdownMenuItem>
+        <DropdownMenuSeparator class="my-1 h-px bg-border-subtle" />
+        <DropdownMenuItem :class="itemClasses" @select="onSelectSimilar">
           {{ t('moshpit.contextMenu.selectSimilar') }}
-        </ContextMenuItem>
-        <ContextMenuSeparator class="my-1 h-px bg-border-subtle" />
-        <ContextMenuItem :class="itemClasses" @select="onFavourite">
+        </DropdownMenuItem>
+        <DropdownMenuSeparator class="my-1 h-px bg-border-subtle" />
+        <DropdownMenuItem :class="itemClasses" @select="onFavourite">
           {{ favouriteLabel }}
           <span class="ml-auto text-xs opacity-60">S</span>
-        </ContextMenuItem>
-        <ContextMenuItem :class="itemClasses" @select="onTag">
+        </DropdownMenuItem>
+        <DropdownMenuItem :class="itemClasses" @select="onTag">
           {{ t('moshpit.contextMenu.tag') }}
           <span class="ml-auto text-xs opacity-60">T</span>
-        </ContextMenuItem>
-        <ContextMenuItem :class="itemClasses" @select="onHide">
+        </DropdownMenuItem>
+        <DropdownMenuItem :class="itemClasses" @select="onHide">
           {{ hideLabel }}
           <span class="ml-auto text-xs opacity-60">H</span>
-        </ContextMenuItem>
-        <ContextMenuItem :class="itemClasses" @select="onFolder">
+        </DropdownMenuItem>
+        <DropdownMenuItem :class="itemClasses" @select="onFolder">
           {{ t('moshpit.contextMenu.addToFolder') }}
-        </ContextMenuItem>
-        <ContextMenuItem :class="itemClasses" @select="onExport">
+        </DropdownMenuItem>
+        <DropdownMenuItem :class="itemClasses" @select="onExport">
           {{ t('moshpit.contextMenu.export') }}
           <span class="ml-auto text-xs opacity-60">E</span>
-        </ContextMenuItem>
-        <ContextMenuSeparator class="my-1 h-px bg-border-subtle" />
-        <ContextMenuItem
+        </DropdownMenuItem>
+        <DropdownMenuSeparator class="my-1 h-px bg-border-subtle" />
+        <DropdownMenuItem
           :class="itemClasses"
           :disabled="isResetAllDisabled"
           @select="onResetAllPins"
         >
           {{ t('moshpit.contextMenu.resetAllPins') }}
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenuPortal>
-  </ContextMenuRoot>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenuPortal>
+  </DropdownMenuRoot>
 </template>
 
 <script setup lang="ts">
 import {
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuPortal,
-  ContextMenuRoot,
-  ContextMenuSeparator,
-  ContextMenuTrigger
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuRoot,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from 'reka-ui'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
