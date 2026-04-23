@@ -25,6 +25,7 @@ export type ParamKey =
   | 'tags'
   | 'resolution'
   | 'saveNode'
+  | 'folder'
 
 /**
  * D-13: Primary filter chip params surfaced in Plan 04's popover.
@@ -38,7 +39,8 @@ export const PRIMARY_FILTER_PARAMS: readonly ParamKey[] = [
   'saveNode',
   'model',
   'favourite',
-  'tags'
+  'tags',
+  'folder'
 ]
 
 /**

@@ -147,6 +147,11 @@ function matchesCategoricalChip(
     return val.values.some((tag) => curation.tags.includes(tag))
   }
 
+  // Folders: read from curation, OR within chip (CURATE-04)
+  if (param === 'folder') {
+    return val.values.some((folderId) => curation.folders.includes(folderId))
+  }
+
   // Other categorical params (model, sampler, scheduler, etc.)
   const paramVal = getCategoricalParamValue(params, param)
   if (paramVal === undefined) return false
@@ -232,6 +237,7 @@ function getCategoricalParamValue(
     // so future ParamKey additions surface as compile errors (T-04-03-01).
     case 'loras':
     case 'tags':
+    case 'folder':
     case 'favourite':
     case 'resolution':
     case 'positivePrompt':
@@ -276,6 +282,7 @@ function getNumericParamValue(
     case 'timestamp':
     case 'favourite':
     case 'tags':
+    case 'folder':
     case 'resolution':
     case 'saveNode':
       return undefined

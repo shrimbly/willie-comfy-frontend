@@ -161,6 +161,56 @@ describe('useMoshpitParamValueOptions', () => {
     expect(options.value[0].value).toBe('Final Output')
   })
 
+  it('derives folder id counts from curationStore entries (paramSource=folder)', () => {
+    const metaStore = useMoshpitMetadataStore()
+    const curationStore = useMoshpitCurationStore()
+
+    metaStore.setParams('hash1', makeParams())
+    metaStore.setParams('hash2', makeParams())
+    metaStore.setParams('hash3', makeParams())
+
+    curationStore.load({
+      contentHash: 'hash1',
+      metadata: {},
+      curation: { favourite: false, tags: [], folders: ['f1'], hidden: false },
+      params: makeParams()
+    })
+    curationStore.load({
+      contentHash: 'hash2',
+      metadata: {},
+      curation: {
+        favourite: false,
+        tags: [],
+        folders: ['f1', 'f2'],
+        hidden: false
+      },
+      params: makeParams()
+    })
+    curationStore.load({
+      contentHash: 'hash3',
+      metadata: {},
+      curation: { favourite: false, tags: [], folders: [], hidden: false },
+      params: makeParams()
+    })
+
+    const { options } = useMoshpitParamValueOptions('folder')
+    const f1 = options.value.find((o) => o.value === 'f1')
+    const f2 = options.value.find((o) => o.value === 'f2')
+
+    expect(f1?.count).toBe(2)
+    expect(f2?.count).toBe(1)
+    // descending count order — f1 first
+    expect(options.value[0].value).toBe('f1')
+  })
+
+  it('returns empty options for folder paramSource when foldersStore is empty', () => {
+    const metaStore = useMoshpitMetadataStore()
+    metaStore.setParams('hash1', makeParams())
+
+    const { options } = useMoshpitParamValueOptions('folder')
+    expect(options.value).toEqual([])
+  })
+
   it('returns empty options for numeric param "cfg"', () => {
     const metaStore = useMoshpitMetadataStore()
     metaStore.setParams('hash1', makeParams({ cfg: 7.0 }))

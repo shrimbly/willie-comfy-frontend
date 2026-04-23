@@ -69,6 +69,14 @@ export function useMoshpitParamValueOptions(
           if (identity) counts.set(identity, (counts.get(identity) ?? 0) + 1)
           break
         }
+        case 'folder': {
+          const cur = curationStore.get(hash)
+          if (cur) {
+            for (const fid of cur.folders)
+              counts.set(fid, (counts.get(fid) ?? 0) + 1)
+          }
+          break
+        }
         default:
           // numeric/text/boolean/resolution/timestamp params don't use this path
           break
