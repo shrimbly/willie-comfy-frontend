@@ -119,6 +119,17 @@ export function openMoshpitDB(): Promise<IDBPDatabase<MoshpitDB>> {
           db.createObjectStore('overrides', { keyPath: 'contentHash' })
         }
       }
+      // v4 → v5 (Phase 6 Plan 01): add the `folders` object store for
+      // user-defined folder metadata (id/name/createdAt). Keyed by folder id
+      // (uuid). CurationRecord.folders[] holds folder ids that reference this
+      // store. No per-record migration — pre-v5 data has folders: []
+      // universally (no Phase 6 UI existed). Dangling folder ids (should they
+      // somehow exist) become inert references on read — harmless.
+      if (oldVersion < 5) {
+        if (!db.objectStoreNames.contains('folders')) {
+          db.createObjectStore('folders', { keyPath: 'id' })
+        }
+      }
     },
     blocked() {
       console.warn(

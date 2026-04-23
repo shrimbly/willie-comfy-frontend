@@ -129,7 +129,7 @@ describe('overrideRepository (Wave 1, fake-indexeddb)', () => {
   it('opening a fresh DB creates the overrides store via the v4 upgrade path', async () => {
     const { openMoshpitDB } = await import('./thumbRepository')
     const db = await openMoshpitDB()
-    expect(db.version).toBe(4)
+    expect(db.version).toBe(5)
     expect(db.objectStoreNames.contains('overrides')).toBe(true)
   })
 
@@ -218,7 +218,7 @@ describe('overrideRepository (Wave 1, fake-indexeddb)', () => {
 
       const { openMoshpitDB, getThumb } = await import('./thumbRepository')
       const upgraded = await openMoshpitDB()
-      expect(upgraded.version).toBe(4)
+      expect(upgraded.version).toBe(5)
       expect(upgraded.objectStoreNames.contains('thumbs')).toBe(true)
       expect(upgraded.objectStoreNames.contains('assetMeta')).toBe(true)
       expect(upgraded.objectStoreNames.contains('overrides')).toBe(true)

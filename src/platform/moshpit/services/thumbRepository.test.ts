@@ -1,3 +1,4 @@
+import 'fake-indexeddb/auto'
 import { openDB } from 'idb'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -351,10 +352,10 @@ describe('thumbRepository v2→v3 migration (D-11)', () => {
     return { ...base, ...overrides } as NormalizedParams
   }
 
-  it('fresh DB opens at v3 with thumbs + assetMeta stores and no errors', async () => {
+  it('fresh DB opens at v5 with thumbs + assetMeta stores and no errors', async () => {
     const { openMoshpitDB } = await import('./thumbRepository')
     const db = await openMoshpitDB()
-    expect(db.version).toBe(4)
+    expect(db.version).toBe(5)
     expect(db.objectStoreNames.contains('thumbs')).toBe(true)
     expect(db.objectStoreNames.contains('assetMeta')).toBe(true)
     expect(errorSpy).not.toHaveBeenCalled()
@@ -412,7 +413,7 @@ describe('thumbRepository v2→v3 migration (D-11)', () => {
 
     const { openMoshpitDB, getAssetMeta } = await import('./thumbRepository')
     const db = await openMoshpitDB()
-    expect(db.version).toBe(4)
+    expect(db.version).toBe(5)
 
     const withTitle = await getAssetMeta('has-title')
     expect(withTitle?.params.saveNodeIdentity).toBe('Final Output')
@@ -537,14 +538,100 @@ describe('thumbRepository v2→v3 migration (D-11)', () => {
 
     const { openMoshpitDB, getAssetMeta } = await import('./thumbRepository')
     const db1 = await openMoshpitDB()
-    expect(db1.version).toBe(4)
+    expect(db1.version).toBe(5)
     const first = await getAssetMeta('once')
 
     const db2 = await openMoshpitDB()
-    expect(db2.version).toBe(4)
+    expect(db2.version).toBe(5)
     const second = await getAssetMeta('once')
 
     expect(first?.params.saveNodeIdentity).toBe('SaveImage')
     expect(second?.params.saveNodeIdentity).toBe('SaveImage')
+  })
+})
+
+describe('thumbRepository v4→v5 migration', () => {
+  beforeEach(async () => {
+    const { deleteMoshpitDB } = await import('./thumbRepository')
+    await deleteMoshpitDB()
+  })
+
+  it('fresh DB opens at v5 and contains thumbs, assetMeta, overrides, and folders stores', async () => {
+    const { openMoshpitDB } = await import('./thumbRepository')
+    const db = await openMoshpitDB()
+    expect(db.version).toBe(5)
+    expect(db.objectStoreNames.contains('thumbs')).toBe(true)
+    expect(db.objectStoreNames.contains('assetMeta')).toBe(true)
+    expect(db.objectStoreNames.contains('overrides')).toBe(true)
+    expect(db.objectStoreNames.contains('folders')).toBe(true)
+  })
+
+  it('v4 DB upgrades to v5 adding the folders store without destroying existing data', async () => {
+    // Seed a v4 DB directly via raw idb with existing assetMeta and overrides records
+    const v4db = await openDB(MOSHPIT_DB_NAME, 4, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains('thumbs')) {
+          db.createObjectStore('thumbs', { keyPath: 'contentHash' })
+        }
+        if (!db.objectStoreNames.contains('assetMeta')) {
+          db.createObjectStore('assetMeta', { keyPath: 'contentHash' })
+        }
+        if (!db.objectStoreNames.contains('overrides')) {
+          db.createObjectStore('overrides', { keyPath: 'contentHash' })
+        }
+      }
+    })
+    await v4db.put('assetMeta', {
+      contentHash: 'pre-v5',
+      metadata: {},
+      curation: { favourite: false, tags: [], folders: [], hidden: false },
+      params: {
+        model: undefined,
+        loras: [],
+        cfg: undefined,
+        steps: undefined,
+        sampler: undefined,
+        scheduler: undefined,
+        seed: undefined,
+        positivePrompt: undefined,
+        negativePrompt: undefined,
+        width: undefined,
+        height: undefined,
+        timestamp: 1,
+        workflowFingerprint: '',
+        workflowFilename: null,
+        saveNodeIdentity: null
+      }
+    })
+    await v4db.put('overrides', {
+      contentHash: 'override-pre-v5',
+      pinnedWorldPos: { x: 10, y: 20 },
+      pinnedAt: 1700000000000
+    })
+    v4db.close()
+
+    const { openMoshpitDB, getAssetMeta } = await import('./thumbRepository')
+    const db = await openMoshpitDB()
+    expect(db.version).toBe(5)
+    expect(db.objectStoreNames.contains('folders')).toBe(true)
+    expect(db.objectStoreNames.contains('assetMeta')).toBe(true)
+    expect(db.objectStoreNames.contains('overrides')).toBe(true)
+
+    // Pre-existing assetMeta record preserved
+    const meta = await getAssetMeta('pre-v5')
+    expect(meta?.contentHash).toBe('pre-v5')
+
+    // Folders store is empty (no per-record migration needed — pre-v5 data has folders: [])
+    const folders = await db.getAll('folders')
+    expect(folders).toHaveLength(0)
+  })
+
+  it('v4→v5 upgrade is idempotent — re-opening does not throw or duplicate stores', async () => {
+    const { openMoshpitDB } = await import('./thumbRepository')
+    const db = await openMoshpitDB()
+    expect(db.version).toBe(5)
+    // Second open returns cached handle; no re-upgrade
+    const db2 = await openMoshpitDB()
+    expect(db2.version).toBe(5)
   })
 })
