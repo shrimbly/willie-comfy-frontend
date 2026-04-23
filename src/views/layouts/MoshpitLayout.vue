@@ -15,6 +15,7 @@
           @done="onIndicatorDone"
         />
       </div>
+      <MoshpitUndoToast />
     </main>
   </WorkspaceAuthGate>
 </template>
@@ -25,6 +26,7 @@ import { computed, onMounted, provide, ref, watch } from 'vue'
 import MoshpitProcessingIndicator from '@/platform/moshpit/components/MoshpitProcessingIndicator.vue'
 import MoshpitSettingsPanel from '@/platform/moshpit/components/MoshpitSettingsPanel.vue'
 import MoshpitSideRail from '@/platform/moshpit/components/MoshpitSideRail.vue'
+import MoshpitUndoToast from '@/platform/moshpit/components/MoshpitUndoToast.vue'
 import {
   MOSHPIT_QUEUE_INJECTION_KEY,
   useMoshpitProcessingQueue

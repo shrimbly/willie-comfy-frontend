@@ -3,22 +3,33 @@
  *
  * Strategy: PrimeVue's Toast component uses an internal portal (teleport) and
  * only renders message content when a message is in flight — difficult to drive
- * in happy-dom. We test the structure and wiring instead:
- *
- * 1. The wrapper div with data-testid="moshpit-undo-toast-root" is rendered.
- * 2. The Toast component with group="moshpit-curation" is mounted.
- * 3. The Undo button appears (driving via a stub slot) and clicking it calls
- *    undoLast() + the closeCallback.
- *
- * For (3) we stub the Toast so its #message slot renders synchronously in the
- * test DOM — the same pattern used by MoshpitProcessingIndicator.test.ts.
+ * in happy-dom. We stub the Toast component so the #message slot renders
+ * synchronously in the test DOM, then assert on structure and click wiring.
  */
 import { createTestingPinia } from '@pinia/testing'
 import { render, screen, waitFor } from '@testing-library/vue'
 import userEvent from '@testing-library/user-event'
-import { defineComponent, h } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
+
+const { undoLastSpy } = vi.hoisted(() => ({
+  undoLastSpy: vi.fn().mockReturnValue(true)
+}))
+
+vi.mock('@/platform/moshpit/composables/useMoshpitCuration', () => ({
+  useMoshpitCuration: () => ({
+    undoLast: undoLastSpy,
+    lastUndoable: { value: null },
+    favouriteMany: vi.fn(),
+    tagMany: vi.fn(),
+    untagMany: vi.fn(),
+    hideMany: vi.fn(),
+    unhideMany: vi.fn(),
+    addToFolderMany: vi.fn(),
+    removeFromFolderMany: vi.fn(),
+    exportMany: vi.fn()
+  })
+}))
 
 import MoshpitUndoToast from './MoshpitUndoToast.vue'
 
@@ -38,27 +49,6 @@ const i18n = createI18n({
   }
 })
 
-// Stub the PrimeVue Toast so the #message slot renders immediately in test DOM.
-// The stub exposes a `closeCallback` prop that tests can pass to simulate a
-// PrimeVue-provided close function.
-const ToastStub = defineComponent({
-  name: 'Toast',
-  props: {
-    group: String,
-    position: String,
-    closeCallback: {
-      type: Function,
-      default: () => {}
-    }
-  },
-  setup(props, { slots }) {
-    return () =>
-      h('div', { 'data-testid': 'toast-stub', 'data-group': props.group }, [
-        slots.message?.({ message: { summary: 'Tagged 3 assets' }, closeCallback: props.closeCallback })
-      ])
-  }
-})
-
 function renderToast(closeCallback = vi.fn()) {
   return render(MoshpitUndoToast, {
     global: {
@@ -70,9 +60,9 @@ function renderToast(closeCallback = vi.fn()) {
         Toast: {
           name: 'Toast',
           props: ['group', 'position'],
-          template: `<div data-testid="toast-stub" :data-group="group"><slot name="message" :message="{ summary: 'Tagged 3 assets' }" :closeCallback="closeCallbackFn" /></div>`,
+          template: `<div data-testid="toast-stub" :data-group="group"><slot name="message" :message="{ summary: 'Tagged 3 assets' }" :closeCallback="closeFn" /></div>`,
           setup() {
-            return { closeCallbackFn: closeCallback }
+            return { closeFn: closeCallback }
           }
         }
       }
@@ -100,9 +90,7 @@ describe('MoshpitUndoToast — Undo button', () => {
 
   it('renders an Undo button via the #message slot', () => {
     renderToast()
-    expect(
-      screen.getByTestId('moshpit-undo-toast-button')
-    ).not.toBeNull()
+    expect(screen.getByTestId('moshpit-undo-toast-button')).not.toBeNull()
   })
 
   it('Undo button has the expected aria-label', () => {
@@ -112,26 +100,6 @@ describe('MoshpitUndoToast — Undo button', () => {
   })
 
   it('clicking Undo calls undoLast() and the closeCallback', async () => {
-    // We need to spy on the composable's undoLast before the component mounts.
-    const undoLastSpy = vi.fn().mockReturnValue(true)
-    vi.doMock(
-      '@/platform/moshpit/composables/useMoshpitCuration',
-      () => ({
-        useMoshpitCuration: () => ({
-          undoLast: undoLastSpy,
-          lastUndoable: { value: null },
-          favouriteMany: vi.fn(),
-          tagMany: vi.fn(),
-          untagMany: vi.fn(),
-          hideMany: vi.fn(),
-          unhideMany: vi.fn(),
-          addToFolderMany: vi.fn(),
-          removeFromFolderMany: vi.fn(),
-          exportMany: vi.fn()
-        })
-      })
-    )
-
     const closeSpy = vi.fn()
     renderToast(closeSpy)
 
@@ -141,6 +109,7 @@ describe('MoshpitUndoToast — Undo button', () => {
 
     await userEvent.click(screen.getByTestId('moshpit-undo-toast-button'))
 
+    expect(undoLastSpy).toHaveBeenCalledTimes(1)
     expect(closeSpy).toHaveBeenCalledTimes(1)
   })
 })
