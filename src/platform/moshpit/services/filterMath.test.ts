@@ -480,6 +480,56 @@ describe('matchesChip', () => {
     })
   })
 
+  describe('folder filter (CURATE-04)', () => {
+    it('admits asset when curation.folders includes chip folder id (single id)', () => {
+      const p = params({})
+      const c = curation({ folders: ['f1', 'f2'] })
+      expect(
+        matchesChip(
+          p,
+          c,
+          chip('folder', { kind: 'categorical', values: ['f1'] })
+        )
+      ).toBe(true)
+    })
+
+    it('admits asset when curation.folders includes any chip folder id (OR-within-chip, D-12)', () => {
+      const p = params({})
+      const c = curation({ folders: ['f2'] })
+      expect(
+        matchesChip(
+          p,
+          c,
+          chip('folder', { kind: 'categorical', values: ['f1', 'f2'] })
+        )
+      ).toBe(true)
+    })
+
+    it('excludes asset when curation.folders is empty', () => {
+      const p = params({})
+      const c = curation({ folders: [] })
+      expect(
+        matchesChip(
+          p,
+          c,
+          chip('folder', { kind: 'categorical', values: ['f1'] })
+        )
+      ).toBe(false)
+    })
+
+    it('excludes asset when curation.folders contains only a different id', () => {
+      const p = params({})
+      const c = curation({ folders: ['f99'] })
+      expect(
+        matchesChip(
+          p,
+          c,
+          chip('folder', { kind: 'categorical', values: ['f1'] })
+        )
+      ).toBe(false)
+    })
+  })
+
   describe('tags (FILTER-07)', () => {
     it('admits asset whose curation tags include chip value', () => {
       const p = params({})
@@ -996,6 +1046,40 @@ describe('applyFilterChips — integration', () => {
     )
     expect(result).toContain('a')
     expect(result).toContain('b')
+  })
+
+  it('folder chip culls assets not in any matching folder (integration)', () => {
+    const { hashToParams, hashToCuration } = buildMaps([
+      {
+        hash: 'in-folder',
+        p: params({}),
+        c: curation({ folders: ['f1'] })
+      },
+      {
+        hash: 'other-folder',
+        p: params({}),
+        c: curation({ folders: ['f99'] })
+      },
+      {
+        hash: 'no-folder',
+        p: params({}),
+        c: curation({ folders: [] })
+      }
+    ])
+    const chips: FilterChip[] = [
+      chip('folder', { kind: 'categorical', values: ['f1'] })
+    ]
+    const result = applyFilterChips(
+      hashToParams,
+      hashToCuration,
+      chips,
+      true,
+      defaultTimeRange,
+      NOW_MS
+    )
+    expect(result).toContain('in-folder')
+    expect(result).not.toContain('other-folder')
+    expect(result).not.toContain('no-folder')
   })
 
   it('result is unordered membership (FILTER-08): check membership not order', () => {
