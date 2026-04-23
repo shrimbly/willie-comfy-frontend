@@ -6,6 +6,7 @@
       :reset-search-term-on-blur="false"
       :reset-search-term-on-select="false"
       :disabled="isReadOnly"
+      data-capture-wheel="true"
     >
       <div
         v-tooltip.bottom="pathTooltip"
@@ -114,14 +115,15 @@
               align="end"
               :side-offset="4"
               :collision-padding="8"
+              data-capture-wheel="true"
               :class="
                 cn(
-                  'z-1700 max-h-72 w-64 overflow-y-auto',
+                  'z-9999 max-h-72 w-64 overflow-y-auto',
                   'rounded-lg border border-border-default bg-base-background p-1 shadow-lg',
                   'data-[side=top]:animate-slideDownAndFade data-[side=bottom]:animate-slideUpAndFade will-change-[opacity,transform]'
                 )
               "
-              @wheel.stop
+              @wheel.stop.prevent="handlePopoverWheel"
             >
               <div
                 v-if="outputSubdirectoriesLoading"
@@ -145,14 +147,15 @@
         side="bottom"
         :side-offset="4"
         :collision-padding="8"
+        data-capture-wheel="true"
         :class="
           cn(
-            'z-1700 max-h-72 w-max max-w-sm min-w-(--reka-combobox-trigger-width) overflow-y-auto',
+            'z-9999 max-h-72 w-max max-w-sm min-w-(--reka-combobox-trigger-width) overflow-y-auto',
             'rounded-lg border border-border-default bg-base-background p-1 shadow-lg',
             'data-[side=top]:animate-slideDownAndFade data-[side=bottom]:animate-slideUpAndFade will-change-[opacity,transform]'
           )
         "
-        @wheel.stop
+        @wheel.stop.prevent="handlePopoverWheel"
         @open-auto-focus.prevent
         @close-auto-focus.prevent
       >
@@ -457,5 +460,12 @@ function handleFolderSelect(path: string) {
 
 function removeDirectory() {
   modelValue.value = removeLeadingDirectoryToken(modelValue.value)
+}
+
+function handlePopoverWheel(event: WheelEvent) {
+  const el = event.currentTarget as HTMLElement | null
+  if (!el) return
+  el.scrollTop += event.deltaY
+  el.scrollLeft += event.deltaX
 }
 </script>
