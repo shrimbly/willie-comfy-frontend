@@ -4,14 +4,14 @@
       <template #message="slotProps">
         <div class="flex items-center gap-3 px-2 py-1">
           <span class="text-sm text-base-foreground">
-            {{ slotProps.message.summary }}
+            {{ (slotProps as ToastSlotProps).message.summary }}
           </span>
           <button
             type="button"
             :class="btnClasses"
             :aria-label="t('moshpit.curation.undo')"
             data-testid="moshpit-undo-toast-button"
-            @click="onUndo(slotProps.closeCallback)"
+            @click="onUndo((slotProps as ToastSlotProps).closeCallback)"
           >
             {{ t('moshpit.curation.undo') }}
           </button>
@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import type { ToastMessageOptions } from 'primevue/toast'
 import Toast from 'primevue/toast'
 import { useI18n } from 'vue-i18n'
 
@@ -30,12 +31,17 @@ import { cn } from '@/utils/tailwindUtil'
 
 defineOptions({ name: 'MoshpitUndoToast' })
 
+interface ToastSlotProps {
+  message: ToastMessageOptions
+  closeCallback: () => void
+}
+
 const { t } = useI18n()
 const curation = useMoshpitCuration()
 
 const btnClasses = cn(
   'rounded-md px-2 py-1 text-sm outline-none',
-  'bg-interface-panel-surface hover:bg-interface-panel-hover',
+  'hover:bg-interface-panel-hover bg-interface-panel-surface',
   'focus-visible:ring-2 focus-visible:ring-(--focus-ring)'
 )
 
