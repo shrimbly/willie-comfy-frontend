@@ -4,7 +4,11 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { NormalizedParams } from '../services/paramNormalize'
-import { putAssetMeta, defaultCuration, deleteMoshpitDB } from '../services/thumbRepository'
+import {
+  defaultCuration,
+  deleteMoshpitDB,
+  putAssetMeta
+} from '../services/thumbRepository'
 import { useMoshpitCurationStore } from '../stores/moshpitCurationStore'
 import { useToastStore } from '@/platform/updates/common/toastStore'
 import { UNDO_WINDOW_MS, useMoshpitCuration } from './useMoshpitCuration'
@@ -36,6 +40,18 @@ async function seedRecord(hash: string): Promise<void> {
   })
 }
 
+/** Reset module-level lastUndoable between tests to prevent state leakage. */
+function resetUndo(): void {
+  // Call undoLast() with a non-expired dummy by manipulating via the composable.
+  // Simplest: just forcibly clear via a direct "within window" undoLast call.
+  // We can access it via the composable's returned ref.
+  const c = useMoshpitCuration()
+  // If there's a pending undoable, consume it to clear the slot.
+  if (c.lastUndoable.value) {
+    c.undoLast()
+  }
+}
+
 describe('useMoshpitCuration — favouriteMany', () => {
   beforeEach(async () => {
     await deleteMoshpitDB()
@@ -44,6 +60,7 @@ describe('useMoshpitCuration — favouriteMany', () => {
     await seedRecord('h3')
     setActivePinia(createPinia())
     vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] })
+    resetUndo()
   })
 
   afterEach(() => {
@@ -78,17 +95,16 @@ describe('useMoshpitCuration — favouriteMany', () => {
     expect(addSpy).not.toHaveBeenCalled()
   })
 
-  it('favouriteMany with no-op (already at target) does nothing', () => {
+  it('favouriteMany when all already at target is a no-op', () => {
     const curationStore = useMoshpitCurationStore()
     curationStore.setFavourite('h1', true)
+    curationStore.setFavourite('h2', true)
+    curationStore.setFavourite('h3', true)
+
     const toastStore = useToastStore()
     const addSpy = vi.spyOn(toastStore, 'add')
     const curation = useMoshpitCuration()
 
-    // h1 is already favourite, h2 and h3 are not — next.size should be 2 (not 0)
-    // to test the true no-op case, set all three
-    curationStore.setFavourite('h2', true)
-    curationStore.setFavourite('h3', true)
     curation.favouriteMany(['h1', 'h2', 'h3'], true)
 
     expect(addSpy).not.toHaveBeenCalled()
@@ -113,6 +129,7 @@ describe('useMoshpitCuration — undoLast', () => {
     await seedRecord('h3')
     setActivePinia(createPinia())
     vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] })
+    resetUndo()
   })
 
   afterEach(() => {
@@ -120,7 +137,7 @@ describe('useMoshpitCuration — undoLast', () => {
     vi.restoreAllMocks()
   })
 
-  it('undoLast within window restores prior state and returns true', async () => {
+  it('undoLast within window restores prior state and returns true', () => {
     const curation = useMoshpitCuration()
     const curationStore = useMoshpitCurationStore()
 
@@ -129,18 +146,16 @@ describe('useMoshpitCuration — undoLast', () => {
 
     const ok = curation.undoLast()
     expect(ok).toBe(true)
-    // lastUndoable should be cleared
     expect(curation.lastUndoable.value).toBeNull()
   })
 
-  it('undoLast past the 8s window returns false and does not apply inverse', async () => {
+  it('undoLast past the 8s window returns false and does not apply inverse', () => {
     const curation = useMoshpitCuration()
     const curationStore = useMoshpitCurationStore()
 
     curation.favouriteMany(['h1', 'h2'], true)
     expect(curationStore.get('h1')?.favourite).toBe(true)
 
-    // advance past the undo window
     vi.advanceTimersByTime(UNDO_WINDOW_MS + 100)
 
     const ok = curation.undoLast()
@@ -157,7 +172,7 @@ describe('useMoshpitCuration — undoLast', () => {
     expect(ok).toBe(false)
   })
 
-  it('two bulk actions — lastUndoable overwrites, undoLast only reverses the second', async () => {
+  it('two bulk actions — lastUndoable overwrites, undoLast only reverses the second', () => {
     const curation = useMoshpitCuration()
     const curationStore = useMoshpitCurationStore()
 
@@ -180,6 +195,7 @@ describe('useMoshpitCuration — tagMany', () => {
     await seedRecord('h2')
     setActivePinia(createPinia())
     vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] })
+    resetUndo()
   })
 
   afterEach(() => {
@@ -205,19 +221,24 @@ describe('useMoshpitCuration — tagMany', () => {
     // undo restores prior
     curation.undoLast()
     expect(curationStore.get('h1')?.tags).toEqual(['a'])
+    // h2 was not in next map so its prior is preserved
     expect(curationStore.get('h2')?.tags).toEqual(['hero', 'b'])
   })
 
-  it('tagMany with empty tag fires warn toast and does not mutate', () => {
+  it('tagMany with empty tag fires warn toast and does not mutate store', () => {
     const toastStore = useToastStore()
     const addSpy = vi.spyOn(toastStore, 'add')
     const curation = useMoshpitCuration()
     const curationStore = useMoshpitCurationStore()
 
+    // pre-seed into store memory by forcing a value change (true != default false)
+    curationStore.setFavourite('h1', true)
+
     curation.tagMany(['h1'], '   ')
 
     expect(addSpy).toHaveBeenCalledOnce()
     expect(addSpy.mock.calls[0][0].severity).toBe('warn')
+    // tags still empty — invalid tag was rejected before any mutation
     expect(curationStore.get('h1')?.tags).toEqual([])
   })
 
@@ -226,6 +247,9 @@ describe('useMoshpitCuration — tagMany', () => {
     const addSpy = vi.spyOn(toastStore, 'add')
     const curation = useMoshpitCuration()
     const curationStore = useMoshpitCurationStore()
+
+    // pre-seed into store memory by forcing a value change
+    curationStore.setFavourite('h1', true)
 
     curation.tagMany(['h1'], 'a'.repeat(65))
 
@@ -242,6 +266,7 @@ describe('useMoshpitCuration — hideMany / unhideMany', () => {
     await seedRecord('h2')
     setActivePinia(createPinia())
     vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] })
+    resetUndo()
   })
 
   afterEach(() => {
@@ -281,6 +306,7 @@ describe('useMoshpitCuration — exportMany', () => {
     await seedRecord('h3')
     setActivePinia(createPinia())
     vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] })
+    resetUndo()
   })
 
   afterEach(() => {
@@ -298,13 +324,19 @@ describe('useMoshpitCuration — exportMany', () => {
 
     const curation = useMoshpitCuration({ resolveFullResUrl })
 
-    // Mock document.createElement to intercept download
     const clickSpy = vi.fn()
     const removeSpy = vi.fn()
-    const appendSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => document.body)
+    vi.spyOn(document.body, 'appendChild').mockImplementation(
+      () => document.body
+    )
     vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
       if (tag === 'a') {
-        const a = { href: '', download: '', click: clickSpy, remove: removeSpy } as unknown as HTMLAnchorElement
+        const a = {
+          href: '',
+          download: '',
+          click: clickSpy,
+          remove: removeSpy
+        } as unknown as HTMLAnchorElement
         return a
       }
       return document.createElement(tag)
@@ -312,16 +344,13 @@ describe('useMoshpitCuration — exportMany', () => {
 
     curation.exportMany(['h1', 'h2', 'h3'])
 
-    // h3 is null so 2 downloads
+    // h3 resolves null so only 2 downloads
     expect(clickSpy).toHaveBeenCalledTimes(2)
     // one info toast
     expect(addSpy).toHaveBeenCalledOnce()
     expect(addSpy.mock.calls[0][0].severity).toBe('info')
     // export is NOT undoable
     expect(curation.lastUndoable.value).toBeNull()
-
-    appendSpy.mockRestore()
-    vi.restoreAllMocks()
   })
 
   it('exportMany skips hashes with null resolver result', () => {
@@ -355,6 +384,7 @@ describe('useMoshpitCuration — addToFolderMany / removeFromFolderMany', () => 
     await seedRecord('h2')
     setActivePinia(createPinia())
     vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] })
+    resetUndo()
   })
 
   afterEach(() => {

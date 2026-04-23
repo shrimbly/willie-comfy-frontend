@@ -1234,6 +1234,25 @@
       "unpin": "Unpin",
       "download": "Download",
       "clear": "Clear"
+    },
+    "curation": {
+      "undo": "Undo",
+      "undoHint": "Press Cmd/Ctrl+Z to undo",
+      "nothingToUndo": "Nothing to undo — the last action is already permanent.",
+      "favourited": "Favourited {count} assets",
+      "unfavourited": "Unfavourited {count} assets",
+      "tagged": "Tagged {count} assets with \"{tag}\"",
+      "untagged": "Untagged {count} assets from \"{tag}\"",
+      "hidden": "Hid {count} assets",
+      "unhidden": "Unhid {count} assets",
+      "addedToFolder": "Added {count} assets to \"{folder}\"",
+      "removedFromFolder": "Removed {count} assets from \"{folder}\"",
+      "folderCreated": "Created folder \"{name}\" with {count} assets",
+      "exporting": "Exporting {count} assets at full resolution",
+      "invalidTag": "Tag must be 1–64 characters",
+      "invalidFolder": "Folder name must be 1–64 characters",
+      "folderLimitReached": "Folder limit reached (200)",
+      "tagLimitReached": "Tag limit reached for one or more assets (50)"
     }
   },
   "tabMenu": {
