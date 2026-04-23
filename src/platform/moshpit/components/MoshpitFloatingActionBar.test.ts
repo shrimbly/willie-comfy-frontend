@@ -31,7 +31,6 @@ vi.mock('@/platform/moshpit/composables/useMoshpitCuration', () => ({
     exportMany: exportManySpy,
     tagMany: vi.fn(),
     untagMany: vi.fn(),
-    hideMany: hideManySpy,
     unhideMany: vi.fn(),
     addToFolderMany: vi.fn(),
     removeFromFolderMany: vi.fn(),
@@ -222,9 +221,7 @@ describe('MoshpitFloatingActionBar — curation buttons presence', () => {
     selection.setSelection(['h1', 'h2', 'h3'])
 
     await waitFor(() => {
-      expect(
-        screen.getByTestId('moshpit-action-bar-favourite')
-      ).not.toBeNull()
+      expect(screen.getByTestId('moshpit-action-bar-favourite')).not.toBeNull()
     })
     expect(screen.getByTestId('moshpit-action-bar-tag')).not.toBeNull()
     expect(screen.getByTestId('moshpit-action-bar-hide')).not.toBeNull()
@@ -242,9 +239,7 @@ describe('MoshpitFloatingActionBar — Favourite', () => {
     selection.setSelection(['h1', 'h2', 'h3'])
 
     await waitFor(() => {
-      expect(
-        screen.getByTestId('moshpit-action-bar-favourite')
-      ).not.toBeNull()
+      expect(screen.getByTestId('moshpit-action-bar-favourite')).not.toBeNull()
     })
     await userEvent.click(screen.getByTestId('moshpit-action-bar-favourite'))
     expect(favouriteManySpy).toHaveBeenCalledWith(['h1', 'h2', 'h3'])
