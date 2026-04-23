@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-02-PLAN.md
-last_updated: '2026-04-23T07:16:02.337Z'
+stopped_at: Completed 06-03-PLAN.md
+last_updated: '2026-04-23T07:32:06.490Z'
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 47
-  completed_plans: 43
-  percent: 91
+  completed_plans: 44
+  percent: 94
 ---
 
 # Project State
@@ -57,6 +57,7 @@ Progress: `[██████████] 5 / 7 phases`
 | Phase 05 P06                      | ~95min   | 5 tasks | 6 created + 15 modified |
 | Phase 06-curation-was-phase-5 P01 | 8min     | 2 tasks | 11 files                |
 | Phase 06-curation-was-phase-5 P02 | 15 min   | 2 tasks | 6 files                 |
+| Phase 06-curation-was-phase-5 P03 | 25       | 2 tasks | 5 files                 |
 
 ## Accumulated Context
 
@@ -124,6 +125,9 @@ Progress: `[██████████] 5 / 7 phases`
 - [Phase 06-curation-was-phase-5]: moshpitFoldersStore.remove() scrubs dangling folder ids from CurationRecord.folders[] before deleting FolderRecord (Pitfall 4)
 - [Phase 06-curation-was-phase-5]: 'folder' added to PRIMARY_FILTER_PARAMS — folders are primary surface, not advanced
 - [Phase 06-curation-was-phase-5]: paramValueOptions 'folder' case returns folder ids (not names) — UI resolves names via foldersStore
+- [Phase 06-curation-was-phase-5]: t() from '@/i18n' used in useMoshpitCuration instead of useI18n() — composable called outside Vue setup in tests; useI18n() throws lifecycle error
+- [Phase 06-curation-was-phase-5]: attachedEl captured at onMounted in useMoshpitCurationKeybindings — Vue clears template refs before onUnmounted fires, so containerEl.value is null at teardown
+- [Phase 06-curation-was-phase-5]: Tag case preserved as-entered in useMoshpitCuration.tagMany — no lowercasing; Plan 04/05 consumers display tags as stored
 
 ### Active Todos
 
@@ -151,8 +155,8 @@ None.
 
 ## Session Continuity
 
-**Last session:** 2026-04-23T07:16:02.334Z
-**Stopped at:** Completed 06-02-PLAN.md
+**Last session:** 2026-04-23T07:32:06.487Z
+**Stopped at:** Completed 06-03-PLAN.md
 
 **Context for next session:**
 

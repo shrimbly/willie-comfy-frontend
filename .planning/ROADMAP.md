@@ -159,11 +159,11 @@
 4. Hidden assets remain on disk — no real deletion in v1
 5. Folders can be created from a tournament winner set in one action
 
-**Plans:** 2/6 plans executed
+**Plans:** 3/6 plans executed
 
 - [x] 06-01-PLAN.md — MoshpitDB v5 + curationRepository + foldersRepository + curation/folders store mutation actions (CURATE-01/02/03/04 data foundation)
 - [x] 06-02-PLAN.md — 'folder' ParamKey + filterMath integration + MoshpitLayout hydrate on mount (CURATE-02/03/04)
-- [ ] 06-03-PLAN.md — useMoshpitCuration orchestrator (undoable + toast + bulk flush) + useMoshpitCurationKeybindings (S/T/H/E/Cmd-Z) + moshpit.curation.\* i18n (CURATE-01..07)
+- [x] 06-03-PLAN.md — useMoshpitCuration orchestrator (undoable + toast + bulk flush) + useMoshpitCurationKeybindings (S/T/H/E/Cmd-Z) + moshpit.curation.\* i18n (CURATE-01..07)
 - [ ] 06-04-PLAN.md — MoshpitUndoToast + MoshpitFloatingActionBar curation buttons + MoshpitLayout toast mount (CURATE-01/02/04/05/06/07)
 - [ ] 06-05-PLAN.md — MoshpitTagInputPopover + MoshpitFolderPickerPopover + MoshpitFoldersSection sidebar + MoshpitSettingsPanel mount (CURATE-02/03)
 - [ ] 06-06-PLAN.md — MoshpitSpriteContextMenu curation items + tournament winner "Save as folder" + MoshpitView wiring + @moshpit Playwright spec + HUMAN-UAT [human checkpoint]
@@ -195,7 +195,7 @@
 | 3. Filter & Sort (Core Validation)         | 11/11          | Complete (sort deprecated) | 2026-04-20 |
 | 4. Lineage Groupings & Within-Cluster Sort | 0/?            | Not started                | -          |
 | 5. Tournament Mode                         | 0/6            | Not started                | -          |
-| 6. Curation                                | 2/6            | In Progress                |            |
+| 6. Curation                                | 3/6            | In Progress                |            |
 | 7. UX Edges & Performance Validation       | 0/?            | Not started                | -          |
 
 ## Coverage
