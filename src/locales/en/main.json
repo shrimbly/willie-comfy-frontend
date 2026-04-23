@@ -1227,7 +1227,14 @@
       "downloadStarted": "Download started",
       "downloadStartedMulti": "Started download of {count} assets",
       "selectSimilarNoMatch": "No similar assets",
-      "selectSimilarNoMatchDetail": "Target has no workflow metadata to match against"
+      "selectSimilarNoMatchDetail": "Target has no workflow metadata to match against",
+      "favourite": "Favourite",
+      "unfavourite": "Unfavourite",
+      "tag": "Tag\u2026",
+      "hide": "Hide",
+      "unhide": "Unhide",
+      "addToFolder": "Add to folder\u2026",
+      "export": "Export full-resolution\u2026"
     },
     "actionBar": {
       "selectedCount": "{count} selected | {count} selected",
