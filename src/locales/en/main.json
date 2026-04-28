@@ -3104,6 +3104,18 @@
       "exportAll": "Export all",
       "moveFolderTo": "Move to..."
     },
+    "compare": {
+      "action": "Compare",
+      "disabledTooltip": "Select 2+ items of the same type to compare",
+      "filteredToast": "Comparing {n} items — excluded {m} of other types",
+      "pinSide": "Pin to this side",
+      "vs": "vs",
+      "mode": {
+        "side-by-side": "Side by side",
+        "wipe": "Wipe",
+        "flip": "Flip"
+      }
+    },
     "jobIdToast": {
       "jobIdCopied": "Job ID copied to clipboard",
       "jobIdCopyFailed": "Failed to copy Job ID",

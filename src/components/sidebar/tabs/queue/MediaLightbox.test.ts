@@ -19,6 +19,17 @@ const i18n = createI18n({
         gallery: 'Gallery',
         previous: 'Previous',
         next: 'Next'
+      },
+      mediaAsset: {
+        compare: {
+          pinSide: 'Pin to this side',
+          vs: 'vs',
+          mode: {
+            'side-by-side': 'Side by side',
+            wipe: 'Wipe',
+            flip: 'Flip'
+          }
+        }
       }
     }
   }
@@ -233,4 +244,206 @@ describe('MediaLightbox', () => {
     })
   })
   /* eslint-enable testing-library/prefer-user-event */
+
+  describe('compare mode', () => {
+    /* eslint-disable testing-library/prefer-user-event */
+    const mockLightboxAssetView = {
+      name: 'LightboxAssetView',
+      template:
+        '<div class="mock-asset-view" :data-filename="item?.filename"></div>',
+      props: ['item']
+    }
+
+    const mockPinBadge = {
+      name: 'PinBadge',
+      template:
+        '<button class="mock-pin-badge" :data-pinned="pinned" @click="$emit(\'click\')"></button>',
+      props: ['pinned', 'label'],
+      emits: ['click']
+    }
+
+    const makeItem = (id: string, filename: string): MockResultItem => ({
+      filename,
+      subfolder: 'outputs',
+      type: 'output',
+      nodeId: id as NodeId,
+      mediaType: 'images',
+      isImage: true,
+      isVideo: false,
+      isAudio: false,
+      url: filename,
+      id
+    })
+
+    const renderCompare = (items: MockResultItem[], props = {}) => {
+      const onUpdateActiveIndex = vi.fn()
+      const { container, rerender } = render(MediaLightbox, {
+        global: {
+          plugins: [i18n],
+          stubs: {
+            teleport: true,
+            LightboxAssetView: mockLightboxAssetView,
+            PinBadge: mockPinBadge,
+            ComfyImage: mockComfyImage,
+            ResultVideo: mockResultVideo,
+            ResultAudio: mockResultAudio
+          }
+        },
+        props: {
+          allGalleryItems: [] as ResultItemImpl[],
+          activeIndex: 0,
+          compareItems: items as ResultItemImpl[],
+          'onUpdate:activeIndex': onUpdateActiveIndex,
+          ...props
+        },
+        container: document.body.appendChild(document.createElement('div'))
+      })
+      return { container, rerender, onUpdateActiveIndex }
+    }
+
+    const getAssetFilenames = (container: Element): string[] =>
+      Array.from(
+        // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+        container.querySelectorAll('[data-filename]')
+      ).map((el) => el.getAttribute('data-filename') ?? '')
+
+    it('renders both items in side-by-side layout by default', async () => {
+      const { container } = renderCompare([
+        makeItem('1', 'a.png'),
+        makeItem('2', 'b.png')
+      ])
+      await nextTick()
+      expect(getAssetFilenames(container)).toEqual(['a.png', 'b.png'])
+    })
+
+    it('cycles modes on "/" key', async () => {
+      const { container } = renderCompare([
+        makeItem('1', 'a.png'),
+        makeItem('2', 'b.png')
+      ])
+      await nextTick()
+      const dialog = screen.getByRole('dialog')
+
+      // Side-by-side shows both via LightboxAssetView stub
+      expect(getAssetFilenames(container).length).toBe(2)
+
+      // / → wipe: renders both direct <img> tags, stub count drops to 0
+      await fireEvent.keyDown(dialog, { key: '/' })
+      await nextTick()
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const wipeImages = container.querySelectorAll(
+        'img[src="a.png"], img[src="b.png"]'
+      )
+      expect(wipeImages.length).toBe(2)
+
+      // / → flip (single pane, stub again)
+      await fireEvent.keyDown(dialog, { key: '/' })
+      await nextTick()
+      expect(getAssetFilenames(container)).toEqual(['a.png'])
+    })
+
+    it('toggles flip with spacebar only (arrows navigate cursor)', async () => {
+      const { container } = renderCompare([
+        makeItem('1', 'a.png'),
+        makeItem('2', 'b.png'),
+        makeItem('3', 'c.png')
+      ])
+      await nextTick()
+      const dialog = screen.getByRole('dialog')
+
+      // Jump to flip mode (click the flip button)
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const flipButton = container.querySelector(
+        '[aria-label="Flip"]'
+      ) as HTMLElement
+      flipButton.click()
+      await nextTick()
+      // Initial: pinned=0 (a), cursor=1 (b); flip shows pinned (a)
+      expect(getAssetFilenames(container)).toEqual(['a.png'])
+
+      // Spacebar toggles between pinned (a) and cursor (b)
+      await fireEvent.keyDown(dialog, { key: ' ' })
+      await nextTick()
+      expect(getAssetFilenames(container)).toEqual(['b.png'])
+
+      await fireEvent.keyDown(dialog, { key: ' ' })
+      await nextTick()
+      expect(getAssetFilenames(container)).toEqual(['a.png'])
+
+      // ArrowRight advances cursor (from b to c); flip still on pinned (a)
+      await fireEvent.keyDown(dialog, { key: 'ArrowRight' })
+      await nextTick()
+      expect(getAssetFilenames(container)).toEqual(['a.png'])
+
+      // Now space flips to the new cursor (c)
+      await fireEvent.keyDown(dialog, { key: ' ' })
+      await nextTick()
+      expect(getAssetFilenames(container)).toEqual(['c.png'])
+    })
+
+    it('advances cursor with arrow keys skipping the pinned item (3+ items)', async () => {
+      const { container } = renderCompare([
+        makeItem('1', 'a.png'),
+        makeItem('2', 'b.png'),
+        makeItem('3', 'c.png')
+      ])
+      await nextTick()
+      const dialog = screen.getByRole('dialog')
+
+      // Initial: pinned=0 (a), cursor=1 (b) → [a, b]
+      expect(getAssetFilenames(container)).toEqual(['a.png', 'b.png'])
+
+      await fireEvent.keyDown(dialog, { key: 'ArrowRight' })
+      await nextTick()
+      // Cursor advances 1 → 2 (skips pinned 0)
+      expect(getAssetFilenames(container)).toEqual(['a.png', 'c.png'])
+
+      await fireEvent.keyDown(dialog, { key: 'ArrowRight' })
+      await nextTick()
+      // Cursor wraps 2 → 0 (pinned), skips to 1
+      expect(getAssetFilenames(container)).toEqual(['a.png', 'b.png'])
+    })
+
+    it('arrow keys are no-op with exactly 2 items', async () => {
+      const { container } = renderCompare([
+        makeItem('1', 'a.png'),
+        makeItem('2', 'b.png')
+      ])
+      await nextTick()
+      const dialog = screen.getByRole('dialog')
+
+      await fireEvent.keyDown(dialog, { key: 'ArrowRight' })
+      await nextTick()
+      expect(getAssetFilenames(container)).toEqual(['a.png', 'b.png'])
+    })
+
+    it('pin-swap swaps left and right on PinBadge click', async () => {
+      const { container } = renderCompare([
+        makeItem('1', 'a.png'),
+        makeItem('2', 'b.png'),
+        makeItem('3', 'c.png')
+      ])
+      await nextTick()
+      // Initial: [a, b] → left = pinned (a), right = cursor (b)
+      expect(getAssetFilenames(container)).toEqual(['a.png', 'b.png'])
+
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const rightPin = container.querySelectorAll(
+        '.mock-pin-badge'
+      )[1] as HTMLElement
+      rightPin.click()
+      await nextTick()
+      // Right pane now pinned (b), left is cursor which was previously pinned (a).
+      // After swap: left=compareItems[cursorIndex=0]=a, right=compareItems[pinnedIndex=1]=b.
+      // Visually [a,b] still — pin change affects navigation behavior.
+      expect(getAssetFilenames(container)).toEqual(['a.png', 'b.png'])
+
+      // Now ArrowRight advances the LEFT side (cursor) skipping index 1 (pinned)
+      const dialog = screen.getByRole('dialog')
+      await fireEvent.keyDown(dialog, { key: 'ArrowRight' })
+      await nextTick()
+      expect(getAssetFilenames(container)).toEqual(['c.png', 'b.png'])
+    })
+    /* eslint-enable testing-library/prefer-user-event */
+  })
 })
