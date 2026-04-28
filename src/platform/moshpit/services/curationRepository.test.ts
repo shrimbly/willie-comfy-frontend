@@ -109,7 +109,10 @@ describe('curationRepository (fake-indexeddb)', () => {
     const updates = new Map([
       ['present-1', { favourite: true, tags: [], folders: [], hidden: false }],
       ['missing', { favourite: true, tags: [], folders: [], hidden: false }],
-      ['present-2', { favourite: false, tags: ['ok'], folders: [], hidden: false }]
+      [
+        'present-2',
+        { favourite: false, tags: ['ok'], folders: [], hidden: false }
+      ]
     ])
     await expect(saveManyCurations(updates)).resolves.toBeUndefined()
     const r1 = await getAssetMeta('present-1')
@@ -120,9 +123,8 @@ describe('curationRepository (fake-indexeddb)', () => {
   it('loadAllCurations returns a Map of hash to CurationRecord', async () => {
     await seedAssetMeta('la-1')
     await seedAssetMeta('la-2')
-    const { saveCuration, loadAllCurations } = await import(
-      './curationRepository'
-    )
+    const { saveCuration, loadAllCurations } =
+      await import('./curationRepository')
     await saveCuration('la-1', {
       favourite: true,
       tags: [],

@@ -1242,12 +1242,26 @@
       "selectedCount": "{count} selected | {count} selected",
       "unpin": "Unpin",
       "download": "Download",
+      "tournament": "Compare (tournament)",
       "clear": "Clear",
       "favourite": "Favourite",
       "tag": "Tag",
       "hide": "Hide",
       "folder": "Folder",
       "export": "Export"
+    },
+    "lightbox": {
+      "dialogTitle": "Asset detail",
+      "dialogDescription": "Full-resolution preview with embedded metadata.",
+      "counter": "{current} / {total}",
+      "prev": "Previous",
+      "next": "Next",
+      "lorasEmpty": "No LoRAs",
+      "legend": {
+        "prev": "← prev",
+        "next": "→ next",
+        "exit": "Esc close"
+      }
     },
     "curation": {
       "undo": "Undo",

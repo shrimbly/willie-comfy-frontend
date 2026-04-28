@@ -162,12 +162,10 @@ describe('MoshpitTagInputPopover — chip tri-state', () => {
     const pinia = createTestingPinia({ stubActions: false, createSpy: vi.fn })
 
     // Seed moshpitMetadataStore so useMoshpitParamValueOptions returns a tag
-    const { useMoshpitMetadataStore } = await import(
-      '@/platform/moshpit/stores/moshpitMetadataStore'
-    )
-    const { useMoshpitCurationStore } = await import(
-      '@/platform/moshpit/stores/moshpitCurationStore'
-    )
+    const { useMoshpitMetadataStore } =
+      await import('@/platform/moshpit/stores/moshpitMetadataStore')
+    const { useMoshpitCurationStore } =
+      await import('@/platform/moshpit/stores/moshpitCurationStore')
 
     // We need to set up pinia before getting stores
     const metaStore = useMoshpitMetadataStore(pinia)
@@ -220,12 +218,10 @@ describe('MoshpitTagInputPopover — chip tri-state', () => {
 
   it('chip for tag on some hashes has aria-pressed=false (tristate=some)', async () => {
     const pinia = createTestingPinia({ stubActions: false, createSpy: vi.fn })
-    const { useMoshpitMetadataStore } = await import(
-      '@/platform/moshpit/stores/moshpitMetadataStore'
-    )
-    const { useMoshpitCurationStore } = await import(
-      '@/platform/moshpit/stores/moshpitCurationStore'
-    )
+    const { useMoshpitMetadataStore } =
+      await import('@/platform/moshpit/stores/moshpitMetadataStore')
+    const { useMoshpitCurationStore } =
+      await import('@/platform/moshpit/stores/moshpitCurationStore')
 
     const metaStore = useMoshpitMetadataStore(pinia)
     const curationStore = useMoshpitCurationStore(pinia)
@@ -272,12 +268,10 @@ describe('MoshpitTagInputPopover — chip tri-state', () => {
 
   it('chip for tag on none hashes has aria-pressed=false (tristate=none)', async () => {
     const pinia = createTestingPinia({ stubActions: false, createSpy: vi.fn })
-    const { useMoshpitMetadataStore } = await import(
-      '@/platform/moshpit/stores/moshpitMetadataStore'
-    )
-    const { useMoshpitCurationStore } = await import(
-      '@/platform/moshpit/stores/moshpitCurationStore'
-    )
+    const { useMoshpitMetadataStore } =
+      await import('@/platform/moshpit/stores/moshpitMetadataStore')
+    const { useMoshpitCurationStore } =
+      await import('@/platform/moshpit/stores/moshpitCurationStore')
 
     const metaStore = useMoshpitMetadataStore(pinia)
     const curationStore = useMoshpitCurationStore(pinia)
@@ -320,12 +314,10 @@ describe('MoshpitTagInputPopover — chip tri-state', () => {
   it('clicking a chip with tristate=none calls tagMany', async () => {
     const user = userEvent.setup()
     const pinia = createTestingPinia({ stubActions: false, createSpy: vi.fn })
-    const { useMoshpitMetadataStore } = await import(
-      '@/platform/moshpit/stores/moshpitMetadataStore'
-    )
-    const { useMoshpitCurationStore } = await import(
-      '@/platform/moshpit/stores/moshpitCurationStore'
-    )
+    const { useMoshpitMetadataStore } =
+      await import('@/platform/moshpit/stores/moshpitMetadataStore')
+    const { useMoshpitCurationStore } =
+      await import('@/platform/moshpit/stores/moshpitCurationStore')
 
     const metaStore = useMoshpitMetadataStore(pinia)
     const curationStore = useMoshpitCurationStore(pinia)

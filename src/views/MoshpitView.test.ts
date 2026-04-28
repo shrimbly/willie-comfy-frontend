@@ -5,10 +5,10 @@ import { nextTick } from 'vue'
 import { createI18n } from 'vue-i18n'
 
 import { useMoshpitFilterStore } from '@/platform/moshpit/stores/moshpitFilterStore'
+import { useMoshpitLightboxStore } from '@/platform/moshpit/stores/moshpitLightboxStore'
 import { useMoshpitOverrideStore } from '@/platform/moshpit/stores/moshpitOverrideStore'
 import { useMoshpitSelectionStore } from '@/platform/moshpit/stores/moshpitSelectionStore'
 import { useMoshpitTournamentStore } from '@/platform/moshpit/stores/moshpitTournamentStore'
-import { useToastStore } from '@/platform/updates/common/toastStore'
 
 import MoshpitView from './MoshpitView.vue'
 
@@ -41,6 +41,9 @@ const stubs = {
   },
   MoshpitTournamentOverlay: {
     template: '<div data-testid="stub-moshpit-tournament-overlay" />'
+  },
+  MoshpitLightboxOverlay: {
+    template: '<div data-testid="stub-moshpit-lightbox-overlay" />'
   }
 }
 
@@ -74,14 +77,19 @@ describe('MoshpitView cluster overlay mount', () => {
       screen.getByTestId('stub-moshpit-tournament-overlay')
     ).toBeInTheDocument()
   })
+
+  it('mounts MoshpitLightboxOverlay as a sibling', () => {
+    mountView()
+    expect(
+      screen.getByTestId('stub-moshpit-lightbox-overlay')
+    ).toBeInTheDocument()
+  })
 })
 
-describe('MoshpitView Enter-key tournament entry gate (D-14)', () => {
-  it('fires a toast when Enter pressed with fewer than 2 selected', async () => {
+describe('MoshpitView Enter-key opens lightbox', () => {
+  it('is a no-op when nothing is selected', async () => {
     mountView()
-    const toastStore = useToastStore()
-    const tournamentStore = useMoshpitTournamentStore()
-
+    const lightbox = useMoshpitLightboxStore()
     const container = screen.getByTestId('moshpit-canvas-container')
 
     container.dispatchEvent(
@@ -89,50 +97,42 @@ describe('MoshpitView Enter-key tournament entry gate (D-14)', () => {
     )
     await nextTick()
 
-    expect(toastStore.messagesToAdd.length).toBeGreaterThan(0)
-    expect(toastStore.messagesToAdd[0].summary).toBe(
-      'moshpit.tournament.needTwoToastSummary'
-    )
-    expect(tournamentStore.isActive).toBe(false)
+    expect(lightbox.isOpen).toBe(false)
   })
 
-  it('enters the tournament when Enter pressed with >= 2 selected', async () => {
+  it('opens the lightbox with the current selection when Enter is pressed', async () => {
     mountView()
     const selectionStore = useMoshpitSelectionStore()
-    const tournamentStore = useMoshpitTournamentStore()
+    const lightbox = useMoshpitLightboxStore()
 
     selectionStore.setSelection(['hashA', 'hashB', 'hashC'])
 
     const container = screen.getByTestId('moshpit-canvas-container')
-
     container.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
     )
     await nextTick()
 
-    expect(tournamentStore.isActive).toBe(true)
+    expect(lightbox.isOpen).toBe(true)
+    expect(lightbox.hashes).toEqual(['hashA', 'hashB', 'hashC'])
   })
 
-  it('is a no-op when tournament is already active', async () => {
+  it('does not open the lightbox while tournament is active', async () => {
     mountView()
     const selectionStore = useMoshpitSelectionStore()
     const tournamentStore = useMoshpitTournamentStore()
-    const toastStore = useToastStore()
+    const lightbox = useMoshpitLightboxStore()
 
     selectionStore.setSelection(['hashA', 'hashB'])
     tournamentStore.enter(['hashA', 'hashB'])
-    const baselineMessages = toastStore.messagesToAdd.length
 
     const container = screen.getByTestId('moshpit-canvas-container')
-
     container.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
     )
     await nextTick()
 
-    // Second Enter neither fires a toast nor disturbs the store.
-    expect(toastStore.messagesToAdd.length).toBe(baselineMessages)
-    expect(tournamentStore.isActive).toBe(true)
+    expect(lightbox.isOpen).toBe(false)
   })
 })
 

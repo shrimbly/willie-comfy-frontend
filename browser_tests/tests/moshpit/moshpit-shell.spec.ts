@@ -62,7 +62,9 @@ test.describe('Moshpit shell', { tag: '@moshpit' }, () => {
     })
 
     await comfyPage.page.goto('/moshpit')
-    await expect(comfyPage.page.locator('#moshpit-canvas-container')).toBeVisible()
+    await expect(
+      comfyPage.page.locator('#moshpit-canvas-container')
+    ).toBeVisible()
 
     await comfyPage.page.goto('/')
     await comfyPage.nextFrame()

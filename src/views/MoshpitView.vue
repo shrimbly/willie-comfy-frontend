@@ -6,6 +6,7 @@
     tabindex="0"
     class="relative size-full overflow-hidden outline-none"
     @pointerdown="onContainerPointerDown"
+    @dblclick="onContainerDblClick"
     @keydown="onContainerKeydown"
     @contextmenu="onContextMenu"
   >
@@ -17,6 +18,7 @@
       :overlay-style="marquee.overlayStyle.value"
     />
     <MoshpitTournamentOverlay :resolve-full-res-url="resolveFullResUrl" />
+    <MoshpitLightboxOverlay :resolve-full-res-url="resolveFullResUrl" />
     <MoshpitFloatingActionBar
       :resolve-full-res-url="resolveFullResUrl"
       @open-tag-popover="openTagPopover($event.hashes)"
@@ -41,7 +43,6 @@
 <script setup lang="ts">
 import type { Viewport } from 'pixi-viewport'
 import { provide, ref, shallowRef, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 import { getAssetUrl } from '@/platform/assets/utils/assetUrlUtil'
 import MoshpitCanvas from '@/platform/moshpit/components/MoshpitCanvas.vue'
@@ -49,6 +50,7 @@ import MoshpitClusterOverlay from '@/platform/moshpit/components/MoshpitClusterO
 import MoshpitEmptyGateOverlay from '@/platform/moshpit/components/MoshpitEmptyGateOverlay.vue'
 import MoshpitFloatingActionBar from '@/platform/moshpit/components/MoshpitFloatingActionBar.vue'
 import MoshpitFolderPickerPopover from '@/platform/moshpit/components/MoshpitFolderPickerPopover.vue'
+import MoshpitLightboxOverlay from '@/platform/moshpit/components/MoshpitLightboxOverlay.vue'
 import MoshpitMarqueeOverlay from '@/platform/moshpit/components/MoshpitMarqueeOverlay.vue'
 import MoshpitSpriteContextMenu from '@/platform/moshpit/components/MoshpitSpriteContextMenu.vue'
 import MoshpitTagInputPopover from '@/platform/moshpit/components/MoshpitTagInputPopover.vue'
@@ -65,12 +67,12 @@ import {
   MOSHPIT_VIEWPORT_INJECTION_KEY
 } from '@/platform/moshpit/composables/useMoshpitViewportInjection'
 import { useMoshpitFilterStore } from '@/platform/moshpit/stores/moshpitFilterStore'
+import { useMoshpitLightboxStore } from '@/platform/moshpit/stores/moshpitLightboxStore'
 import { useMoshpitMetadataStore } from '@/platform/moshpit/stores/moshpitMetadataStore'
 import { useMoshpitOverrideStore } from '@/platform/moshpit/stores/moshpitOverrideStore'
 import { useMoshpitSelectionStore } from '@/platform/moshpit/stores/moshpitSelectionStore'
 import { useMoshpitSidebarStore } from '@/platform/moshpit/stores/moshpitSidebarStore'
 import { useMoshpitTournamentStore } from '@/platform/moshpit/stores/moshpitTournamentStore'
-import { useToastStore } from '@/platform/updates/common/toastStore'
 import { useAssetsStore } from '@/stores/assetsStore'
 
 const CLICK_DRAG_THRESHOLD_PX = 5
@@ -91,12 +93,11 @@ provide(MOSHPIT_SPRITE_HITTEST_INJECTION_KEY, spriteHitTestRef)
 const sidebarStore = useMoshpitSidebarStore()
 const selectionStore = useMoshpitSelectionStore()
 const tournamentStore = useMoshpitTournamentStore()
+const lightboxStore = useMoshpitLightboxStore()
 const metadataStore = useMoshpitMetadataStore()
 const assetsStore = useAssetsStore()
-const toastStore = useToastStore()
 const filterStore = useMoshpitFilterStore()
 const overrideStore = useMoshpitOverrideStore()
-const { t } = useI18n()
 
 watch(
   () => filterStore.activeGroupings,
@@ -192,9 +193,14 @@ function onContainerPointerDown(e: PointerEvent) {
   // Resize handles take absolute precedence over drag-to-pin when the pointer
   // is on a corner handle. Resize engages only for single-element selections;
   // off-handle pointers fall through to the drag-to-pin path unchanged.
+  //
+  // Drag-to-pin is invoked but does NOT short-circuit: the composable engages
+  // on any on-sprite pointerdown so a real drag commits pins, but a
+  // click-sized release must still reach the selection path below. The
+  // dx/dy check in onContainerPointerUp filters out real drags naturally.
   if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
     if (spriteResize.onPointerDown(e)) return
-    if (spriteDrag.onPointerDown(e)) return
+    spriteDrag.onPointerDown(e)
   }
   // Marquee only engages with Cmd (mac) or Ctrl (windows/linux) held — plain
   // left-drag stays with pixi-viewport for pan. Track click candidacy either
@@ -252,16 +258,25 @@ function onContextMenu(e: MouseEvent) {
 function onContainerKeydown(e: KeyboardEvent) {
   if (e.key !== 'Enter') return
   if (tournamentStore.isActive) return
-  if (selectionStore.size < 2) {
-    toastStore.add({
-      severity: 'info',
-      summary: t('moshpit.tournament.needTwoToastSummary'),
-      detail: t('moshpit.tournament.needTwoToastDetail')
-    })
-    e.preventDefault()
-    return
-  }
-  tournamentStore.enter(selectionStore.selected, resolveFullResUrl)
+  if (lightboxStore.isOpen) return
+  if (selectionStore.size < 1) return
+  lightboxStore.open(selectionStore.selected)
   e.preventDefault()
+}
+
+function onContainerDblClick(e: MouseEvent) {
+  const el = containerEl.value
+  const vp = viewportRef.value
+  const hitTester = spriteHitTestRef.value
+  if (!el || !vp || !hitTester) return
+  const bounds = el.getBoundingClientRect()
+  const world = vp.toWorld(e.clientX - bounds.left, e.clientY - bounds.top)
+  const hit = hitTester.hitTestPoint(world.x, world.y)
+  if (hit === null) return
+  e.preventDefault()
+  // Preserve the single-click selection first so the caller sees a pinned
+  // selection after closing the lightbox.
+  if (!selectionStore.isSelected(hit)) selectionStore.setSelection([hit])
+  lightboxStore.open([hit])
 }
 </script>

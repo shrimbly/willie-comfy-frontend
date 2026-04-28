@@ -51,6 +51,7 @@ const i18n = createI18n({
           selectedCount: '{count} selected | {count} selected',
           unpin: 'Unpin',
           download: 'Download',
+          tournament: 'Compare (tournament)',
           clear: 'Clear',
           favourite: 'Favourite',
           tag: 'Tag',
@@ -329,5 +330,50 @@ describe('MoshpitFloatingActionBar — Folder emit', () => {
     expect(emitted<unknown[]>()['open-folder-picker'][0]).toEqual([
       { hashes: ['h1', 'h2'] }
     ])
+  })
+})
+
+describe('MoshpitFloatingActionBar — Tournament', () => {
+  beforeEach(() => vi.restoreAllMocks())
+
+  function renderBarWithResolver() {
+    render(MoshpitFloatingActionBar, {
+      props: { resolveFullResUrl: () => 'https://example.com/image.png' },
+      global: {
+        plugins: [
+          createTestingPinia({ stubActions: false, createSpy: vi.fn }),
+          i18n
+        ]
+      }
+    })
+  }
+
+  it('is disabled with only one selected asset', async () => {
+    renderBarWithResolver()
+    const selection = useMoshpitSelectionStore()
+    selection.setSelection(['only-one'])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('moshpit-action-bar-tournament')).not.toBeNull()
+    })
+    expect(screen.getByTestId('moshpit-action-bar-tournament')).toHaveProperty(
+      'disabled',
+      true
+    )
+  })
+
+  it('enters tournament with the current selection when clicked', async () => {
+    renderBarWithResolver()
+    const selection = useMoshpitSelectionStore()
+    const tournament = useMoshpitTournamentStore()
+    selection.setSelection(['a', 'b', 'c'])
+
+    await waitFor(() => {
+      const btn = screen.getByTestId('moshpit-action-bar-tournament')
+      expect(btn).toHaveProperty('disabled', false)
+    })
+
+    await userEvent.click(screen.getByTestId('moshpit-action-bar-tournament'))
+    expect(tournament.isActive).toBe(true)
   })
 })

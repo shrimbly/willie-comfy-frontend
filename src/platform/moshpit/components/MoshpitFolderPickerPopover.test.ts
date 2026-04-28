@@ -89,12 +89,10 @@ async function renderPopover(
   }
 ) {
   const pinia = createTestingPinia({ stubActions: false, createSpy: vi.fn })
-  const { useMoshpitFoldersStore } = await import(
-    '@/platform/moshpit/stores/moshpitFoldersStore'
-  )
-  const { useMoshpitCurationStore } = await import(
-    '@/platform/moshpit/stores/moshpitCurationStore'
-  )
+  const { useMoshpitFoldersStore } =
+    await import('@/platform/moshpit/stores/moshpitFoldersStore')
+  const { useMoshpitCurationStore } =
+    await import('@/platform/moshpit/stores/moshpitCurationStore')
   const foldersStore = useMoshpitFoldersStore(pinia)
   const curationStore = useMoshpitCurationStore(pinia)
 
@@ -153,12 +151,10 @@ describe('MoshpitFolderPickerPopover — folder list', () => {
 
   it('shows checked state for folder where all selected assets are members', async () => {
     const pinia = createTestingPinia({ stubActions: false, createSpy: vi.fn })
-    const { useMoshpitFoldersStore } = await import(
-      '@/platform/moshpit/stores/moshpitFoldersStore'
-    )
-    const { useMoshpitCurationStore } = await import(
-      '@/platform/moshpit/stores/moshpitCurationStore'
-    )
+    const { useMoshpitFoldersStore } =
+      await import('@/platform/moshpit/stores/moshpitFoldersStore')
+    const { useMoshpitCurationStore } =
+      await import('@/platform/moshpit/stores/moshpitCurationStore')
     const foldersStore = useMoshpitFoldersStore(pinia)
     const curationStore = useMoshpitCurationStore(pinia)
 
@@ -199,12 +195,10 @@ describe('MoshpitFolderPickerPopover — folder list', () => {
   it('clicking an all-in folder row calls removeFromFolderMany', async () => {
     const user = userEvent.setup()
     const pinia = createTestingPinia({ stubActions: false, createSpy: vi.fn })
-    const { useMoshpitFoldersStore } = await import(
-      '@/platform/moshpit/stores/moshpitFoldersStore'
-    )
-    const { useMoshpitCurationStore } = await import(
-      '@/platform/moshpit/stores/moshpitCurationStore'
-    )
+    const { useMoshpitFoldersStore } =
+      await import('@/platform/moshpit/stores/moshpitFoldersStore')
+    const { useMoshpitCurationStore } =
+      await import('@/platform/moshpit/stores/moshpitCurationStore')
     const foldersStore = useMoshpitFoldersStore(pinia)
     const curationStore = useMoshpitCurationStore(pinia)
 
@@ -249,18 +243,14 @@ describe('MoshpitFolderPickerPopover — new folder', () => {
 
   it('shows new folder button', async () => {
     await renderPopover()
-    expect(
-      screen.getByTestId('moshpit-folder-picker-new-btn')
-    ).not.toBeNull()
+    expect(screen.getByTestId('moshpit-folder-picker-new-btn')).not.toBeNull()
   })
 
   it('clicking new folder button shows an inline input', async () => {
     const user = userEvent.setup()
     await renderPopover()
     await user.click(screen.getByTestId('moshpit-folder-picker-new-btn'))
-    expect(
-      screen.getByTestId('moshpit-folder-picker-new-input')
-    ).not.toBeNull()
+    expect(screen.getByTestId('moshpit-folder-picker-new-input')).not.toBeNull()
   })
 
   it('entering a name in the new folder input and pressing Enter calls create + addToFolderMany', async () => {
@@ -310,7 +300,9 @@ describe('MoshpitFolderPickerPopover — new folder from selection', () => {
     await user.click(
       screen.getByTestId('moshpit-folder-picker-from-selection-btn')
     )
-    const input = screen.getByTestId('moshpit-folder-picker-from-selection-input')
+    const input = screen.getByTestId(
+      'moshpit-folder-picker-from-selection-input'
+    )
     await user.type(input, 'Winners')
     await user.keyboard('{Enter}')
 
