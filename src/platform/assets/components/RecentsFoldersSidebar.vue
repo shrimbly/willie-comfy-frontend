@@ -268,8 +268,8 @@ import { useI18n } from 'vue-i18n'
 import Button from '@/components/ui/button/Button.vue'
 import FolderTreeNode from '@/platform/assets/components/FolderTreeNode.vue'
 import type { FolderTreeNodeType } from '@/platform/assets/components/FolderTreeNode.vue'
-import { FAVORITE_COLORS } from '@/platform/assets/composables/useAssetFavorites';
-import type { FavoriteColor } from '@/platform/assets/composables/useAssetFavorites';
+import { FAVORITE_COLORS } from '@/platform/assets/composables/useAssetFavorites'
+import type { FavoriteColor } from '@/platform/assets/composables/useAssetFavorites'
 import { findNodeByPath } from '@/platform/assets/utils/buildOutputFolderTree'
 import { cn } from '@/utils/tailwindUtil'
 
