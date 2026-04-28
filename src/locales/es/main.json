@@ -3742,5 +3742,12 @@
     "label": "Controles de zoom",
     "showMinimap": "Mostrar minimapa",
     "zoomToFit": "Ajustar zoom"
+  },
+  "assets": {
+    "filters": {
+      "title": "Filters",
+      "dateRange": "Date Range",
+      "clearAll": "Clear All"
+    }
   }
 }

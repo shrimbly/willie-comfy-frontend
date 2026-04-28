@@ -41,9 +41,11 @@
               : 'pointer-events-auto bg-comfy-menu-bg'
           "
           :min-size="
-            sidebarLocation === 'left' ? SIDEBAR_MIN_SIZE : BUILDER_MIN_SIZE
+            sidebarLocation === 'left' ? sidebarPanelMinSize : BUILDER_MIN_SIZE
           "
-          :size="SIDE_PANEL_SIZE"
+          :size="
+            sidebarLocation === 'left' ? sidebarPanelSize : SIDE_PANEL_SIZE
+          "
           :style="firstPanelStyle"
           :role="sidebarLocation === 'left' ? 'complementary' : undefined"
           :aria-label="
@@ -101,9 +103,11 @@
               : 'pointer-events-auto bg-comfy-menu-bg'
           "
           :min-size="
-            sidebarLocation === 'right' ? SIDEBAR_MIN_SIZE : BUILDER_MIN_SIZE
+            sidebarLocation === 'right' ? sidebarPanelMinSize : BUILDER_MIN_SIZE
           "
-          :size="SIDE_PANEL_SIZE"
+          :size="
+            sidebarLocation === 'right' ? sidebarPanelSize : SIDE_PANEL_SIZE
+          "
           :style="lastPanelStyle"
           :role="sidebarLocation === 'right' ? 'complementary' : undefined"
           :aria-label="
@@ -170,6 +174,16 @@ const sidebarPanelVisible = computed(
   () => activeSidebarTab.value !== null && !isBuilderMode.value
 )
 
+// Get panel size from active tab or use default
+const sidebarPanelSize = computed(
+  () => activeSidebarTab.value?.panelSize ?? SIDE_PANEL_SIZE
+)
+
+// Get panel min size from active tab or use default
+const sidebarPanelMinSize = computed(
+  () => activeSidebarTab.value?.panelMinSize ?? SIDEBAR_MIN_SIZE
+)
+
 const firstPanelVisible = computed(
   () =>
     !focusMode.value &&
@@ -197,7 +211,11 @@ const bothSidePanelsVisible = computed(
 )
 
 const centerPanelDefaultSize = computed(() =>
-  bothSidePanelsVisible.value ? 100 - 2 * SIDE_PANEL_SIZE : CENTER_PANEL_SIZE
+  bothSidePanelsVisible.value
+    ? 100 - sidebarPanelSize.value - SIDE_PANEL_SIZE
+    : sidebarPanelVisible.value
+      ? 100 - sidebarPanelSize.value
+      : CENTER_PANEL_SIZE
 )
 
 const sidebarTabKey = computed(() => {
@@ -209,11 +227,14 @@ const sidebarTabKey = computed(() => {
 
 const sidebarStateKey = computed(() => {
   const base = sidebarTabKey.value
+  const tabSuffix = activeSidebarTab.value?.panelStateKeySuffix
+    ? `-${activeSidebarTab.value.panelStateKeySuffix}`
+    : ''
   if (sidebarLocation.value === 'left' && !showOffsideSplitter.value) {
-    return base
+    return `${base}${tabSuffix}`
   }
-  const suffix = showOffsideSplitter.value ? '-with-offside' : ''
-  return `${base}-${sidebarLocation.value}${suffix}`
+  const offsideSuffix = showOffsideSplitter.value ? '-with-offside' : ''
+  return `${base}-${sidebarLocation.value}${offsideSuffix}${tabSuffix}`
 })
 
 /**
@@ -264,19 +285,54 @@ function normalizeSavedSizes() {
  * to recalculate the width and panel order
  */
 const splitterRefreshKey = computed(() => {
-  return `main-splitter${rightSidePanelVisible.value ? '-with-right-panel' : ''}${isSelectMode.value ? '-builder' : ''}-${sidebarLocation.value}`
+  const tabSuffix = activeSidebarTab.value?.panelStateKeySuffix ?? ''
+  return `main-splitter${rightSidePanelVisible.value ? '-with-right-panel' : ''}${isSelectMode.value ? '-builder' : ''}-${sidebarLocation.value}-${tabSuffix}`
+})
+
+const sidebarExtraWidthPx = computed(
+  () => activeSidebarTab.value?.panelExtraWidthPx ?? 0
+)
+
+function getSavedSidebarSize(): number {
+  const raw = localStorage.getItem(sidebarStateKey.value)
+  if (!raw) return sidebarPanelSize.value
+  try {
+    const sizes: unknown = JSON.parse(raw)
+    if (!Array.isArray(sizes) || sizes.length === 0)
+      return sidebarPanelSize.value
+    const idx = sidebarLocation.value === 'left' ? 0 : sizes.length - 1
+    const saved = sizes[idx]
+    return typeof saved === 'number' && Number.isFinite(saved)
+      ? saved
+      : sidebarPanelSize.value
+  } catch {
+    return sidebarPanelSize.value
+  }
+}
+
+const sidebarMinWidth = computed(() => {
+  if (!sidebarPanelVisible.value || sidebarExtraWidthPx.value <= 0)
+    return undefined
+  const actualSize = getSavedSidebarSize()
+  return `calc(${actualSize}% + ${sidebarExtraWidthPx.value}px)`
 })
 
 const firstPanelStyle = computed(() => {
   if (sidebarLocation.value === 'left') {
-    return { display: sidebarPanelVisible.value ? 'flex' : 'none' }
+    return {
+      display: sidebarPanelVisible.value ? 'flex' : 'none',
+      minWidth: sidebarMinWidth.value
+    }
   }
   return undefined
 })
 
 const lastPanelStyle = computed(() => {
   if (sidebarLocation.value === 'right') {
-    return { display: sidebarPanelVisible.value ? 'flex' : 'none' }
+    return {
+      display: sidebarPanelVisible.value ? 'flex' : 'none',
+      minWidth: sidebarMinWidth.value
+    }
   }
   return undefined
 })

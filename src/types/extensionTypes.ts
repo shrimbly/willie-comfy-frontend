@@ -12,6 +12,20 @@ interface BaseSidebarTabExtension {
   iconBadge?: string | (() => string | null)
   tooltip?: string
   label?: string
+  panelSize?: number // Panel width percentage (default 20%)
+  panelMinSize?: number // Panel minimum width percentage (default SIDEBAR_MIN_SIZE)
+  /**
+   * Optional suffix appended to the splitter state key when this tab is active.
+   * Lets a tab persist distinct widths for different internal modes (e.g. the
+   * Assets tab stores one width for compact view and another for advanced view).
+   */
+  panelStateKeySuffix?: string
+  /**
+   * Extra pixels added to the panel's min-width at runtime (e.g. for a detail
+   * panel that should expand the sidebar additively without triggering a
+   * splitter remount).
+   */
+  panelExtraWidthPx?: number
 }
 
 interface BaseBottomPanelExtension {

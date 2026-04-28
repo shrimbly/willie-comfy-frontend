@@ -3754,5 +3754,12 @@
     "label": "کنترل‌های بزرگ‌نمایی",
     "showMinimap": "نمایش نقشه کوچک",
     "zoomToFit": "بزرگ‌نمایی متناسب"
+  },
+  "assets": {
+    "filters": {
+      "title": "Filters",
+      "dateRange": "Date Range",
+      "clearAll": "Clear All"
+    }
   }
 }

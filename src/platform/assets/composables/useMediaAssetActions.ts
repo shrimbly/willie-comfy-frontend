@@ -1,5 +1,5 @@
 import { useToast } from 'primevue/usetoast'
-import { inject } from 'vue'
+import { defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import ConfirmationDialogContent from '@/components/dialog/content/ConfirmationDialogContent.vue'
@@ -714,10 +714,58 @@ export function useMediaAssetActions() {
     })
   }
 
+  /**
+   * Show move-to dialog and stub the move action with a toast
+   * @param assets Single asset or array of assets to move
+   * @returns true if user confirmed, false if cancelled
+   */
+  const moveAssets = async (
+    assets: AssetItem | AssetItem[]
+  ): Promise<boolean> => {
+    const assetArray = Array.isArray(assets) ? assets : [assets]
+    if (assetArray.length === 0) return false
+
+    const isSingle = assetArray.length === 1
+
+    const MoveToDialogContent = defineAsyncComponent(
+      () => import('../components/MoveToDialogContent.vue')
+    )
+
+    return new Promise((resolve) => {
+      dialogStore.showDialog({
+        key: 'move-assets',
+        title: isSingle
+          ? t('mediaAsset.moveTo.dialogTitle')
+          : t('mediaAsset.moveTo.dialogTitleBulk', {
+              count: assetArray.length
+            }),
+        component: MoveToDialogContent,
+        dialogComponentProps: {
+          style: 'width: 28rem;'
+        },
+        props: {
+          onConfirm: (path: string) => {
+            toast.add({
+              severity: 'info',
+              summary: t('mediaAsset.moveTo.moveButton'),
+              detail: t('mediaAsset.moveTo.stubToast', { path }),
+              life: 3000
+            })
+            resolve(true)
+          },
+          onCancel: () => {
+            resolve(false)
+          }
+        }
+      })
+    })
+  }
+
   return {
     downloadAsset,
     downloadMultipleAssets,
     deleteAssets,
+    moveAssets,
     copyJobId,
     addWorkflow,
     addMultipleToWorkflow,

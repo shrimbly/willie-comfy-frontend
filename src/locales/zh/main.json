@@ -3754,5 +3754,12 @@
     "label": "缩放控制",
     "showMinimap": "显示小地图",
     "zoomToFit": "适合画面"
+  },
+  "assets": {
+    "filters": {
+      "title": "Filters",
+      "dateRange": "Date Range",
+      "clearAll": "Clear All"
+    }
   }
 }

@@ -17,54 +17,22 @@ import { TaskItemImpl } from './queueStore'
 import { useAssetDownloadStore } from './assetDownloadStore'
 import { useModelToNodeStore } from './modelToNodeStore'
 
-const INPUT_LIMIT = 100
+const OUTPUT_JOBS_BATCH_SIZE = 200
+const OUTPUT_JOBS_MAX_ITEMS = 1000
 
 /**
- * Fetch input files from the internal API (OSS version)
- */
-async function fetchInputFilesFromAPI(): Promise<AssetItem[]> {
-  const response = await fetch(api.internalURL('/files/input'), {
-    headers: {
-      'Comfy-User': api.user
-    }
-  })
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch input files')
-  }
-
-  const filenames: string[] = await response.json()
-  return filenames.map((name, index) =>
-    mapInputFileToAssetItem(name, index, 'input')
-  )
-}
-
-/**
- * Fetch input files from cloud service
- */
-async function fetchInputFilesFromCloud(): Promise<AssetItem[]> {
-  return await assetService.getAssetsByTag('input', false, {
-    limit: INPUT_LIMIT
-  })
-}
-
-/**
- * Convert history job items to asset items
+ * Convert history job items to asset items.
+ * One asset per job (using previewOutput); multi-output jobs are
+ * represented with outputCount metadata so the UI can render stacks.
  */
 function mapHistoryToAssets(historyItems: JobListItem[]): AssetItem[] {
   const assetItems: AssetItem[] = []
 
   for (const job of historyItems) {
-    // Only process completed jobs with preview output
-    if (job.status !== 'completed' || !job.preview_output) {
-      continue
-    }
+    if (job.status !== 'completed' || !job.preview_output) continue
 
     const task = new TaskItemImpl(job)
-
-    if (!task.previewOutput) {
-      continue
-    }
+    if (!task.previewOutput) continue
 
     const assetItem = mapTaskOutputToAssetItem(task, task.previewOutput)
 
@@ -84,8 +52,65 @@ function mapHistoryToAssets(historyItems: JobListItem[]): AssetItem[] {
   )
 }
 
-const BATCH_SIZE = 200
-const MAX_HISTORY_ITEMS = 1000 // Maximum items to keep in memory
+const INPUT_LIMIT = 100
+
+/**
+ * Fetch input files from the internal API (OSS version)
+ */
+async function fetchInputFilesFromAPI(): Promise<AssetItem[]> {
+  const response = await fetch(api.internalURL('/files/input'), {
+    headers: {
+      'Comfy-User': api.user
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch input files')
+  }
+
+  const files: [string, number][] = await response.json()
+  return files.map(([name, mtime], index) =>
+    mapInputFileToAssetItem(name, index, 'input', mtime)
+  )
+}
+
+/**
+ * Fetch input files from cloud service
+ */
+async function fetchInputFilesFromCloud(): Promise<AssetItem[]> {
+  return await assetService.getAssetsByTag('input', false, {
+    limit: INPUT_LIMIT
+  })
+}
+
+/**
+ * Fetch output files from the internal API (OSS version)
+ */
+async function fetchOutputFilesFromAPI(): Promise<AssetItem[]> {
+  const response = await fetch(api.internalURL('/files/output'), {
+    headers: {
+      'Comfy-User': api.user
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch output files')
+  }
+
+  const files: [string, number][] = await response.json()
+  return files.map(([name, mtime], index) =>
+    mapInputFileToAssetItem(name, index, 'output', mtime)
+  )
+}
+
+/**
+ * Fetch output files from cloud service
+ */
+async function fetchOutputFilesFromCloud(): Promise<AssetItem[]> {
+  return await assetService.getAssetsByTag('output', false, {
+    limit: INPUT_LIMIT
+  })
+}
 
 export const useAssetsStore = defineStore('assets', () => {
   const assetDownloadStore = useAssetDownloadStore()
@@ -106,15 +131,6 @@ export const useAssetsStore = defineStore('assets', () => {
     return deletingAssetIds.has(assetId)
   }
 
-  // Pagination state
-  const historyOffset = ref(0)
-  const hasMoreHistory = ref(true)
-  const isLoadingMore = ref(false)
-
-  const allHistoryItems = ref<AssetItem[]>([])
-
-  const loadedIds = shallowReactive(new Set<string>())
-
   const fetchInputFiles = isCloud
     ? fetchInputFilesFromCloud
     : fetchInputFilesFromAPI
@@ -132,117 +148,104 @@ export const useAssetsStore = defineStore('assets', () => {
     }
   })
 
-  /**
-   * Fetch history assets with pagination support
-   * @param loadMore - true for pagination (append), false for initial load (replace)
-   */
-  const fetchHistoryAssets = async (loadMore = false): Promise<AssetItem[]> => {
-    // Reset state for initial load
+  const fetchOutputFiles = isCloud
+    ? fetchOutputFilesFromCloud
+    : fetchOutputFilesFromAPI
+
+  const {
+    state: historyAssets,
+    isLoading: historyLoading,
+    error: historyError,
+    execute: updateHistory
+  } = useAsyncState(fetchOutputFiles, [], {
+    immediate: false,
+    resetOnExecute: false,
+    onError: (err) => {
+      console.error('Error fetching output assets:', err)
+    }
+  })
+
+  // Jobs-based output assets (used by default Output tab).
+  // Parallel to file-based historyAssets which still powers advanced view.
+  const outputJobAssets = ref<AssetItem[]>([])
+  const outputJobsLoading = ref(false)
+  const outputJobsError = ref<unknown>(null)
+  const outputJobsOffset = ref(0)
+  const outputJobsHasMore = ref(true)
+  const outputJobsLoadingMore = ref(false)
+  const outputJobLoadedIds = shallowReactive(new Set<string>())
+
+  const fetchOutputJobsPage = async (loadMore: boolean): Promise<void> => {
     if (!loadMore) {
-      historyOffset.value = 0
-      hasMoreHistory.value = true
-      allHistoryItems.value = []
-      loadedIds.clear()
+      outputJobsOffset.value = 0
+      outputJobsHasMore.value = true
+      outputJobAssets.value = []
+      outputJobLoadedIds.clear()
     }
 
-    // Fetch from server with offset
-    const history = await api.getHistory(BATCH_SIZE, {
-      offset: historyOffset.value
+    const history = await api.getHistory(OUTPUT_JOBS_BATCH_SIZE, {
+      offset: outputJobsOffset.value
     })
 
-    // Convert JobListItems to AssetItems
     const newAssets = mapHistoryToAssets(history)
 
     if (loadMore) {
-      // Filter out duplicates and insert in sorted order
       for (const asset of newAssets) {
-        if (loadedIds.has(asset.id)) {
-          continue // Skip duplicates
-        }
-        loadedIds.add(asset.id)
+        if (outputJobLoadedIds.has(asset.id)) continue
+        outputJobLoadedIds.add(asset.id)
 
-        // Find insertion index to maintain sorted order (newest first)
         const assetTime = new Date(asset.created_at ?? 0).getTime()
-        const insertIndex = allHistoryItems.value.findIndex(
+        const insertIndex = outputJobAssets.value.findIndex(
           (item) => new Date(item.created_at ?? 0).getTime() < assetTime
         )
-
         if (insertIndex === -1) {
-          // Asset is oldest, append to end
-          allHistoryItems.value.push(asset)
+          outputJobAssets.value.push(asset)
         } else {
-          // Insert at the correct position
-          allHistoryItems.value.splice(insertIndex, 0, asset)
+          outputJobAssets.value.splice(insertIndex, 0, asset)
         }
       }
     } else {
-      // Initial load: replace all
-      allHistoryItems.value = newAssets
-      newAssets.forEach((asset) => loadedIds.add(asset.id))
+      outputJobAssets.value = newAssets
+      for (const asset of newAssets) outputJobLoadedIds.add(asset.id)
     }
 
-    // Update pagination state
-    historyOffset.value += BATCH_SIZE
-    hasMoreHistory.value = history.length === BATCH_SIZE
+    outputJobsOffset.value += OUTPUT_JOBS_BATCH_SIZE
+    outputJobsHasMore.value = history.length === OUTPUT_JOBS_BATCH_SIZE
 
-    if (allHistoryItems.value.length > MAX_HISTORY_ITEMS) {
-      const removed = allHistoryItems.value.slice(MAX_HISTORY_ITEMS)
-      allHistoryItems.value = allHistoryItems.value.slice(0, MAX_HISTORY_ITEMS)
-
-      // Clean up Set
-      removed.forEach((item) => loadedIds.delete(item.id))
-    }
-
-    return allHistoryItems.value
-  }
-
-  const historyAssets = ref<AssetItem[]>([])
-  const historyLoading = ref(false)
-  const historyError = ref<unknown>(null)
-
-  /**
-   * Initial load of history assets
-   */
-  const updateHistory = async () => {
-    historyLoading.value = true
-    historyError.value = null
-    try {
-      await fetchHistoryAssets(false)
-      historyAssets.value = allHistoryItems.value
-    } catch (err) {
-      console.error('Error fetching history assets:', err)
-      historyError.value = err
-      // Keep existing data when error occurs
-      if (!historyAssets.value.length) {
-        historyAssets.value = []
-      }
-    } finally {
-      historyLoading.value = false
+    if (outputJobAssets.value.length > OUTPUT_JOBS_MAX_ITEMS) {
+      const removed = outputJobAssets.value.slice(OUTPUT_JOBS_MAX_ITEMS)
+      outputJobAssets.value = outputJobAssets.value.slice(
+        0,
+        OUTPUT_JOBS_MAX_ITEMS
+      )
+      for (const item of removed) outputJobLoadedIds.delete(item.id)
     }
   }
 
-  /**
-   * Load more history items (infinite scroll)
-   */
-  const loadMoreHistory = async () => {
-    // Guard: prevent concurrent loads and check if more items available
-    if (!hasMoreHistory.value || isLoadingMore.value) return
-
-    isLoadingMore.value = true
-    historyError.value = null
-
+  const updateOutputJobs = async () => {
+    outputJobsLoading.value = true
+    outputJobsError.value = null
     try {
-      await fetchHistoryAssets(true)
-      historyAssets.value = allHistoryItems.value
+      await fetchOutputJobsPage(false)
     } catch (err) {
-      console.error('Error loading more history:', err)
-      historyError.value = err
-      // Keep existing data when error occurs (consistent with updateHistory)
-      if (!historyAssets.value.length) {
-        historyAssets.value = []
-      }
+      console.error('Error fetching output jobs:', err)
+      outputJobsError.value = err
     } finally {
-      isLoadingMore.value = false
+      outputJobsLoading.value = false
+    }
+  }
+
+  const loadMoreOutputJobs = async () => {
+    if (!outputJobsHasMore.value || outputJobsLoadingMore.value) return
+    outputJobsLoadingMore.value = true
+    outputJobsError.value = null
+    try {
+      await fetchOutputJobsPage(true)
+    } catch (err) {
+      console.error('Error loading more output jobs:', err)
+      outputJobsError.value = err
+    } finally {
+      outputJobsLoadingMore.value = false
     }
   }
 
@@ -729,8 +732,15 @@ export const useAssetsStore = defineStore('assets', () => {
     historyLoading,
     inputError,
     historyError,
-    hasMoreHistory,
-    isLoadingMore,
+
+    // Jobs-based output (for default Output tab)
+    outputJobAssets,
+    outputJobsLoading,
+    outputJobsError,
+    outputJobsHasMore,
+    outputJobsLoadingMore,
+    updateOutputJobs,
+    loadMoreOutputJobs,
 
     // Deletion tracking
     deletingAssetIds,
@@ -740,7 +750,6 @@ export const useAssetsStore = defineStore('assets', () => {
     // Actions
     updateInputs,
     updateHistory,
-    loadMoreHistory,
 
     // Input mapping helpers
     inputAssetsByFilename,
