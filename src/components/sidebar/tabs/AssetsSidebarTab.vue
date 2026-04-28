@@ -1,6 +1,9 @@
 <template>
   <SidebarTabTemplate
-    :title="showAllAssets ? '' : $t('sideToolbar.mediaAssets.title')"
+    :title="
+      hasLeftSidebar || showAllAssets ? '' : $t('sideToolbar.mediaAssets.title')
+    "
+    :class="hasLeftSidebar ? 'assets-tab-with-sidebar' : ''"
     v-bind="$attrs"
   >
     <template #alt-title>
@@ -45,47 +48,80 @@
           <span>{{ $t('sideToolbar.backToAssets') }}</span>
         </Button>
       </div>
-
-      <!-- Filter Bar -->
-      <MediaAssetFilterBar
-        v-model:search-query="searchQuery"
-        v-model:sort-by="sortBy"
-        v-model:view-mode="viewMode"
-        v-model:media-type-filters="mediaTypeFilters"
-        v-model:metadata-filters="metadataFilters"
-        v-model:show-all-assets="showAllAssets"
-        v-model:show-filter-panel="showFilterPanel"
-        bottom-divider
-        :show-generation-time-sort="
-          showAllAssets
-            ? activeSources.includes('output')
-            : activeTab === 'output'
-        "
-        :available-tags="availableTags"
-      />
-      <!-- Default-mode Tab list -->
-      <div
-        v-if="!showAllAssets && !isInFolderView"
-        class="border-b border-comfy-input p-2 2xl:px-4"
-      >
-        <TabList v-model="activeTab">
-          <Tab value="output">{{ $t('sideToolbar.labels.generated') }}</Tab>
-          <Tab value="input">{{ $t('sideToolbar.labels.imported') }}</Tab>
-        </TabList>
-      </div>
-      <!-- Subfolder breadcrumb removed from header — now inside body -->
     </template>
     <template #body>
       <div
         :class="
-          showAllAssets || showDetailPanel
+          showAllAssets || showDetailPanel || showRecentsSidebar
             ? 'assets-content-layout'
             : 'contents'
         "
       >
+        <!-- Left Folders Sidebar (advanced view, folders layout) -->
+        <div
+          v-if="hasLeftSidebar"
+          class="relative flex h-full shrink-0 flex-col"
+          :style="{ width: `${sidebarWidth}px` }"
+        >
+          <div
+            class="flex h-18 shrink-0 items-center gap-2 bg-(--comfy-menu-bg) pr-3 pl-6"
+            :title="$t('sideToolbar.mediaAssets.title')"
+          >
+            <i class="icon-[comfy--image-ai-edit] size-5 shrink-0" />
+            <h2 class="text-neutral truncate text-base">
+              {{ $t('sideToolbar.mediaAssets.title') }}
+            </h2>
+          </div>
+          <div class="flex min-h-0 flex-1">
+            <OutputFoldersSidebar
+              v-if="
+                showFoldersSidebar && !isSearchActive && !filterBarComposing
+              "
+              :trees="foldersSidebarTrees"
+              :selected-path="foldersSidebarSelectedPath"
+              :pinned-paths="pinnedDirs"
+              @select="handleFoldersSidebarSelect"
+              @update:pinned-paths="pinnedDirs = $event"
+              @asset-drop-on-folder="handleAssetDropOnFolder"
+            />
+            <RecentsFoldersSidebar
+              v-else-if="showRecentsSidebar"
+              :output-tree="outputFolderTree"
+              :input-tree="inputFolderTree"
+              :selected-path="recentsSidebarSelectedPath"
+              :pinned-paths="pinnedDirs"
+              :recents-active="!showAllAssets && !favoritesActive"
+              :favorites-active="favoritesActive"
+              :favorite-color-filter="favoriteColorFilter"
+              @select="handleRecentsSidebarSelect"
+              @select-recents="handleRecentsSidebarRecents"
+              @select-favorites="handleRecentsSidebarFavorites"
+              @select-favorite-color="handleRecentsSidebarFavoriteColor"
+              @update:pinned-paths="pinnedDirs = $event"
+              @asset-drop-on-folder="handleAssetDropOnFolder"
+            />
+          </div>
+          <!-- Resize handle -->
+          <div
+            class="absolute inset-y-0 right-0 z-10 w-1 -translate-x-1/2 cursor-col-resize hover:bg-primary/50"
+            :class="isResizingSidebar && 'bg-primary/50'"
+            @mousedown.prevent="startSidebarResize"
+          >
+            <div
+              v-if="showRecentsSidebar"
+              class="pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-comfy-input"
+              aria-hidden="true"
+            />
+          </div>
+        </div>
         <!-- Left Filter Panel (advanced view only) -->
         <AssetFilterPanel
-          v-if="showAllAssets && !isInFolderView && showFilterPanel"
+          v-if="
+            showAllAssets &&
+            !isInFolderView &&
+            directoryLayout === 'filters' &&
+            showFilterPanel
+          "
           v-model:date-range="dateRangeFilter"
           v-model:media-type-filters="mediaTypeFilters"
           v-model:active-sources="activeSources"
@@ -99,11 +135,56 @@
         <!-- Main Content Area -->
         <div
           :class="
-            showAllAssets || showDetailPanel
-              ? 'assets-main-content'
+            showAllAssets || showDetailPanel || showRecentsSidebar
+              ? 'assets-main-content bg-base-background'
               : 'contents'
           "
         >
+          <!-- Filter Bar -->
+          <div
+            :class="
+              hasLeftSidebar
+                ? 'flex h-18 flex-col justify-end pb-1'
+                : 'contents'
+            "
+          >
+            <MediaAssetFilterBar
+              v-model:search-query="searchQuery"
+              v-model:sort-by="sortBy"
+              v-model:view-mode="viewMode"
+              v-model:media-type-filters="mediaTypeFilters"
+              v-model:metadata-filters="metadataFilters"
+              v-model:show-all-assets="showAllAssets"
+              v-model:show-filter-panel="showFilterPanel"
+              v-model:directory-layout="directoryLayout"
+              v-model:recents-sidebar="recentsSidebar"
+              v-model:composing="filterBarComposing"
+              :bottom-divider="false"
+              :show-generation-time-sort="
+                showAllAssets
+                  ? activeSources.includes('output')
+                  : activeTab === 'output'
+              "
+              :available-tags="availableTags"
+              :available-values-by-field="availableValuesByField"
+            />
+          </div>
+          <!-- Default-mode Tab list -->
+          <div
+            v-if="!showAllAssets && !isInFolderView && !recentsSidebar"
+            class="border-b border-comfy-input p-2 2xl:px-4"
+          >
+            <TabList v-model="activeTab">
+              <Tab value="output">
+                {{ $t('sideToolbar.labels.generated') }}
+              </Tab>
+              <Tab value="input">
+                {{ $t('sideToolbar.labels.imported') }}
+              </Tab>
+            </TabList>
+          </div>
+          <!-- Active metadata filter chips -->
+          <MediaAssetFilterChipsBar v-model="metadataFilters" />
           <!-- Detail panel toggle (default view) -->
           <div
             v-if="
@@ -127,7 +208,14 @@
           </div>
           <!-- Breadcrumb navigation (advanced view only) -->
           <div
-            v-if="showAllAssets && !isInFolderView && singleActiveSource"
+            v-if="
+              showAllAssets &&
+              !isInFolderView &&
+              !showFoldersSidebar &&
+              !showRecentsSidebar &&
+              singleActiveSource &&
+              metadataFilters.length === 0
+            "
             class="sticky top-0 z-10 flex items-center gap-0.5 border-b border-comfy-input bg-base-background px-2 py-1.5 text-xs"
           >
             <button
@@ -237,11 +325,7 @@
               :message="$t('sideToolbar.noFilesFoundMessage')"
             />
           </div>
-          <div
-            v-else
-            class="relative size-full py-2"
-            @click="handleEmptySpaceClick"
-          >
+          <div v-else class="relative size-full" @click="handleEmptySpaceClick">
             <AssetsSidebarListView
               v-if="isListView"
               :asset-items="listViewAssetItems"
@@ -249,7 +333,12 @@
               :selectable-assets="listViewSelectableAssets"
               :is-stack-expanded="isListViewStackExpanded"
               :toggle-stack="toggleListViewStack"
-              v-bind="showAllAssets ? { folders: currentFolders } : {}"
+              :restrict-stack-favorites="showRecentsSidebar"
+              v-bind="
+                showAllAssets && !showFoldersSidebar && !showRecentsSidebar
+                  ? { folders: currentFolders }
+                  : {}
+              "
               @select-asset="handleAssetSelect"
               @preview-asset="handleZoomClick"
               @context-menu="handleAssetContextMenu"
@@ -264,7 +353,12 @@
               :show-output-count="shouldShowOutputCount"
               :get-output-count="getOutputCount"
               :grid-size="gridSize"
-              v-bind="showAllAssets ? { folders: currentFolders } : {}"
+              :restrict-stack-favorites="showRecentsSidebar"
+              v-bind="
+                showAllAssets && !showFoldersSidebar && !showRecentsSidebar
+                  ? { folders: currentFolders }
+                  : {}
+              "
               @select-asset="handleAssetSelect"
               @folder-click="handleFolderClick"
               @folder-context-menu="handleFolderContextMenu"
@@ -273,6 +367,72 @@
               @zoom="handleZoomClick"
               @output-count-click="enterFolderView"
             />
+          </div>
+          <!-- Inline Selection Footer (anchored to bottom of main content column) -->
+          <div
+            v-if="hasSelection && hasLeftSidebar"
+            ref="footerRef"
+            class="sticky bottom-0 z-10 mt-auto flex h-18 w-full shrink-0 items-center justify-between gap-2 bg-base-background px-4"
+          >
+            <span class="truncate text-sm text-base-foreground">
+              {{
+                $t('mediaAsset.selection.selectedCountShort', {
+                  count: totalOutputCount
+                })
+              }}
+            </span>
+            <div class="flex shrink items-center-safe justify-end-safe gap-2">
+              <Button
+                variant="secondary"
+                data-testid="assets-select-all"
+                @click="handleSelectAll"
+              >
+                <span>{{ $t('mediaAsset.selection.selectAll') }}</span>
+              </Button>
+              <Button
+                variant="secondary"
+                data-testid="assets-clear-selection"
+                @click="handleDeselectAll"
+              >
+                <span>{{ $t('mediaAsset.selection.clear') }}</span>
+              </Button>
+              <template v-if="isCompact">
+                <Button
+                  v-if="shouldShowDeleteButton"
+                  size="icon"
+                  data-testid="assets-delete-selected"
+                  @click="handleDeleteSelected"
+                >
+                  <i class="icon-[lucide--trash-2] size-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  data-testid="assets-download-selected"
+                  @click="handleDownloadSelected"
+                >
+                  <i class="icon-[lucide--download] size-4" />
+                </Button>
+              </template>
+              <template v-else>
+                <Button
+                  v-if="shouldShowDeleteButton"
+                  variant="secondary"
+                  data-testid="assets-delete-selected"
+                  @click="handleDeleteSelected"
+                >
+                  <span>{{ $t('mediaAsset.selection.deleteSelected') }}</span>
+                  <i class="icon-[lucide--trash-2] size-4" />
+                </Button>
+                <Button
+                  variant="secondary"
+                  data-testid="assets-download-selected"
+                  @click="handleDownloadSelected"
+                >
+                  <span>{{ $t('mediaAsset.selection.downloadSelected') }}</span>
+                  <i class="icon-[lucide--download] size-4" />
+                </Button>
+              </template>
+            </div>
           </div>
         </div>
 
@@ -285,30 +445,34 @@
       </div>
     </template>
     <template #footer>
-      <!-- Selection Footer -->
+      <!-- Selection Footer (rendered here only when no left sidebar; otherwise inline in main content column) -->
       <div
-        v-if="hasSelection"
+        v-if="hasSelection && !hasLeftSidebar"
         ref="footerRef"
-        class="flex h-18 w-full items-center justify-between gap-1"
+        class="flex h-18 w-full items-center justify-between gap-2 px-4"
       >
-        <div class="flex-1 pl-4">
-          <div ref="selectionCountButtonRef" class="inline-flex w-48">
-            <Button
-              variant="secondary"
-              :class="cn(isCompact && 'text-left')"
-              @click="handleDeselectAll"
-            >
-              {{
-                isHoveringSelectionCount
-                  ? $t('mediaAsset.selection.deselectAll')
-                  : $t('mediaAsset.selection.selectedCount', {
-                      count: totalOutputCount
-                    })
-              }}
-            </Button>
-          </div>
-        </div>
-        <div class="flex shrink items-center-safe justify-end-safe gap-2 pr-4">
+        <span class="truncate text-sm text-base-foreground">
+          {{
+            $t('mediaAsset.selection.selectedCountShort', {
+              count: totalOutputCount
+            })
+          }}
+        </span>
+        <div class="flex shrink items-center-safe justify-end-safe gap-2">
+          <Button
+            variant="secondary"
+            data-testid="assets-select-all"
+            @click="handleSelectAll"
+          >
+            <span>{{ $t('mediaAsset.selection.selectAll') }}</span>
+          </Button>
+          <Button
+            variant="secondary"
+            data-testid="assets-clear-selection"
+            @click="handleDeselectAll"
+          >
+            <span>{{ $t('mediaAsset.selection.clear') }}</span>
+          </Button>
           <template v-if="isCompact">
             <!-- Compact mode: Icon only -->
             <Button
@@ -354,6 +518,7 @@
   <MediaLightbox
     v-model:active-index="galleryActiveIndex"
     :all-gallery-items="galleryItems"
+    :compare-items="compareItems"
   />
   <MediaAssetContextMenu
     v-if="contextMenuAsset"
@@ -376,6 +541,7 @@
     @bulk-add-to-workflow="handleBulkAddToWorkflow"
     @bulk-open-workflow="handleBulkOpenWorkflow"
     @bulk-export-workflow="handleBulkExportWorkflow"
+    @bulk-compare="handleBulkCompare"
   />
   <FolderContextMenu
     v-if="contextMenuFolder"
@@ -386,13 +552,25 @@
     @export-all="handleFolderExportAll"
     @move-to="handleFolderMoveTo"
   />
+  <Teleport to="body">
+    <div
+      ref="dragPreviewWrapperRef"
+      class="pointer-events-none fixed -top-[10000px] -left-[10000px]"
+      aria-hidden="true"
+    >
+      <AssetDragPreview
+        :thumbnails="dragPreviewThumbnails"
+        :label="dragPreviewLabel"
+        :content-visible="dragPreviewContentVisible"
+      />
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
 import {
   useAsyncState,
   useDebounceFn,
-  useElementHover,
   useResizeObserver,
   useStorage,
   useTimeoutFn
@@ -411,6 +589,7 @@ import {
 import { useI18n } from 'vue-i18n'
 
 import NoResultsPlaceholder from '@/components/common/NoResultsPlaceholder.vue'
+import AssetDragPreview from '@/platform/assets/components/AssetDragPreview.vue'
 import AssetsSidebarGridView from '@/components/sidebar/tabs/AssetsSidebarGridView.vue'
 import AssetsSidebarListView from '@/components/sidebar/tabs/AssetsSidebarListView.vue'
 import SidebarTabTemplate from '@/components/sidebar/tabs/SidebarTabTemplate.vue'
@@ -425,11 +604,18 @@ import AssetFilterPanel from '@/platform/assets/components/AssetFilterPanel.vue'
 import FolderContextMenu from '@/platform/assets/components/FolderContextMenu.vue'
 import MediaAssetContextMenu from '@/platform/assets/components/MediaAssetContextMenu.vue'
 import MediaAssetFilterBar from '@/platform/assets/components/MediaAssetFilterBar.vue'
+import MediaAssetFilterChipsBar from '@/platform/assets/components/MediaAssetFilterChipsBar.vue'
+import OutputFoldersSidebar from '@/platform/assets/components/OutputFoldersSidebar.vue'
+import RecentsFoldersSidebar from '@/platform/assets/components/RecentsFoldersSidebar.vue'
+import { buildOutputFolderTree } from '@/platform/assets/utils/buildOutputFolderTree'
 import type { ViewMode } from '@/platform/assets/components/MediaAssetFilterBar.vue'
 import { getAssetType } from '@/platform/assets/composables/media/assetMappers'
 import { useMediaAssets } from '@/platform/assets/composables/media/useMediaAssets'
 import { useOutputJobsAssets } from '@/platform/assets/composables/media/useOutputJobsAssets'
 import { useCustomDirectoryAssets } from '@/platform/assets/composables/media/useCustomDirectoryAssets'
+import { useAssetFavorites } from '@/platform/assets/composables/useAssetFavorites';
+import type { FavoriteColor } from '@/platform/assets/composables/useAssetFavorites';
+import { useAssetDragPreview } from '@/platform/assets/composables/useAssetDragPreview'
 import { useAssetPromptMetadata } from '@/platform/assets/composables/useAssetPromptMetadata'
 import { useAssetSelection } from '@/platform/assets/composables/useAssetSelection'
 import { useAssetSelectionStore } from '@/platform/assets/composables/useAssetSelectionStore'
@@ -456,7 +642,6 @@ import {
   getMediaTypeFromFilename,
   isPreviewableMediaType
 } from '@/utils/formatUtil'
-import { cn } from '@/utils/tailwindUtil'
 
 const Load3dViewerContent = defineAsyncComponent(
   () => import('@/components/load3d/Load3dViewerContent.vue')
@@ -492,6 +677,8 @@ activeSources.value = activeSources.value.filter(
 
 // Advanced-view toggle (opt-in; default UI matches main branch)
 const showAllAssets = useStorage<boolean>('Comfy.Assets.ShowAllAssets', false)
+const favoritesActive = ref(false)
+const favoriteColorFilter = ref<FavoriteColor | null>(null)
 
 // Bridge between advanced-view activeSources and default-view two-tab UI
 const activeTab = computed<'output' | 'input'>({
@@ -519,6 +706,45 @@ const showFilterPanel = useStorage<boolean>(
   'Comfy.Assets.ShowFilterPanel',
   false
 )
+const directoryLayout = useStorage<'filters' | 'folders'>(
+  'Comfy.Assets.DirectoryLayout',
+  'filters'
+)
+const recentsSidebar = useStorage<boolean>('Comfy.Assets.RecentsSidebar', false)
+
+const SIDEBAR_MIN_WIDTH = 200
+const SIDEBAR_MAX_WIDTH = 500
+const sidebarWidth = useStorage<number>(
+  'Comfy.Assets.FolderSidebarWidth.v3',
+  SIDEBAR_MIN_WIDTH
+)
+const isResizingSidebar = ref(false)
+
+function startSidebarResize(event: MouseEvent) {
+  const startX = event.clientX
+  const startWidth = sidebarWidth.value
+  isResizingSidebar.value = true
+
+  function onMove(e: MouseEvent) {
+    const next = startWidth + (e.clientX - startX)
+    sidebarWidth.value = Math.max(
+      SIDEBAR_MIN_WIDTH,
+      Math.min(SIDEBAR_MAX_WIDTH, next)
+    )
+  }
+  function onUp() {
+    isResizingSidebar.value = false
+    window.removeEventListener('mousemove', onMove)
+    window.removeEventListener('mouseup', onUp)
+  }
+  window.addEventListener('mousemove', onMove)
+  window.addEventListener('mouseup', onUp)
+}
+const pinnedDirs = useStorage<string[]>('Comfy.Assets.FolderSidebarPins.v2', [])
+// True while the user is composing a filter in the search input (field picked,
+// dropdown open, etc.). We collapse the folders sidebar in that window so it
+// doesn't reappear between picking a field and typing its value.
+const filterBarComposing = ref(false)
 const showDetailPanel = useStorage<boolean>(
   'Comfy.Assets.ShowDetailPanel',
   false
@@ -616,6 +842,7 @@ const {
   handleAssetClick,
   hasSelection,
   clearSelection,
+  selectAll,
   getSelectedAssets,
   reconcileSelection,
   getOutputCount,
@@ -648,10 +875,6 @@ const COMPACT_MODE_THRESHOLD_PX = 430
 const isCompact = computed(
   () => footerWidth.value > 0 && footerWidth.value <= COMPACT_MODE_THRESHOLD_PX
 )
-
-// Hover state for selection count button
-const selectionCountButtonRef = ref<HTMLElement | null>(null)
-const isHoveringSelectionCount = useElementHover(selectionCountButtonRef)
 
 // Total output count for all selected assets
 const totalOutputCount = computed(() => {
@@ -706,6 +929,7 @@ const loading = computed(() => {
 
 const galleryActiveIndex = ref(-1)
 const currentGalleryAssetId = ref<string | null>(null)
+const compareItems = ref<ResultItemImpl[]>([])
 
 const DEFAULT_SKELETON_COUNT = 6
 const skeletonCount = computed(() =>
@@ -726,9 +950,27 @@ const {
   { immediate: false, resetOnExecute: true }
 )
 
+const favorites = useAssetFavorites()
+
 // Base assets before search filtering
 // When searching in directory mode, use all assets across all subdirectories
 const baseAssets = computed(() => {
+  if (favoritesActive.value) {
+    const seen = new Set<string>()
+    const unique: AssetItem[] = []
+    for (const asset of allMergedAssets.value) {
+      if (seen.has(asset.id)) continue
+      seen.add(asset.id)
+      unique.push(asset)
+    }
+    const favorited = favorites.favoritedAssets(unique)
+    if (favoriteColorFilter.value) {
+      return favorited.filter(
+        (a) => favorites.getFavoriteColor(a) === favoriteColorFilter.value
+      )
+    }
+    return favorited
+  }
   if (isInFolderView.value) {
     return folderAssets.value
   }
@@ -752,6 +994,12 @@ const availableTags = computed(() => {
 
 // Prompt metadata extraction for @-filter search
 const metadataExtractor = useAssetPromptMetadata()
+
+const availableValuesByField = computed(() => ({
+  model: metadataExtractor.getAvailableValues('model'),
+  lora: metadataExtractor.getAvailableValues('lora'),
+  workflowTitle: metadataExtractor.getAvailableValues('workflowTitle')
+}))
 
 // Detail panel — show info for last-clicked asset
 const selectionStore = useAssetSelectionStore()
@@ -781,11 +1029,13 @@ const { sortBy, filteredAssets } = useMediaAssetFiltering(baseAssets, {
   mediaTypeFilters
 })
 
-// Extract metadata in background when metadata filters are active
+// Extract metadata in background when metadata filters are active, or when
+// the advanced view is showing (so the @-filter type-ahead has real values
+// to suggest for model/lora/vae).
 watch(
-  [metadataFilters, baseAssets],
-  ([filters, assets]) => {
-    if (filters.length > 0) {
+  [metadataFilters, baseAssets, showAllAssets],
+  ([filters, assets, advanced]) => {
+    if (filters.length > 0 || advanced) {
       metadataExtractor.extractBatch(assets)
     }
   },
@@ -811,13 +1061,50 @@ watch(
   }
 )
 
+const mockHiddenAssetIds = ref<Set<string>>(new Set())
+
 const displayAssets = computed(() => {
   // Date filtering is already applied in assetFilters.filteredByDate
-  if (assetFilters.hasActiveFilters.value) {
-    return assetFilters.filteredByDate.value
-  }
-  return filteredAssets.value
+  const base = assetFilters.hasActiveFilters.value
+    ? assetFilters.filteredByDate.value
+    : filteredAssets.value
+  if (mockHiddenAssetIds.value.size === 0) return base
+  return base.filter((a) => !mockHiddenAssetIds.value.has(a.id))
 })
+
+const dragPreviewWrapperRef = ref<HTMLElement | null>(null)
+const {
+  thumbnails: dragPreviewThumbnails,
+  label: dragPreviewLabel,
+  contentVisible: dragPreviewContentVisible,
+  setPreviewElement
+} = useAssetDragPreview()
+
+watch(
+  dragPreviewWrapperRef,
+  (el) => {
+    setPreviewElement(el)
+  },
+  { immediate: true }
+)
+
+function handleAssetDropOnFolder(folderPath: string, assetIds: string[]) {
+  if (assetIds.length === 0) return
+  const next = new Set(mockHiddenAssetIds.value)
+  for (const id of assetIds) next.add(id)
+  mockHiddenAssetIds.value = next
+  clearSelection()
+  const folderName = folderPath.split('/').pop() || folderPath
+  toast.add({
+    severity: 'info',
+    summary: t('mediaAsset.moveTo.dialogTitle'),
+    detail: t('mediaAsset.dragMove.mockToast', {
+      count: assetIds.length,
+      folder: folderName
+    }),
+    life: 3000
+  })
+}
 
 const {
   assetItems: listViewAssetItems,
@@ -891,30 +1178,33 @@ watch(visibleAssets, (newAssets) => {
 watch(galleryActiveIndex, (index) => {
   if (index === -1) {
     currentGalleryAssetId.value = null
+    compareItems.value = []
   }
 })
 
-const galleryItems = computed(() => {
-  return previewableVisibleAssets.value.map((asset) => {
-    const mediaType = getMediaTypeFromFilename(asset.name)
-    const resultItem = new ResultItemImpl({
-      filename: asset.name,
-      subfolder: '',
-      type: 'output',
-      nodeId: '0',
-      mediaType: mediaType === 'image' ? 'images' : mediaType
-    })
-
-    Object.defineProperty(resultItem, 'url', {
-      get() {
-        return asset.preview_url || ''
-      },
-      configurable: true
-    })
-
-    return resultItem
+function assetToResultItem(asset: AssetItem): ResultItemImpl {
+  const mediaType = getMediaTypeFromFilename(asset.name)
+  const resultItem = new ResultItemImpl({
+    filename: asset.name,
+    subfolder: '',
+    type: 'output',
+    nodeId: '0',
+    mediaType: mediaType === 'image' ? 'images' : mediaType
   })
-})
+
+  Object.defineProperty(resultItem, 'url', {
+    get() {
+      return asset.preview_url || ''
+    },
+    configurable: true
+  })
+
+  return resultItem
+}
+
+const galleryItems = computed(() =>
+  previewableVisibleAssets.value.map(assetToResultItem)
+)
 
 const refreshAssets = async () => {
   const promises: Promise<unknown>[] = []
@@ -972,6 +1262,7 @@ watch(activeSources, (newSources, oldSources) => {
   }
 
   clearSelection()
+  mockHiddenAssetIds.value = new Set()
   if (isInFolderView.value) exitFolderView()
 })
 
@@ -1146,6 +1437,24 @@ const handleBulkExportWorkflow = async (assets: AssetItem[]) => {
   clearSelection()
 }
 
+const handleBulkCompare = (assets: AssetItem[], totalSelected: number) => {
+  if (assets.length < 2) return
+  compareItems.value = assets.map(assetToResultItem)
+  const excluded = totalSelected - assets.length
+  if (excluded > 0) {
+    toast.add({
+      severity: 'info',
+      summary: t('mediaAsset.compare.action'),
+      detail: t('mediaAsset.compare.filteredToast', {
+        n: assets.length,
+        m: excluded
+      }),
+      life: 3500
+    })
+  }
+  galleryActiveIndex.value = 0
+}
+
 const handleDownloadSelected = () => {
   downloadMultipleAssets(selectedAssets.value)
   clearSelection()
@@ -1240,6 +1549,10 @@ const handleDeselectAll = () => {
   clearSelection()
 }
 
+const handleSelectAll = () => {
+  selectAll(visibleAssets.value)
+}
+
 const handleEmptySpaceClick = () => {
   if (hasSelection) {
     clearSelection()
@@ -1315,6 +1628,179 @@ const handleRemoveDirectory = (id: string) => {
   activeSources.value = activeSources.value.filter((s) => s !== id)
   customDirProviders.delete(id)
 }
+
+// --- Folders sidebar (advanced view, folders layout) ---
+const OUTPUT_ROOT_PATH = 'output'
+const INPUT_ROOT_PATH = 'input'
+
+const showFoldersSidebar = computed(
+  () =>
+    showAllAssets.value &&
+    !isInFolderView.value &&
+    directoryLayout.value === 'folders' &&
+    !recentsSidebar.value
+)
+
+const outputFolderTree = computed(() =>
+  buildOutputFolderTree(
+    assetsStore.historyAssets.map((a) => a.name),
+    {
+      name: t('sideToolbar.mediaAssets.foldersSidebar.outputRoot'),
+      path: OUTPUT_ROOT_PATH
+    }
+  )
+)
+
+const inputFolderTree = computed(() =>
+  buildOutputFolderTree(
+    assetsStore.inputAssets.map((a) => a.name),
+    {
+      name: t('sideToolbar.mediaAssets.foldersSidebar.inputRoot'),
+      path: INPUT_ROOT_PATH
+    }
+  )
+)
+
+const foldersSidebarTrees = computed(() => [
+  outputFolderTree.value,
+  inputFolderTree.value
+])
+
+const foldersSidebarSelectedPath = computed(() => {
+  const source = singleActiveSource.value
+  if (source === 'output') {
+    const rel = outputAssets.currentPath.value
+    return rel ? `${OUTPUT_ROOT_PATH}/${rel}` : OUTPUT_ROOT_PATH
+  }
+  if (source === 'input') {
+    const rel = inputAssets.currentPath.value
+    return rel ? `${INPUT_ROOT_PATH}/${rel}` : INPUT_ROOT_PATH
+  }
+  return OUTPUT_ROOT_PATH
+})
+
+const showRecentsSidebar = computed(
+  () =>
+    recentsSidebar.value &&
+    !isInFolderView.value &&
+    !isSearchActive.value &&
+    !filterBarComposing.value
+)
+
+const hasLeftSidebar = computed(
+  () =>
+    (showFoldersSidebar.value &&
+      !isSearchActive.value &&
+      !filterBarComposing.value) ||
+    showRecentsSidebar.value
+)
+
+const recentsSidebarSelectedPath = computed(() => {
+  if (favoritesActive.value) return ''
+  if (!showAllAssets.value) return ''
+  const source = singleActiveSource.value
+  if (source === 'output') {
+    const rel = outputAssets.currentPath.value
+    return rel ? `${OUTPUT_ROOT_PATH}/${rel}` : OUTPUT_ROOT_PATH
+  }
+  if (source === 'input') {
+    const rel = inputAssets.currentPath.value
+    return rel ? `${INPUT_ROOT_PATH}/${rel}` : INPUT_ROOT_PATH
+  }
+  return ''
+})
+
+const handleRecentsSidebarRecents = () => {
+  favoritesActive.value = false
+  favoriteColorFilter.value = null
+  showAllAssets.value = false
+}
+
+const handleRecentsSidebarFavorites = () => {
+  favoritesActive.value = true
+  favoriteColorFilter.value = null
+}
+
+const handleRecentsSidebarFavoriteColor = (color: FavoriteColor | null) => {
+  favoriteColorFilter.value = color
+}
+
+const handleRecentsSidebarSelect = (absolutePath: string) => {
+  const isOutput =
+    absolutePath === OUTPUT_ROOT_PATH ||
+    absolutePath.startsWith(`${OUTPUT_ROOT_PATH}/`)
+  const isInput =
+    absolutePath === INPUT_ROOT_PATH ||
+    absolutePath.startsWith(`${INPUT_ROOT_PATH}/`)
+  if (!isOutput && !isInput) return
+
+  const source = isOutput ? 'output' : 'input'
+  const rootPath = isOutput ? OUTPUT_ROOT_PATH : INPUT_ROOT_PATH
+  const rel =
+    absolutePath === rootPath ? '' : absolutePath.slice(rootPath.length + 1)
+
+  if (singleActiveSource.value !== source) {
+    activeSources.value = [source]
+  }
+  favoritesActive.value = false
+  favoriteColorFilter.value = null
+  showAllAssets.value = true
+
+  if (source === 'output') outputAssets.navigateToPath(rel)
+  else inputAssets.navigateToPath(rel)
+}
+
+const handleFoldersSidebarSelect = (absolutePath: string) => {
+  if (
+    absolutePath === OUTPUT_ROOT_PATH ||
+    absolutePath.startsWith(`${OUTPUT_ROOT_PATH}/`)
+  ) {
+    if (singleActiveSource.value !== 'output') {
+      activeSources.value = ['output']
+    }
+    const rel =
+      absolutePath === OUTPUT_ROOT_PATH
+        ? ''
+        : absolutePath.slice(OUTPUT_ROOT_PATH.length + 1)
+    outputAssets.navigateToPath(rel)
+    return
+  }
+  if (
+    absolutePath === INPUT_ROOT_PATH ||
+    absolutePath.startsWith(`${INPUT_ROOT_PATH}/`)
+  ) {
+    if (singleActiveSource.value !== 'input') {
+      activeSources.value = ['input']
+    }
+    const rel =
+      absolutePath === INPUT_ROOT_PATH
+        ? ''
+        : absolutePath.slice(INPUT_ROOT_PATH.length + 1)
+    inputAssets.navigateToPath(rel)
+  }
+}
+
+watch(
+  [showFoldersSidebar, showRecentsSidebar],
+  ([folders, recents]) => {
+    if (!folders && !recents) return
+    if (
+      folders &&
+      (activeSources.value.length !== 1 ||
+        (activeSources.value[0] !== 'output' &&
+          activeSources.value[0] !== 'input'))
+    ) {
+      activeSources.value = ['output']
+    }
+    if (assetsStore.historyAssets.length === 0 && !assetsStore.historyLoading) {
+      void assetsStore.updateHistory()
+    }
+    if (assetsStore.inputAssets.length === 0 && !assetsStore.inputLoading) {
+      void assetsStore.updateInputs()
+    }
+  },
+  { immediate: true }
+)
 
 // --- Folder navigation (single-source mode only) ---
 const handleFolderClick = async (folder: FolderItem) => {
@@ -1442,10 +1928,13 @@ const clearAllFilters = () => {
   display: flex;
   height: 100%;
   overflow: hidden;
+  border-radius: 1rem;
 }
 
 .assets-main-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow: auto;
   min-width: 0; /* Allow flex item to shrink below content size */
 }
@@ -1461,5 +1950,12 @@ const clearAllFilters = () => {
     padding-left: 1rem;
     padding-right: 1rem;
   }
+}
+
+/* When a left sidebar is visible, hide the top toolbar so the title can
+   be rendered inside the sidebar column and the main column (search +
+   options + grid) starts at the same top-vertical position as the title. */
+.assets-tab-with-sidebar :deep(.comfy-vue-side-bar-header .p-toolbar) {
+  display: none;
 }
 </style>

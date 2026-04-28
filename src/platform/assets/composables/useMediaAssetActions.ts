@@ -741,8 +741,7 @@ export function useMediaAssetActions() {
             }),
         component: MoveToDialogContent,
         dialogComponentProps: {
-          style: 'width: 28rem;',
-          pt: { header: { style: 'padding-left: 1.25rem;' } }
+          style: 'width: 28rem;'
         },
         props: {
           onConfirm: (path: string) => {

@@ -59,6 +59,19 @@ export function useFolderNavigation(allAssets: () => AssetItem[]) {
     currentPath.value = ''
   }
 
+  const navigateToPath = (path: string) => {
+    if (currentPath.value === path) return
+    if (historyIndex.value < navigationHistory.value.length - 1) {
+      navigationHistory.value = navigationHistory.value.slice(
+        0,
+        historyIndex.value + 1
+      )
+    }
+    navigationHistory.value.push(path)
+    historyIndex.value = navigationHistory.value.length - 1
+    currentPath.value = path
+  }
+
   const canNavigateUp = computed(() => currentPath.value !== '')
 
   const canNavigateBack = computed(() => historyIndex.value > 0)
@@ -86,6 +99,7 @@ export function useFolderNavigation(allAssets: () => AssetItem[]) {
     navigateInto,
     navigateUp,
     navigateToRoot,
+    navigateToPath,
     canNavigateUp,
     canNavigateBack,
     canNavigateForward,

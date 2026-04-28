@@ -6,7 +6,7 @@
       root: {
         id: contextMenuId,
         class: cn(
-          'rounded-lg',
+          'rounded-lg border border-border-default',
           'bg-secondary-background text-base-foreground',
           'shadow-lg'
         )
@@ -17,36 +17,78 @@
     <template #item="{ item, props }">
       <Button
         variant="secondary"
-        class="w-full justify-start"
+        class="w-full justify-start gap-2"
         v-bind="props.action"
+        @mouseenter="handleItemMouseEnter($event, item)"
       >
         <i v-if="item.icon" :class="item.icon" class="size-4" />
-        <span>{{
+        <span class="flex-1 text-left">{{
           typeof item.label === 'function' ? item.label() : (item.label ?? '')
         }}</span>
+        <i
+          v-if="(item as MenuItemWithFavorite).isFavoriteSubmenu"
+          class="icon-[lucide--chevron-right] size-4 opacity-60"
+        />
       </Button>
     </template>
   </ContextMenu>
+  <Teleport to="body">
+    <div
+      v-if="favoritePopoverVisible"
+      ref="favoritePopoverRef"
+      class="fixed z-1100 flex flex-col gap-1 rounded-lg border border-border-default bg-secondary-background p-1 text-base-foreground shadow-lg"
+      :style="favoritePopoverStyle"
+      @mouseenter="cancelHidePopover"
+      @mouseleave="scheduleHidePopover"
+    >
+      <button
+        v-for="color in FAVORITE_COLORS"
+        :key="color"
+        type="button"
+        class="flex w-full cursor-pointer items-center gap-2 rounded-sm border-none bg-transparent px-3 py-1.5 text-left text-sm transition-colors hover:bg-secondary-background-hover"
+        @click.stop="handleColorSelect(color)"
+      >
+        <i
+          :class="
+            cn(
+              'size-4',
+              colorTextClass(color),
+              activeColor === color ? 'icon-[ph--star-fill]' : 'icon-[ph--star]'
+            )
+          "
+        />
+        <span>{{ t(`mediaAsset.actions.favoriteColor.${color}`) }}</span>
+      </button>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
+import { useEventListener } from '@vueuse/core'
 import ContextMenu from 'primevue/contextmenu'
 import type { MenuItem } from 'primevue/menuitem'
 import { computed, ref, useId } from 'vue'
+import type { CSSProperties } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import Button from '@/components/ui/button/Button.vue'
-import { useDismissableOverlay } from '@/composables/useDismissableOverlay'
 import { isCloud, isDesktop } from '@/platform/distribution/types'
 import { supportsWorkflowMetadata } from '@/platform/workflow/utils/workflowExtractionUtil'
-import { isPreviewableMediaType } from '@/utils/formatUtil'
+import {
+  getMediaTypeFromFilename,
+  isPreviewableMediaType
+} from '@/utils/formatUtil'
 import { detectNodeTypeFromFilename } from '@/utils/loaderNodeUtil'
 import { electronAPI } from '@/utils/envUtil'
 import { cn } from '@/utils/tailwindUtil'
 
+import { FAVORITE_COLORS, useAssetFavorites } from '../composables/useAssetFavorites';
+import type { FavoriteColor } from '../composables/useAssetFavorites';
 import { useMediaAssetActions } from '../composables/useMediaAssetActions'
 import type { AssetItem } from '../schemas/assetSchema'
 import type { AssetContext, MediaKind } from '../schemas/mediaAssetSchema'
+
+type MenuItemWithFavorite = MenuItem & { isFavoriteSubmenu?: boolean }
 
 const {
   asset,
@@ -79,6 +121,7 @@ const emit = defineEmits<{
   'bulk-add-to-workflow': [assets: AssetItem[]]
   'bulk-open-workflow': [assets: AssetItem[]]
   'bulk-export-workflow': [assets: AssetItem[]]
+  'bulk-compare': [assets: AssetItem[], totalSelected: number]
 }>()
 
 type ContextMenuHandle = {
@@ -90,14 +133,136 @@ const contextMenu = ref<ContextMenuHandle | null>(null)
 const contextMenuId = useId()
 const isVisible = ref(false)
 const actions = useMediaAssetActions()
+const favorites = useAssetFavorites()
 const { t } = useI18n()
 
-useDismissableOverlay({
-  isOpen: isVisible,
-  getOverlayEl: () => document.getElementById(contextMenuId),
-  onDismiss: hide,
-  dismissOnScroll: true
+const favoritePopoverVisible = ref(false)
+const favoritePopoverStyle = ref<CSSProperties>({})
+const favoritePopoverRef = ref<HTMLElement | null>(null)
+let hidePopoverTimeout: number | null = null
+
+const isCurrentAssetSelected = computed(
+  () => selectedAssets?.some((a) => a.id === asset.id) ?? false
+)
+
+const bulkActive = computed(
+  () =>
+    !!isBulkMode &&
+    !!selectedAssets &&
+    selectedAssets.length > 0 &&
+    isCurrentAssetSelected.value
+)
+
+const favoriteTargets = computed<AssetItem[]>(() =>
+  bulkActive.value && selectedAssets ? selectedAssets : asset ? [asset] : []
+)
+
+const activeColor = computed<FavoriteColor | null>(() => {
+  const targets = favoriteTargets.value
+  if (targets.length === 0) return null
+  const first = favorites.getFavoriteColor(targets[0])
+  for (let i = 1; i < targets.length; i++) {
+    if (favorites.getFavoriteColor(targets[i]) !== first) return null
+  }
+  return first
 })
+
+async function applyFavoriteColor(color: FavoriteColor | null) {
+  await Promise.all(
+    favoriteTargets.value.map((a) => favorites.setFavoriteColor(a, color))
+  )
+}
+
+function buildFavoriteMenuItem(): MenuItemWithFavorite {
+  return {
+    label: t('mediaAsset.actions.favorite'),
+    icon: activeColor.value ? 'icon-[ph--star-fill]' : 'icon-[ph--star]',
+    isFavoriteSubmenu: true,
+    command: () => {
+      const next = activeColor.value === 'yellow' ? null : 'yellow'
+      void applyFavoriteColor(next)
+    }
+  }
+}
+
+function colorTextClass(color: FavoriteColor): string {
+  switch (color) {
+    case 'yellow':
+      return 'text-citrine-400'
+    case 'blue':
+      return 'text-azure-400'
+    case 'green':
+      return 'text-jade-600'
+  }
+}
+
+function cancelHidePopover() {
+  if (hidePopoverTimeout !== null) {
+    clearTimeout(hidePopoverTimeout)
+    hidePopoverTimeout = null
+  }
+}
+
+function scheduleHidePopover() {
+  cancelHidePopover()
+  hidePopoverTimeout = window.setTimeout(() => {
+    favoritePopoverVisible.value = false
+  }, 150)
+}
+
+function showFavoritePopover(anchor: HTMLElement) {
+  cancelHidePopover()
+  const rect = anchor.getBoundingClientRect()
+  favoritePopoverStyle.value = {
+    left: `${rect.right + 8}px`,
+    top: `${rect.top}px`,
+    minWidth: '12rem'
+  }
+  favoritePopoverVisible.value = true
+}
+
+function handleItemMouseEnter(event: MouseEvent, item: MenuItem) {
+  const target = event.currentTarget as HTMLElement | null
+  if (!target) return
+  if ((item as MenuItemWithFavorite).isFavoriteSubmenu) {
+    showFavoritePopover(target)
+  } else {
+    scheduleHidePopover()
+  }
+}
+
+function handleColorSelect(color: FavoriteColor) {
+  const isActive = activeColor.value === color
+  void applyFavoriteColor(isActive ? null : color)
+  favoritePopoverVisible.value = false
+  hide()
+}
+
+useEventListener(
+  window,
+  'pointerdown',
+  (event: PointerEvent) => {
+    if (!isVisible.value) return
+    if (!(event.target instanceof Node)) {
+      hide()
+      return
+    }
+    const menuEl = document.getElementById(contextMenuId)
+    if (menuEl?.contains(event.target)) return
+    if (favoritePopoverRef.value?.contains(event.target)) return
+    hide()
+  },
+  { capture: true }
+)
+
+useEventListener(
+  window,
+  'scroll',
+  () => {
+    if (isVisible.value) hide()
+  },
+  { capture: true, passive: true }
+)
 
 const showAddToWorkflow = computed(() => {
   // Output assets can always be added
@@ -136,6 +301,20 @@ const shouldShowDeleteButton = computed(() => {
   return propAllows && typeAllows
 })
 
+// Subset of selected assets that can be compared against the anchor asset:
+// same media kind as the right-clicked asset, and previewable.
+const compareEligibleAssets = computed<AssetItem[]>(() => {
+  if (!selectedAssets || !asset) return []
+  const anchorKind = getMediaTypeFromFilename(asset.name)
+  if (!isPreviewableMediaType(anchorKind)) return []
+  return selectedAssets.filter((a) => {
+    const kind = getMediaTypeFromFilename(a.name)
+    return kind === anchorKind && isPreviewableMediaType(kind)
+  })
+})
+
+const canCompare = computed(() => compareEligibleAssets.value.length >= 2)
+
 // Context menu items
 const contextMenuItems = computed<MenuItem[]>(() => {
   if (!asset) return []
@@ -159,6 +338,18 @@ const contextMenuItems = computed<MenuItem[]>(() => {
       label: t('mediaAsset.selection.multipleSelectedAssets'),
       disabled: true
     })
+
+    // Compare (same-type pairs only)
+    items.push({
+      label: t('mediaAsset.compare.action'),
+      icon: 'icon-[lucide--columns-2]',
+      disabled: !canCompare.value,
+      command: () =>
+        emit('bulk-compare', compareEligibleAssets.value, selectedAssets.length)
+    })
+
+    // Favorite (applies to all selected; click toggles yellow, hover opens color popover)
+    items.push(buildFavoriteMenuItem())
 
     // Bulk Add to Workflow
     items.push({
@@ -219,6 +410,8 @@ const contextMenuItems = computed<MenuItem[]>(() => {
       command: () => emit('zoom')
     })
   }
+
+  items.push(buildFavoriteMenuItem())
 
   // Add to workflow (conditional)
   if (showAddToWorkflow.value) {
@@ -331,6 +524,8 @@ const contextMenuItems = computed<MenuItem[]>(() => {
 
 function onMenuHide() {
   isVisible.value = false
+  favoritePopoverVisible.value = false
+  cancelHidePopover()
   emit('hide')
 }
 

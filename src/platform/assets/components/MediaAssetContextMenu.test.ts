@@ -19,7 +19,21 @@ const mockElectronAPI = vi.hoisted(() => ({
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key: string) => key
-  })
+  }),
+  createI18n: () => ({ install: () => {} })
+}))
+
+const mockFavorites = vi.hoisted(() => ({
+  isFavorited: vi.fn(() => false),
+  getFavoriteColor: vi.fn(() => null),
+  setFavoriteColor: vi.fn(),
+  toggleFavorite: vi.fn(),
+  favoritedAssets: vi.fn(() => [])
+}))
+
+vi.mock('../composables/useAssetFavorites', () => ({
+  FAVORITE_COLORS: ['yellow', 'blue', 'green'] as const,
+  useAssetFavorites: () => mockFavorites
 }))
 
 vi.mock('@/platform/distribution/types', () => ({
@@ -38,7 +52,12 @@ vi.mock('@/platform/workflow/utils/workflowExtractionUtil', () => ({
 }))
 
 vi.mock('@/utils/formatUtil', () => ({
-  isPreviewableMediaType: () => true
+  isPreviewableMediaType: () => true,
+  getMediaTypeFromFilename: (name: string) => {
+    if (/\.(mp4|webm|mov)$/i.test(name)) return 'video'
+    if (/\.(mp3|wav|ogg|flac)$/i.test(name)) return 'audio'
+    return 'image'
+  }
 }))
 
 vi.mock('@/utils/loaderNodeUtil', () => ({
@@ -96,8 +115,9 @@ const contextMenuStub = defineComponent({
         :key="i"
         :data-label="typeof item.label === 'function' ? item.label() : item.label"
         :data-icon="item.icon"
+        :data-disabled="item.disabled ? 'true' : undefined"
         class="menu-item"
-        @click="item.command && item.command()"
+        @click="!item.disabled && item.command && item.command()"
       />
     </div>
   `
@@ -123,12 +143,22 @@ let capturedRef: MediaAssetContextMenuExposed | null = null
 interface MountOptions {
   assetType?: string
   showDirectoryViewAction?: boolean
+  selectedAssets?: AssetItem[]
+  isBulkMode?: boolean
+  anchor?: AssetItem
 }
 
 function mountComponent(options: MountOptions = {}) {
-  const { assetType = 'output', showDirectoryViewAction = false } = options
+  const {
+    assetType = 'output',
+    showDirectoryViewAction = false,
+    selectedAssets,
+    isBulkMode = false,
+    anchor = asset
+  } = options
   const onHide = vi.fn()
   const onShowInDirectoryView = vi.fn()
+  const onBulkCompare = vi.fn()
   const { container, unmount } = render(
     defineComponent({
       components: { MediaAssetContextMenu },
@@ -139,21 +169,27 @@ function mountComponent(options: MountOptions = {}) {
         })
         return {
           menuRef,
-          asset,
+          anchor,
           onHide,
           onShowInDirectoryView,
+          onBulkCompare,
           assetType,
-          showDirectoryViewAction
+          showDirectoryViewAction,
+          selectedAssets,
+          isBulkMode
         }
       },
       template: `<MediaAssetContextMenu
         ref="menuRef"
-        :asset="asset"
+        :asset="anchor"
         :asset-type="assetType"
         file-kind="image"
         :show-directory-view-action="showDirectoryViewAction"
+        :selected-assets="selectedAssets"
+        :is-bulk-mode="isBulkMode"
         @hide="onHide"
         @show-in-directory-view="onShowInDirectoryView"
+        @bulk-compare="onBulkCompare"
       />`
     }),
     {
@@ -165,7 +201,13 @@ function mountComponent(options: MountOptions = {}) {
       }
     }
   )
-  return { container, unmount, onHide, onShowInDirectoryView }
+  return {
+    container,
+    unmount,
+    onHide,
+    onShowInDirectoryView,
+    onBulkCompare
+  }
 }
 
 async function showMenu(container: Element): Promise<HTMLElement> {
@@ -350,6 +392,113 @@ describe('MediaAssetContextMenu', () => {
       item.click()
       expect(mockElectronAPI.openInputsFolder).toHaveBeenCalledOnce()
       expect(mockElectronAPI.openOutputsFolder).not.toHaveBeenCalled()
+      unmount()
+    })
+  })
+
+  describe('bulk compare', () => {
+    const anchor: AssetItem = {
+      id: 'a',
+      name: 'anchor.png',
+      tags: [],
+      user_metadata: {}
+    }
+    const otherImage: AssetItem = {
+      id: 'b',
+      name: 'other.jpg',
+      tags: [],
+      user_metadata: {}
+    }
+    const otherImage2: AssetItem = {
+      id: 'c',
+      name: 'another.png',
+      tags: [],
+      user_metadata: {}
+    }
+    const video: AssetItem = {
+      id: 'd',
+      name: 'clip.mp4',
+      tags: [],
+      user_metadata: {}
+    }
+
+    it('is hidden in individual mode (no selectedAssets)', async () => {
+      const { container, unmount } = mountComponent()
+      await showMenu(container)
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const item = container.querySelector(
+        '[data-label="mediaAsset.compare.action"]'
+      )
+      expect(item).toBeNull()
+      unmount()
+    })
+
+    it('appears enabled when anchor has a same-type companion', async () => {
+      const { container, unmount } = mountComponent({
+        anchor,
+        selectedAssets: [anchor, otherImage],
+        isBulkMode: true
+      })
+      await showMenu(container)
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const item = container.querySelector(
+        '[data-label="mediaAsset.compare.action"]'
+      ) as HTMLElement
+      expect(item).not.toBeNull()
+      expect(item.dataset.disabled).toBeUndefined()
+      unmount()
+    })
+
+    it('is disabled when no same-type companion exists', async () => {
+      const { container, unmount } = mountComponent({
+        anchor,
+        selectedAssets: [anchor, video],
+        isBulkMode: true
+      })
+      await showMenu(container)
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const item = container.querySelector(
+        '[data-label="mediaAsset.compare.action"]'
+      ) as HTMLElement
+      expect(item).not.toBeNull()
+      expect(item.dataset.disabled).toBe('true')
+      unmount()
+    })
+
+    it('emits bulk-compare with only same-type subset and total count', async () => {
+      const { container, unmount, onBulkCompare } = mountComponent({
+        anchor,
+        selectedAssets: [anchor, otherImage, video, otherImage2],
+        isBulkMode: true
+      })
+      await showMenu(container)
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const item = container.querySelector(
+        '[data-label="mediaAsset.compare.action"]'
+      ) as HTMLElement
+      item.click()
+      await nextTick()
+      expect(onBulkCompare).toHaveBeenCalledTimes(1)
+      const [subset, total] = onBulkCompare.mock.calls[0]
+      expect(total).toBe(4)
+      expect((subset as AssetItem[]).map((a) => a.id)).toEqual(['a', 'b', 'c'])
+      unmount()
+    })
+
+    it('disabled item does not emit when clicked', async () => {
+      const { container, unmount, onBulkCompare } = mountComponent({
+        anchor,
+        selectedAssets: [anchor, video],
+        isBulkMode: true
+      })
+      await showMenu(container)
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const item = container.querySelector(
+        '[data-label="mediaAsset.compare.action"]'
+      ) as HTMLElement
+      item.click()
+      await nextTick()
+      expect(onBulkCompare).not.toHaveBeenCalled()
       unmount()
     })
   })

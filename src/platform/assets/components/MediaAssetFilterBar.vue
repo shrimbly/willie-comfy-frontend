@@ -3,7 +3,9 @@
     <MetadataSearchInput
       v-model:search-query="internalSearchQuery"
       v-model:metadata-filters="internalMetadataFilters"
+      v-model:composing="composing"
       :available-tags="availableTags"
+      :available-values-by-field="availableValuesByField"
     />
     <template #actions>
       <MediaAssetFilterButton
@@ -119,7 +121,7 @@
             <Button
               variant="textonly"
               class="w-full"
-              @click="showAllAssets = false"
+              @click="selectRecentlyGenerated"
             >
               <span class="flex items-center gap-2">
                 <i class="icon-[lucide--clock] size-4" />
@@ -129,13 +131,27 @@
               </span>
               <i
                 class="ml-auto icon-[lucide--check] size-4"
-                :class="showAllAssets && 'opacity-0'"
+                :class="!(!showAllAssets && !recentsSidebar) && 'opacity-0'"
               />
             </Button>
             <Button
               variant="textonly"
               class="w-full"
-              @click="showAllAssets = true"
+              @click="selectRecentsSidebar"
+            >
+              <span class="flex items-center gap-2">
+                <i class="icon-[lucide--history] size-4" />
+                <span>{{ $t('sideToolbar.mediaAssets.recentsSidebar') }}</span>
+              </span>
+              <i
+                class="ml-auto icon-[lucide--check] size-4"
+                :class="!recentsSidebar && 'opacity-0'"
+              />
+            </Button>
+            <Button
+              variant="textonly"
+              class="w-full"
+              @click="selectDirectoryView('filters')"
             >
               <span class="flex items-center gap-2">
                 <i class="icon-[lucide--folder-tree] size-4" />
@@ -143,10 +159,38 @@
               </span>
               <i
                 class="ml-auto icon-[lucide--check] size-4"
-                :class="!showAllAssets && 'opacity-0'"
+                :class="
+                  !(
+                    showAllAssets &&
+                    directoryLayout === 'filters' &&
+                    !recentsSidebar
+                  ) && 'opacity-0'
+                "
               />
             </Button>
-            <template v-if="showAllAssets">
+            <Button
+              variant="textonly"
+              class="w-full"
+              @click="selectDirectoryView('folders')"
+            >
+              <span class="flex items-center gap-2">
+                <i class="icon-[lucide--folders] size-4" />
+                <span>{{
+                  $t('sideToolbar.mediaAssets.directoryViewFolders')
+                }}</span>
+              </span>
+              <i
+                class="ml-auto icon-[lucide--check] size-4"
+                :class="
+                  !(
+                    showAllAssets &&
+                    directoryLayout === 'folders' &&
+                    !recentsSidebar
+                  ) && 'opacity-0'
+                "
+              />
+            </Button>
+            <template v-if="showAllAssets && directoryLayout === 'filters'">
               <div class="mx-2 my-1 h-px bg-(--p-content-border-color)" />
               <Button
                 variant="textonly"
@@ -192,6 +236,7 @@ const {
   mediaTypeFilters,
   metadataFilters,
   availableTags = [],
+  availableValuesByField,
   bottomDivider = false
 } = defineProps<{
   searchQuery: string
@@ -199,6 +244,7 @@ const {
   mediaTypeFilters: string[]
   metadataFilters: MetadataFilter[]
   availableTags?: string[]
+  availableValuesByField?: Record<'model' | 'lora' | 'workflowTitle', string[]>
   bottomDivider?: boolean
 }>()
 
@@ -214,6 +260,29 @@ const showAllAssets = defineModel<boolean>('showAllAssets', { default: false })
 const showFilterPanel = defineModel<boolean>('showFilterPanel', {
   default: true
 })
+const directoryLayout = defineModel<'filters' | 'folders'>('directoryLayout', {
+  default: 'filters'
+})
+const recentsSidebar = defineModel<boolean>('recentsSidebar', {
+  default: false
+})
+const composing = defineModel<boolean>('composing', { default: false })
+
+const selectRecentlyGenerated = () => {
+  showAllAssets.value = false
+  recentsSidebar.value = false
+}
+
+const selectRecentsSidebar = () => {
+  showAllAssets.value = false
+  recentsSidebar.value = true
+}
+
+const selectDirectoryView = (layout: 'filters' | 'folders') => {
+  showAllAssets.value = true
+  directoryLayout.value = layout
+  recentsSidebar.value = false
+}
 
 interface ViewOption {
   value: ViewMode

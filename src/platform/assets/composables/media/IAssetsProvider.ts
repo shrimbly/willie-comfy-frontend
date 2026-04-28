@@ -12,6 +12,7 @@ export interface IFolderNavigation {
   navigateInto: (folder: FolderItem) => void
   navigateUp: () => void
   navigateToRoot: () => void
+  navigateToPath: (path: string) => void
   canNavigateUp: Ref<boolean>
   canNavigateBack: Ref<boolean>
   canNavigateForward: Ref<boolean>

@@ -81,8 +81,20 @@
             @preview-click="emit('preview-asset', item.item.asset)"
             @stack-toggle="void toggleStack(item.item.asset)"
           >
-            <template v-if="hoveredAssetId === item.item.asset.id" #actions>
+            <template
+              v-if="
+                hoveredAssetId === item.item.asset.id ||
+                showFavoriteIcon(item.item)
+              "
+              #actions
+            >
+              <FavoriteColorPicker
+                v-if="showFavoriteButton(item.item)"
+                :asset="item.item.asset"
+                orientation="horizontal"
+              />
               <Button
+                v-if="hoveredAssetId === item.item.asset.id"
                 variant="secondary"
                 size="icon"
                 :aria-label="t('mediaAsset.actions.moreOptions')"
@@ -106,6 +118,8 @@ import LoadingOverlay from '@/components/common/LoadingOverlay.vue'
 import VirtualGrid from '@/components/common/VirtualGrid.vue'
 import Button from '@/components/ui/button/Button.vue'
 import AssetsListItem from '@/platform/assets/components/AssetsListItem.vue'
+import FavoriteColorPicker from '@/platform/assets/components/FavoriteColorPicker.vue'
+import { useAssetFavorites } from '@/platform/assets/composables/useAssetFavorites'
 import type { OutputStackListItem } from '@/platform/assets/composables/useOutputStacks'
 import { getOutputAssetMetadata } from '@/platform/assets/schemas/assetMetadataSchema'
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
@@ -127,7 +141,8 @@ const {
   selectableAssets,
   isSelected,
   isStackExpanded,
-  toggleStack
+  toggleStack,
+  restrictStackFavorites = false
 } = defineProps<{
   assetItems: OutputStackListItem[]
   folders?: FolderItem[]
@@ -135,6 +150,7 @@ const {
   isSelected: (assetId: string) => boolean
   isStackExpanded: (asset: AssetItem) => boolean
   toggleStack: (asset: AssetItem) => Promise<void>
+  restrictStackFavorites?: boolean
 }>()
 
 const assetsStore = useAssetsStore()
@@ -269,5 +285,22 @@ function onAssetLeave(assetId: string) {
   if (hoveredAssetId.value === assetId) {
     hoveredAssetId.value = null
   }
+}
+
+const favorites = useAssetFavorites()
+
+function isStackParent(item: OutputStackListItem): boolean {
+  if (item.isChild) return false
+  const count = getStackCount(item.asset)
+  return typeof count === 'number' && count > 1
+}
+
+function showFavoriteButton(item: OutputStackListItem): boolean {
+  if (!restrictStackFavorites) return true
+  return !isStackParent(item)
+}
+
+function showFavoriteIcon(item: OutputStackListItem): boolean {
+  return showFavoriteButton(item) && favorites.isFavorited(item.asset)
 }
 </script>

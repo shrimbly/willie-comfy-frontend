@@ -836,7 +836,28 @@
       "filterText": "Text",
       "viewSettings": "View settings",
       "directoryView": "Directory view",
-      "recentlyGenerated": "Recently generated"
+      "directoryViewFolders": "Directory view (folders sidebar)",
+      "recentlyGenerated": "Recently generated",
+      "recentsSidebar": "Recently generated (folders sidebar)",
+      "foldersSidebar": {
+        "pinnedHeader": "Pinned",
+        "allFoldersHeader": "All folders",
+        "importedHeader": "Imported",
+        "generatedHeader": "Generated",
+        "recent": "Recent",
+        "favorites": "Favorites",
+        "favoriteColors": {
+          "yellow": "Yellow",
+          "blue": "Blue",
+          "green": "Green"
+        },
+        "renameFavoriteColor": "Rename favorite",
+        "pinHint": "Drag folders here to pin",
+        "outputRoot": "output",
+        "inputRoot": "input",
+        "addFolder": "Add folder",
+        "newFolderName": "New folder"
+      }
     },
     "backToAssets": "Back to all assets",
     "folderView": {
@@ -3057,6 +3078,18 @@
     "failedToDeleteAsset": "Failed to delete asset",
     "actions": {
       "inspect": "Inspect asset",
+      "favorite": "Add to favorites",
+      "unfavorite": "Remove from favorites",
+      "favoriteAs": {
+        "yellow": "Favorite (yellow)",
+        "blue": "Favorite (blue)",
+        "green": "Favorite (green)"
+      },
+      "favoriteColor": {
+        "yellow": "Favorite as yellow",
+        "blue": "Favorite as blue",
+        "green": "Favorite as green"
+      },
       "more": "More options",
       "zoom": "Zoom in",
       "moreOptions": "More options",
@@ -3083,6 +3116,9 @@
     },
     "selection": {
       "selectedCount": "Assets Selected: {count}",
+      "selectedCountShort": "Selected: {count}",
+      "selectAll": "Select all",
+      "clear": "Clear",
       "multipleSelectedAssets": "Multiple assets selected",
       "deselectAll": "Deselect all",
       "downloadSelected": "Download",
@@ -3123,6 +3159,12 @@
       "pathPlaceholder": "e.g. subfolder/new-folder",
       "moveButton": "Move",
       "stubToast": "Move to \"{path}\" — not yet implemented"
+    },
+    "dragPreview": {
+      "itemsLabel": "{count} items"
+    },
+    "dragMove": {
+      "mockToast": "Moved {count} item(s) to {folder} (mock — not persisted)"
     },
     "details": {
       "togglePanel": "Toggle details panel",

@@ -1,5 +1,5 @@
 <template>
-  <section class="mx-4 mt-4 mb-2 flex flex-col gap-6">
+  <section class="m-2 flex flex-col gap-4">
     <div class="flex flex-col gap-2">
       <label class="text-sm text-muted-foreground">
         {{ t('mediaAsset.moveTo.pathLabel') }}

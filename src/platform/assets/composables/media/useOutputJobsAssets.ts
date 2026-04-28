@@ -55,6 +55,7 @@ export function useOutputJobsAssets(): IAssetsProvider & IFolderNavigation {
     navigateInto: noop,
     navigateUp: noop,
     navigateToRoot: noop,
+    navigateToPath: noop,
     canNavigateUp,
     canNavigateBack,
     canNavigateForward,
