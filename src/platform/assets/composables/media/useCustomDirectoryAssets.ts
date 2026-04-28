@@ -16,7 +16,7 @@ import type {
 
 import type { IAssetsProvider } from './IAssetsProvider'
 
-export interface DirectoryNavigationState {
+interface DirectoryNavigationState {
   rootPath: string | null
   currentPath: string
   history: string[]

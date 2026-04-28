@@ -17,18 +17,7 @@ export interface MetadataFilter {
   value: string
 }
 
-export const METADATA_FIELDS: MetadataField[] = [
-  'model',
-  'lora',
-  'workflowTitle',
-  'prompt',
-  'date',
-  'tag',
-  'type',
-  'favorite'
-]
-
-export const PROMPT_METADATA_FIELDS: MetadataField[] = [
+const PROMPT_METADATA_FIELDS: MetadataField[] = [
   'model',
   'lora',
   'workflowTitle',

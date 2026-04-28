@@ -70,8 +70,8 @@ export const GRID_COLUMN_RANGES = {
 } as const
 
 export const GAP_PX = 8
-export const PAD_PX = 8
-export const SCROLLBAR_PX = 15
+const PAD_PX = 8
+const SCROLLBAR_PX = 15
 
 export function computeColumns(
   width: number,

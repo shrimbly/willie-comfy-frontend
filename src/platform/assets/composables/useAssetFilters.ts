@@ -2,11 +2,6 @@ import { computed, ref } from 'vue'
 import type { Ref } from 'vue'
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
 
-export interface DateRange {
-  start: Date
-  end: Date
-}
-
 export function useAssetFilters(assets: Ref<AssetItem[]>) {
   const dateRange = ref<[Date, Date] | null>(null)
 

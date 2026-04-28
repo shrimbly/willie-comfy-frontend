@@ -1,6 +1,6 @@
 import type { FolderTreeNodeType } from '@/platform/assets/components/FolderTreeNode.vue'
 
-export interface FolderTreeRoot {
+interface FolderTreeRoot {
   name: string
   path: string
 }

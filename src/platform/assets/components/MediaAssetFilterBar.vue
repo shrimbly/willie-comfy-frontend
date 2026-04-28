@@ -152,7 +152,7 @@ import MediaAssetFilterButton from './MediaAssetFilterButton.vue'
 import MediaAssetFilterMenu from './MediaAssetFilterMenu.vue'
 import MetadataSearchInput from './MetadataSearchInput.vue'
 
-export type SortBy = 'newest' | 'oldest' | 'longest' | 'fastest'
+type SortBy = 'newest' | 'oldest' | 'longest' | 'fastest'
 export type ViewMode = 'list' | 'grid-sm' | 'grid-md' | 'grid-lg'
 
 const {
