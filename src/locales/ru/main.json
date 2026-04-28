@@ -3742,5 +3742,12 @@
     "label": "Управление масштабом",
     "showMinimap": "Показать миникарту",
     "zoomToFit": "Масштабировать по размеру"
+  },
+  "assets": {
+    "filters": {
+      "title": "Filters",
+      "dateRange": "Date Range",
+      "clearAll": "Clear All"
+    }
   }
 }

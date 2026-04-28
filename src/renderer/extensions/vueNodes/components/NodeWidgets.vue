@@ -416,6 +416,8 @@ const processedWidgets = computed((): ProcessedWidget[] => {
         ? getLocatorIdFromNodeData(nodeData)
         : undefined
 
+    const tooltipText = getWidgetTooltip(widget)
+
     const simplified: SimplifiedWidget = {
       name: widget.name,
       type: widget.type,
@@ -427,7 +429,8 @@ const processedWidgets = computed((): ProcessedWidget[] => {
       linkedUpstream,
       nodeLocatorId,
       options: widgetOptions,
-      spec: widget.spec
+      spec: widget.spec,
+      tooltip: tooltipText
     }
 
     const updateHandler = createWidgetUpdateHandler(
@@ -437,8 +440,9 @@ const processedWidgets = computed((): ProcessedWidget[] => {
       widgetOptions
     )
 
-    const tooltipText = getWidgetTooltip(widget)
-    const tooltipConfig = createTooltipConfig(tooltipText)
+    const tooltipConfig = createTooltipConfig(
+      simplified.options?.templateInput ? '' : tooltipText
+    )
     const handleContextMenu = (e: PointerEvent) => {
       e.preventDefault()
       e.stopPropagation()

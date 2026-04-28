@@ -1,6 +1,10 @@
 import type { LGraphNode } from '@/lib/litegraph/src/LGraphNode'
 import type { ComfyNodeDef } from '@/schemas/nodeDefSchema'
 import { applyTextReplacements } from '@/utils/searchAndReplace'
+import {
+  resolveDirectoryTokens,
+  resolveTemplateVariables
+} from '@/utils/templateVariableResolver'
 
 import { app } from '../../scripts/app'
 
@@ -38,10 +42,19 @@ app.registerExtension({
 
         // @ts-expect-error fixme ts strict error
         const widget = this.widgets.find((w) => w.name === 'filename_prefix')
-        // @ts-expect-error fixme ts strict error
-        widget.serializeValue = () => {
-          // @ts-expect-error fixme ts strict error
-          return applyTextReplacements(app.graph, widget.value)
+        if (widget) {
+          if (!widget.options) widget.options = {}
+          widget.options.templateInput = true
+          const node = this as LGraphNode
+          widget.serializeValue = () => {
+            const withDir = resolveDirectoryTokens(String(widget.value ?? ''))
+            const withTemplateVars = resolveTemplateVariables(
+              app.graph,
+              node,
+              withDir
+            )
+            return applyTextReplacements(app.graph, withTemplateVars)
+          }
         }
 
         return r

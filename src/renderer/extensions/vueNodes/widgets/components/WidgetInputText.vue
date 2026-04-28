@@ -1,5 +1,11 @@
 <template>
-  <WidgetLayoutField :widget="layoutWidget">
+  <WidgetTemplateInput
+    v-if="widget.options?.templateInput"
+    v-model="modelValue"
+    :widget
+    :size
+  />
+  <WidgetLayoutField v-else :widget="layoutWidget">
     <div class="relative">
       <Loader
         v-if="loading"
@@ -40,6 +46,7 @@ import {
 
 import { WidgetInputBaseClass } from './layout'
 import WidgetLayoutField from './layout/WidgetLayoutField.vue'
+import WidgetTemplateInput from './WidgetTemplateInput.vue'
 
 const {
   widget,

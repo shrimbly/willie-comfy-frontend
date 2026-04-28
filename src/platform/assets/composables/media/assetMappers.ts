@@ -61,9 +61,22 @@ export function mapTaskOutputToAssetItem(
 export function mapInputFileToAssetItem(
   filename: string,
   index: number,
-  directory: 'input' | 'output' = 'input'
+  directory: 'input' | 'output' = 'input',
+  mtime?: number
 ): AssetItem {
-  const params = new URLSearchParams({ filename, type: directory })
+  // Split "comfy/image.png" into subfolder="comfy", bareFilename="image.png"
+  const lastSlash = filename.lastIndexOf('/')
+  const subfolder = lastSlash > -1 ? filename.substring(0, lastSlash) : ''
+  const bareFilename =
+    lastSlash > -1 ? filename.substring(lastSlash + 1) : filename
+
+  const params = new URLSearchParams({
+    filename: bareFilename,
+    type: directory
+  })
+  if (subfolder) {
+    params.set('subfolder', subfolder)
+  }
   const preview_url = api.apiURL(`/view?${params}`)
   appendCloudResParam(params, filename)
 
@@ -71,7 +84,9 @@ export function mapInputFileToAssetItem(
     id: `${directory}-${index}-${filename}`,
     name: filename,
     size: 0,
-    created_at: new Date().toISOString(),
+    created_at: mtime
+      ? new Date(mtime * 1000).toISOString()
+      : new Date().toISOString(),
     tags: [directory],
     thumbnail_url: api.apiURL(`/view?${params}`),
     preview_url

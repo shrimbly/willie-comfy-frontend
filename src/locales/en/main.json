@@ -834,7 +834,26 @@
       "filterAudio": "Audio",
       "filter3D": "3D",
       "filterText": "Text",
-      "viewSettings": "View settings"
+      "viewSettings": "View settings",
+      "foldersSidebar": {
+        "pinnedHeader": "Pinned",
+        "allFoldersHeader": "All folders",
+        "importedHeader": "Imported",
+        "generatedHeader": "Generated",
+        "recent": "Recent",
+        "favorites": "Favorites",
+        "favoriteColors": {
+          "yellow": "Yellow",
+          "blue": "Blue",
+          "green": "Green"
+        },
+        "renameFavoriteColor": "Rename favorite",
+        "pinHint": "Drag folders here to pin",
+        "outputRoot": "output",
+        "inputRoot": "input",
+        "addFolder": "Add folder",
+        "newFolderName": "New folder"
+      }
     },
     "backToAssets": "Back to all assets",
     "folderView": {
@@ -857,6 +876,7 @@
     "noFilesFound": "No files found",
     "noImportedFiles": "No imported files found",
     "noGeneratedFiles": "No generated files found",
+    "noCustomFiles": "No files in selected directory",
     "generatedAssetsHeader": "Generated assets",
     "importedAssetsHeader": "Imported assets",
     "activeJobStatus": "Active job: {status}",
@@ -1503,7 +1523,8 @@
     "Error System": "Error System",
     "Other": "Other",
     "Secrets": "Secrets",
-    "Node Library": "Node Library"
+    "Node Library": "Node Library",
+    "Filename Variables": "Filename Variables"
   },
   "serverConfigItems": {
     "listen": {
@@ -3054,6 +3075,18 @@
     "failedToDeleteAsset": "Failed to delete asset",
     "actions": {
       "inspect": "Inspect asset",
+      "favorite": "Add to favorites",
+      "unfavorite": "Remove from favorites",
+      "favoriteAs": {
+        "yellow": "Favorite (yellow)",
+        "blue": "Favorite (blue)",
+        "green": "Favorite (green)"
+      },
+      "favoriteColor": {
+        "yellow": "Favorite as yellow",
+        "blue": "Favorite as blue",
+        "green": "Favorite as green"
+      },
       "more": "More options",
       "zoom": "Zoom in",
       "moreOptions": "More options",
@@ -3063,7 +3096,14 @@
       "openWorkflow": "Open as workflow in new tab",
       "exportWorkflow": "Export workflow",
       "copyJobId": "Copy job ID",
-      "delete": "Delete"
+      "delete": "Delete",
+      "moveTo": "Move to...",
+      "showInDirectoryView": "Show in directory view",
+      "showInFinder": "Show in Finder",
+      "showInExplorer": "Show in Explorer",
+      "showInFileManager": "Show in file manager",
+      "exportAll": "Export all",
+      "moveFolderTo": "Move to..."
     },
     "jobIdToast": {
       "jobIdCopied": "Job ID copied to clipboard",
@@ -3073,6 +3113,9 @@
     },
     "selection": {
       "selectedCount": "Assets Selected: {count}",
+      "selectedCountShort": "Selected: {count}",
+      "selectAll": "Select all",
+      "clear": "Clear",
       "multipleSelectedAssets": "Multiple assets selected",
       "deselectAll": "Deselect all",
       "downloadSelected": "Download",
@@ -3082,6 +3125,7 @@
       "insertAllAssetsAsNodes": "Insert all assets as nodes",
       "openWorkflowAll": "Open all workflows",
       "exportWorkflowAll": "Export all workflows",
+      "moveSelectedAll": "Move all to...",
       "downloadStarted": "Downloading {count} file... | Downloading {count} files...",
       "downloadsStarted": "Started downloading {count} file | Started downloading {count} files",
       "exportStarted": "Preparing ZIP export for {count} file | Preparing ZIP export for {count} files",
@@ -3097,6 +3141,44 @@
       "workflowsExported": "{count} workflow(s) exported successfully",
       "noWorkflowsToExport": "No workflow data found to export",
       "partialWorkflowsExported": "{succeeded} exported successfully, {failed} failed"
+    },
+    "directoryPicker": {
+      "browse": "Browse Directory",
+      "error": "Directory Selection Error"
+    },
+    "folderNavigation": {
+      "error": "Navigation Error"
+    },
+    "moveTo": {
+      "dialogTitle": "Move to folder",
+      "dialogTitleBulk": "Move {count} items to folder",
+      "pathLabel": "Destination path",
+      "pathPlaceholder": "e.g. subfolder/new-folder",
+      "moveButton": "Move",
+      "stubToast": "Move to \"{path}\" — not yet implemented"
+    },
+    "dragPreview": {
+      "itemsLabel": "{count} items"
+    },
+    "dragMove": {
+      "mockToast": "Moved {count} item(s) to {folder} (mock — not persisted)"
+    },
+    "details": {
+      "togglePanel": "Toggle details panel",
+      "showDetails": "Show details",
+      "hideDetails": "Hide details",
+      "assetDetails": "Asset Details",
+      "generationDetails": "Generation Details",
+      "name": "Name",
+      "type": "Type",
+      "dimensions": "Dimensions",
+      "size": "Size",
+      "duration": "Duration",
+      "model": "Model",
+      "lora": "LoRA",
+      "vae": "VAE",
+      "steps": "Steps",
+      "seed": "Seed"
     },
     "noJobIdFound": "No job ID found for this asset",
     "unsupportedFileType": "Unsupported file type for loader node",
@@ -3754,5 +3836,123 @@
     "training": "Training…",
     "processingVideo": "Processing video…",
     "running": "Running…"
+  },
+  "assets": {
+    "filters": {
+      "title": "Filters",
+      "dateRange": "Date Range",
+      "selectDateRange": "Select date range",
+      "clearAll": "Clear All",
+      "type": "Type",
+      "source": "Source",
+      "addDirectory": "Add directory",
+      "togglePanel": "Toggle filter panel"
+    },
+    "view": {
+      "tooltip": "View",
+      "list": "List",
+      "gridSmall": "Grid - Small",
+      "gridMedium": "Grid - Medium",
+      "gridLarge": "Grid - Large",
+      "hideSidebar": "Hide sidebar"
+    },
+    "sort": {
+      "tooltip": "Sort"
+    },
+    "folders": {
+      "showMore": "Show {count} more folders",
+      "itemCount": "{count} item | {count} items"
+    },
+    "metadata": {
+      "model": "Model",
+      "lora": "LoRA",
+      "workflowTitle": "Workflow title",
+      "prompt": "Prompt",
+      "date": "Date",
+      "tag": "Tag",
+      "type": "Type",
+      "favorite": "Favorite",
+      "searchPlaceholder": "Search or type {'@'} to filter",
+      "enterValue": "Type {field} value...",
+      "noMatches": "No matches",
+      "group": {
+        "metadata": "Metadata",
+        "attributes": "Attributes",
+        "values": "Values",
+        "recent": "Recent",
+        "custom": "Custom"
+      },
+      "addCustom": "Add as custom filter",
+      "descriptions": {
+        "model": "Filter by model name",
+        "lora": "Filter by LoRA",
+        "workflowTitle": "Filter by workflow title",
+        "prompt": "Filter by prompt text",
+        "date": "Filter by date",
+        "tag": "Filter by tag",
+        "type": "Filter by media type",
+        "favorite": "Filter by favorite color"
+      },
+      "datePresets": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisWeek": "This week",
+        "lastWeek": "Last week",
+        "thisMonth": "This month",
+        "lastMonth": "Last month"
+      },
+      "mediaTypes": {
+        "image": "Image",
+        "video": "Video",
+        "audio": "Audio",
+        "3D": "3D"
+      },
+      "favoriteColors": {
+        "yellow": "Yellow",
+        "blue": "Blue",
+        "green": "Green"
+      }
+    }
+  },
+  "templateVariables": {
+    "projectDesc": "Project name",
+    "workflowTitleDesc": "Current workflow filename",
+    "groupTitleDesc": "Parent group title",
+    "nodeTitleDesc": "Node title",
+    "widthDesc": "Output image width (resolved at save)",
+    "heightDesc": "Output image height (resolved at save)",
+    "batchNumDesc": "Batch index (resolved per image)",
+    "dateFormatDesc": "Date formatted as {format}",
+    "nodeWidgetDesc": "Current value: {value}",
+    "nodeWidgetDescEmpty": "Current widget value",
+    "noMatches": "No matches",
+    "saveTo": "save to",
+    "pickAFolder": "Pick a folder",
+    "selectDirectory": "Select output directory",
+    "addFolder": "Add folder",
+    "newFolderName": "Folder name",
+    "clickToChooseLocation": "Pick a parent folder",
+    "removeDirectory": "Remove directory",
+    "outputRoot": "Output",
+    "loadingDirectories": "Loading directories...",
+    "group": {
+      "variable": "Variables",
+      "token": "Runtime tokens",
+      "date": "Date formats",
+      "node": "From nodes"
+    }
+  },
+  "filenameVariables": {
+    "title": "Filename Variables",
+    "description": "Variables available in filename prefix fields. Use @variableName in the filename prefix widget.",
+    "builtIn": "Built-in",
+    "custom": "Custom",
+    "addVariable": "Add variable",
+    "namePlaceholder": "Variable name",
+    "valuePlaceholder": "Value",
+    "nameConflict": "Name conflicts with a built-in variable",
+    "nameInvalid": "Name must contain only letters, numbers, and underscores",
+    "nameDuplicate": "Duplicate variable name",
+    "nameEmpty": "Name is required"
   }
 }

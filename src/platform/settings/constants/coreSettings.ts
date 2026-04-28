@@ -1308,5 +1308,11 @@ export const CORE_SETTINGS: SettingParams[] = [
     type: 'boolean',
     defaultValue: false,
     versionAdded: '1.42.0'
+  },
+  {
+    id: 'Comfy.Filename.CustomVariables',
+    name: 'Custom filename variables',
+    type: 'hidden',
+    defaultValue: [] as { name: string; value: string }[]
   }
 ]
