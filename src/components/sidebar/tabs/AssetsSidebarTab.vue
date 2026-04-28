@@ -112,17 +112,12 @@
           "
         >
           <!-- Filter Bar -->
-          <div
-            :class="
-              hasLeftSidebar
-                ? 'flex h-18 flex-col justify-end pb-1'
-                : 'contents'
-            "
-          >
+          <div :class="hasLeftSidebar ? 'flex h-18 flex-col pt-3' : 'contents'">
             <MediaAssetFilterBar
               v-model:search-query="searchQuery"
               v-model:sort-by="sortBy"
               v-model:view-mode="viewMode"
+              v-model:hide-sidebar="hideRecentsSidebar"
               v-model:media-type-filters="mediaTypeFilters"
               v-model:metadata-filters="metadataFilters"
               v-model:composing="filterBarComposing"
@@ -638,6 +633,10 @@ const isInFolderView = computed(() => folderJobId.value !== null)
 const viewMode = useStorage<ViewMode>(
   'Comfy.Assets.Sidebar.ViewMode',
   'grid-md'
+)
+const hideRecentsSidebar = useStorage<boolean>(
+  'Comfy.Assets.HideRecentsSidebar',
+  false
 )
 
 const SIDEBAR_MIN_WIDTH = 200
@@ -1544,7 +1543,10 @@ const inputFolderTree = computed(() =>
 
 const showRecentsSidebar = computed(
   () =>
-    !isInFolderView.value && !isSearchActive.value && !filterBarComposing.value
+    !hideRecentsSidebar.value &&
+    !isInFolderView.value &&
+    !isSearchActive.value &&
+    !filterBarComposing.value
 )
 
 const hasLeftSidebar = showRecentsSidebar

@@ -3852,7 +3852,8 @@
       "list": "List",
       "gridSmall": "Grid - Small",
       "gridMedium": "Grid - Medium",
-      "gridLarge": "Grid - Large"
+      "gridLarge": "Grid - Large",
+      "hideSidebar": "Hide sidebar"
     },
     "sort": {
       "tooltip": "Sort"

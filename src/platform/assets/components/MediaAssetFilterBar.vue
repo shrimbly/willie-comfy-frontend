@@ -117,6 +117,21 @@
                 :class="viewMode !== option.value && 'opacity-0'"
               />
             </Button>
+            <div class="my-1 border-t border-comfy-input" />
+            <Button
+              variant="textonly"
+              class="w-full"
+              @click="hideSidebar = !hideSidebar"
+            >
+              <span class="flex items-center gap-2">
+                <i class="icon-[lucide--panel-left-close] size-4" />
+                <span>{{ $t('assets.view.hideSidebar') }}</span>
+              </span>
+              <i
+                class="ml-auto icon-[lucide--check] size-4"
+                :class="!hideSidebar && 'opacity-0'"
+              />
+            </Button>
           </div>
         </template>
       </Popover>
@@ -166,6 +181,7 @@ const emit = defineEmits<{
 
 const sortBy = defineModel<SortBy>('sortBy', { required: true })
 const viewMode = defineModel<ViewMode>('viewMode', { required: true })
+const hideSidebar = defineModel<boolean>('hideSidebar', { default: false })
 const composing = defineModel<boolean>('composing', { default: false })
 
 interface ViewOption {
