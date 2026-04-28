@@ -5,7 +5,7 @@ import { useGraphHierarchy } from '@/composables/graph/useGraphHierarchy'
 import { useSettingStore } from '@/platform/settings/settingStore'
 import { useWorkflowStore } from '@/platform/workflow/management/stores/workflowStore'
 
-export interface TemplateVariable {
+interface TemplateVariable {
   name: string
   description: string
 }
@@ -54,14 +54,6 @@ export function getCustomTemplateVariableValues(): {
   return useSettingStore().get('Comfy.Filename.CustomVariables')
 }
 
-export function getCustomTemplateVariableNames(): Set<string> {
-  return new Set(
-    useSettingStore()
-      .get('Comfy.Filename.CustomVariables')
-      .map((v) => v.name)
-  )
-}
-
 function getCustomVariableValue(name: string): string | null {
   const custom = useSettingStore().get('Comfy.Filename.CustomVariables')
   const found = custom.find((v) => v.name === name)
@@ -78,7 +70,7 @@ function resolveVariable(
   return getCustomVariableValue(name)
 }
 
-export interface TemplateContext {
+interface TemplateContext {
   graph: LGraph | Subgraph
   node: LGraphNode
 }

@@ -40,10 +40,7 @@ const DATE_FORMAT_PRESETS: DateFormat[] = [
   { format: 'HHmmss' }
 ]
 
-export type TranslateFn = (
-  key: string,
-  values?: Record<string, string>
-) => string
+type TranslateFn = (key: string, values?: Record<string, string>) => string
 
 function buildVariableSuggestions(
   t: TranslateFn,
@@ -166,7 +163,7 @@ export function buildTemplateSuggestions(
   ]
 }
 
-export const SUGGESTION_GROUP_ORDER: TemplateSuggestionGroup[] = [
+const SUGGESTION_GROUP_ORDER: TemplateSuggestionGroup[] = [
   'variable',
   'token',
   'date',
