@@ -81,6 +81,15 @@
           </Button>
         </IconGroup>
       </div>
+
+      <!-- Favorite color picker (top-right) -->
+      <FavoriteColorPicker
+        v-if="asset && pickerMounted"
+        :asset="asset"
+        :pill="isHovered"
+        :visible="showFavoritePicker"
+        class="absolute top-2 right-2 origin-center"
+      />
     </div>
 
     <!-- Bottom Area: Media Info -->
@@ -137,6 +146,7 @@
 <script setup lang="ts">
 import { useElementHover } from '@vueuse/core'
 import { computed, defineAsyncComponent, provide, ref, toRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import IconGroup from '@/components/button/IconGroup.vue'
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue'
@@ -154,11 +164,18 @@ import { cn } from '@/utils/tailwindUtil'
 
 import { getAssetType } from '../composables/media/assetMappers'
 import { getAssetUrl } from '../utils/assetUrlUtil'
+import {
+  ASSET_DRAG_MIME,
+  useAssetDragPreview
+} from '../composables/useAssetDragPreview'
+import { useAssetFavorites } from '../composables/useAssetFavorites'
+import { useAssetSelectionStore } from '../composables/useAssetSelectionStore'
 import { useMediaAssetActions } from '../composables/useMediaAssetActions'
 import type { AssetItem } from '../schemas/assetSchema'
 import { getAssetDisplayName } from '../utils/assetMetadataUtils'
 import type { MediaKind } from '../schemas/mediaAssetSchema'
 import { MediaAssetKey } from '../schemas/mediaAssetSchema'
+import FavoriteColorPicker from './FavoriteColorPicker.vue'
 import MediaTitle from './MediaTitle.vue'
 
 type PreviewKind = ReturnType<typeof getMediaTypeFromFilename>
@@ -178,12 +195,20 @@ function getTopComponent(kind: PreviewKind) {
   return mediaComponents.top[kind] || mediaComponents.top.other
 }
 
-const { asset, loading, selected, showOutputCount, outputCount } = defineProps<{
+const {
+  asset,
+  loading,
+  selected,
+  showOutputCount,
+  outputCount,
+  restrictStackFavorites = false
+} = defineProps<{
   asset?: AssetItem
   loading?: boolean
   selected?: boolean
   showOutputCount?: boolean
   outputCount?: number
+  restrictStackFavorites?: boolean
 }>()
 
 const assetsStore = useAssetsStore()
@@ -211,6 +236,18 @@ const imageDimensions = ref<{ width: number; height: number } | undefined>()
 const isHovered = useElementHover(cardContainerRef)
 
 const actions = useMediaAssetActions()
+const favorites = useAssetFavorites()
+
+const pickerMounted = computed(() => {
+  if (loading || !asset || isDeleting.value) return false
+  if (restrictStackFavorites && showOutputCount) return false
+  return true
+})
+
+const showFavoritePicker = computed(() => {
+  if (!pickerMounted.value || !asset) return false
+  return isHovered.value || favorites.isFavorited(asset)
+})
 
 // Get asset type from tags
 const assetType = computed(() => {
@@ -308,15 +345,33 @@ const handleImageLoaded = (width: number, height: number) => {
 const handleOutputCountClick = () => {
   emit('output-count-click')
 }
+
+const selectionStore = useAssetSelectionStore()
+const dragPreview = useAssetDragPreview()
+const { t } = useI18n()
+
 function dragStart(e: DragEvent) {
-  if (!asset?.preview_url) return
+  if (!asset) return
 
   const { dataTransfer } = e
   if (!dataTransfer) return
 
-  const url = URL.parse(asset.preview_url, location.href)
-  if (!url) return
+  const dragIds =
+    selected && selectionStore.selectedCount > 1
+      ? selectionStore.selectedIdsArray
+      : [asset.id]
 
-  dataTransfer.items.add(url.toString(), 'text/uri-list')
+  dataTransfer.setData(ASSET_DRAG_MIME, JSON.stringify(dragIds))
+  dataTransfer.effectAllowed = 'copyMove'
+
+  if (dragIds.length === 1 && asset.preview_url) {
+    const url = URL.parse(asset.preview_url, location.href)
+    if (url) {
+      dataTransfer.items.add(url.toString(), 'text/uri-list')
+    }
+  }
+
+  dragPreview.configure(dragIds, asset, t)
+  dragPreview.startDrag(e)
 }
 </script>

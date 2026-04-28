@@ -1,14 +1,35 @@
 import type { Ref } from 'vue'
 
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
+import type { FolderItem } from '@/utils/directoryPickerUtil'
+
+/**
+ * Interface for folder navigation within asset providers
+ */
+export interface IFolderNavigation {
+  folders: Ref<FolderItem[]>
+  currentPath: Ref<string>
+  navigateInto: (folder: FolderItem) => void
+  navigateUp: () => void
+  navigateToRoot: () => void
+  navigateToPath: (path: string) => void
+  canNavigateUp: Ref<boolean>
+  canNavigateBack: Ref<boolean>
+  canNavigateForward: Ref<boolean>
+  navigateBack: () => void
+  navigateForward: () => void
+}
 
 /**
  * Interface for media assets providers
  * Defines the common API for both cloud and internal file implementations
  */
 export interface IAssetsProvider {
-  /** Current media assets */
+  /** Current media assets (filtered by folder navigation) */
   media: Ref<AssetItem[]>
+
+  /** All media assets regardless of folder navigation */
+  allMedia: Ref<AssetItem[]>
 
   /** Loading state indicator */
   loading: Ref<boolean>

@@ -3742,5 +3742,12 @@
     "label": "Contrôles de zoom",
     "showMinimap": "Afficher la mini-carte",
     "zoomToFit": "Ajuster à l'écran"
+  },
+  "assets": {
+    "filters": {
+      "title": "Filters",
+      "dateRange": "Date Range",
+      "clearAll": "Clear All"
+    }
   }
 }

@@ -3742,5 +3742,12 @@
     "label": "ズームコントロール",
     "showMinimap": "ミニマップを表示",
     "zoomToFit": "全体表示にズーム"
+  },
+  "assets": {
+    "filters": {
+      "title": "Filters",
+      "dateRange": "Date Range",
+      "clearAll": "Clear All"
+    }
   }
 }

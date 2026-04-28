@@ -96,6 +96,24 @@ describe('assetMetadataUtils', () => {
         user_metadata: undefined,
         display_name: '',
         expected: 'test-model'
+      },
+      {
+        name: 'strips POSIX directory prefix from display_name',
+        user_metadata: undefined,
+        display_name: 'thomas/th0m45_00001_.png',
+        expected: 'th0m45_00001_.png'
+      },
+      {
+        name: 'strips Windows directory prefix from display_name',
+        user_metadata: undefined,
+        display_name: 'sd15\\juggernaut.png',
+        expected: 'juggernaut.png'
+      },
+      {
+        name: 'strips nested directory prefix',
+        user_metadata: undefined,
+        display_name: 'comfy/Many Subfolders/second level folder/x.png',
+        expected: 'x.png'
       }
     ])('$name', ({ user_metadata, display_name, expected }) => {
       const asset = { ...mockAsset, user_metadata, display_name }

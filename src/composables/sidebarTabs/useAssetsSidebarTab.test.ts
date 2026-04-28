@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAssetsSidebarTab } from '@/composables/sidebarTabs/useAssetsSidebarTab'
 
@@ -24,6 +24,10 @@ vi.mock('@/stores/workspace/assetsSidebarBadgeStore', () => ({
 }))
 
 describe('useAssetsSidebarTab', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('hides icon badge when QPO V2 is disabled', () => {
     mockGetSetting.mockReturnValue(false)
     mockUnseenAddedAssetsCount.value = 3
@@ -51,5 +55,27 @@ describe('useAssetsSidebarTab', () => {
     const sidebarTab = useAssetsSidebarTab()
 
     expect((sidebarTab.iconBadge as () => string | null)()).toBeNull()
+  })
+
+  it('uses fixed panel width tuned for the recents folders sidebar', () => {
+    const sidebarTab = useAssetsSidebarTab()
+
+    expect(sidebarTab.panelSize).toBe(40)
+    expect(sidebarTab.panelMinSize).toBe(40)
+    expect(sidebarTab.panelStateKeySuffix).toBe('recents-folders')
+  })
+
+  it('provides extra pixel width when detail panel is open', () => {
+    localStorage.setItem('Comfy.Assets.ShowDetailPanel', 'true')
+
+    const sidebarTab = useAssetsSidebarTab()
+
+    expect(sidebarTab.panelExtraWidthPx).toBe(200)
+  })
+
+  it('has no extra pixel width when detail panel is closed', () => {
+    const sidebarTab = useAssetsSidebarTab()
+
+    expect(sidebarTab.panelExtraWidthPx).toBe(0)
   })
 })
