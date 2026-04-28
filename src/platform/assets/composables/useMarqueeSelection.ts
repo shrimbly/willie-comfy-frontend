@@ -10,7 +10,7 @@ import { useAssetSelectionStore } from './useAssetSelectionStore'
 
 type Rect = { left: number; top: number; right: number; bottom: number }
 
-export type GridLayout = {
+type GridLayout = {
   cols: number
   itemWidth: number
   itemHeight: number
