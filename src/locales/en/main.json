@@ -835,10 +835,6 @@
       "filter3D": "3D",
       "filterText": "Text",
       "viewSettings": "View settings",
-      "directoryView": "Directory view",
-      "directoryViewFolders": "Directory view (folders sidebar)",
-      "recentlyGenerated": "Recently generated",
-      "recentsSidebar": "Recently generated (folders sidebar)",
       "foldersSidebar": {
         "pinnedHeader": "Pinned",
         "allFoldersHeader": "All folders",

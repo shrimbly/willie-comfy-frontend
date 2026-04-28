@@ -73,19 +73,8 @@
             </h2>
           </div>
           <div class="flex min-h-0 flex-1">
-            <OutputFoldersSidebar
-              v-if="
-                showFoldersSidebar && !isSearchActive && !filterBarComposing
-              "
-              :trees="foldersSidebarTrees"
-              :selected-path="foldersSidebarSelectedPath"
-              :pinned-paths="pinnedDirs"
-              @select="handleFoldersSidebarSelect"
-              @update:pinned-paths="pinnedDirs = $event"
-              @asset-drop-on-folder="handleAssetDropOnFolder"
-            />
             <RecentsFoldersSidebar
-              v-else-if="showRecentsSidebar"
+              v-if="showRecentsSidebar"
               :output-tree="outputFolderTree"
               :input-tree="inputFolderTree"
               :selected-path="recentsSidebarSelectedPath"
@@ -114,24 +103,6 @@
             />
           </div>
         </div>
-        <!-- Left Filter Panel (advanced view only) -->
-        <AssetFilterPanel
-          v-if="
-            showAllAssets &&
-            !isInFolderView &&
-            directoryLayout === 'filters' &&
-            showFilterPanel
-          "
-          v-model:date-range="dateRangeFilter"
-          v-model:media-type-filters="mediaTypeFilters"
-          v-model:active-sources="activeSources"
-          :assets="baseAssets"
-          :custom-directories="savedCustomDirectories"
-          @clear-filters="clearAllFilters"
-          @add-directory="handleAddDirectory"
-          @remove-directory="handleRemoveDirectory"
-        />
-
         <!-- Main Content Area -->
         <div
           :class="
@@ -154,34 +125,12 @@
               v-model:view-mode="viewMode"
               v-model:media-type-filters="mediaTypeFilters"
               v-model:metadata-filters="metadataFilters"
-              v-model:show-all-assets="showAllAssets"
-              v-model:show-filter-panel="showFilterPanel"
-              v-model:directory-layout="directoryLayout"
-              v-model:recents-sidebar="recentsSidebar"
               v-model:composing="filterBarComposing"
               :bottom-divider="false"
-              :show-generation-time-sort="
-                showAllAssets
-                  ? activeSources.includes('output')
-                  : activeTab === 'output'
-              "
+              :show-generation-time-sort="activeSources.includes('output')"
               :available-tags="availableTags"
               :available-values-by-field="availableValuesByField"
             />
-          </div>
-          <!-- Default-mode Tab list -->
-          <div
-            v-if="!showAllAssets && !isInFolderView && !recentsSidebar"
-            class="border-b border-comfy-input p-2 2xl:px-4"
-          >
-            <TabList v-model="activeTab">
-              <Tab value="output">
-                {{ $t('sideToolbar.labels.generated') }}
-              </Tab>
-              <Tab value="input">
-                {{ $t('sideToolbar.labels.imported') }}
-              </Tab>
-            </TabList>
           </div>
           <!-- Active metadata filter chips -->
           <MediaAssetFilterChipsBar v-model="metadataFilters" />
@@ -206,12 +155,11 @@
               }}
             </Button>
           </div>
-          <!-- Breadcrumb navigation (advanced view only) -->
+          <!-- Breadcrumb navigation (shown when the recents sidebar collapses) -->
           <div
             v-if="
               showAllAssets &&
               !isInFolderView &&
-              !showFoldersSidebar &&
               !showRecentsSidebar &&
               singleActiveSource &&
               metadataFilters.length === 0
@@ -335,7 +283,7 @@
               :toggle-stack="toggleListViewStack"
               :restrict-stack-favorites="showRecentsSidebar"
               v-bind="
-                showAllAssets && !showFoldersSidebar && !showRecentsSidebar
+                showAllAssets && !showRecentsSidebar
                   ? { folders: currentFolders }
                   : {}
               "
@@ -355,7 +303,7 @@
               :grid-size="gridSize"
               :restrict-stack-favorites="showRecentsSidebar"
               v-bind="
-                showAllAssets && !showFoldersSidebar && !showRecentsSidebar
+                showAllAssets && !showRecentsSidebar
                   ? { folders: currentFolders }
                   : {}
               "
@@ -595,17 +543,13 @@ import AssetsSidebarListView from '@/components/sidebar/tabs/AssetsSidebarListVi
 import SidebarTabTemplate from '@/components/sidebar/tabs/SidebarTabTemplate.vue'
 import Skeleton from '@/components/ui/skeleton/Skeleton.vue'
 import MediaLightbox from '@/components/sidebar/tabs/queue/MediaLightbox.vue'
-import Tab from '@/components/tab/Tab.vue'
-import TabList from '@/components/tab/TabList.vue'
 import Button from '@/components/ui/button/Button.vue'
 import Popover from '@/components/ui/Popover.vue'
 import AssetDetailPanel from '@/platform/assets/components/AssetDetailPanel.vue'
-import AssetFilterPanel from '@/platform/assets/components/AssetFilterPanel.vue'
 import FolderContextMenu from '@/platform/assets/components/FolderContextMenu.vue'
 import MediaAssetContextMenu from '@/platform/assets/components/MediaAssetContextMenu.vue'
 import MediaAssetFilterBar from '@/platform/assets/components/MediaAssetFilterBar.vue'
 import MediaAssetFilterChipsBar from '@/platform/assets/components/MediaAssetFilterChipsBar.vue'
-import OutputFoldersSidebar from '@/platform/assets/components/OutputFoldersSidebar.vue'
 import RecentsFoldersSidebar from '@/platform/assets/components/RecentsFoldersSidebar.vue'
 import { buildOutputFolderTree } from '@/platform/assets/utils/buildOutputFolderTree'
 import type { ViewMode } from '@/platform/assets/components/MediaAssetFilterBar.vue'
@@ -613,8 +557,8 @@ import { getAssetType } from '@/platform/assets/composables/media/assetMappers'
 import { useMediaAssets } from '@/platform/assets/composables/media/useMediaAssets'
 import { useOutputJobsAssets } from '@/platform/assets/composables/media/useOutputJobsAssets'
 import { useCustomDirectoryAssets } from '@/platform/assets/composables/media/useCustomDirectoryAssets'
-import { useAssetFavorites } from '@/platform/assets/composables/useAssetFavorites';
-import type { FavoriteColor } from '@/platform/assets/composables/useAssetFavorites';
+import { useAssetFavorites } from '@/platform/assets/composables/useAssetFavorites'
+import type { FavoriteColor } from '@/platform/assets/composables/useAssetFavorites'
 import { useAssetDragPreview } from '@/platform/assets/composables/useAssetDragPreview'
 import { useAssetPromptMetadata } from '@/platform/assets/composables/useAssetPromptMetadata'
 import { useAssetSelection } from '@/platform/assets/composables/useAssetSelection'
@@ -675,18 +619,11 @@ activeSources.value = activeSources.value.filter(
   (s) => s === 'output' || s === 'input'
 )
 
-// Advanced-view toggle (opt-in; default UI matches main branch)
+// Tracks whether the user has navigated into a specific folder (vs. viewing
+// recently generated assets across all folders).
 const showAllAssets = useStorage<boolean>('Comfy.Assets.ShowAllAssets', false)
 const favoritesActive = ref(false)
 const favoriteColorFilter = ref<FavoriteColor | null>(null)
-
-// Bridge between advanced-view activeSources and default-view two-tab UI
-const activeTab = computed<'output' | 'input'>({
-  get: () => (activeSources.value[0] === 'input' ? 'input' : 'output'),
-  set: (tab) => {
-    activeSources.value = [tab]
-  }
-})
 
 // Computed helper: which single source is active (null if 0 or 2+)
 const singleActiveSource = computed(() => {
@@ -702,15 +639,6 @@ const viewMode = useStorage<ViewMode>(
   'Comfy.Assets.Sidebar.ViewMode',
   'grid-md'
 )
-const showFilterPanel = useStorage<boolean>(
-  'Comfy.Assets.ShowFilterPanel',
-  false
-)
-const directoryLayout = useStorage<'filters' | 'folders'>(
-  'Comfy.Assets.DirectoryLayout',
-  'filters'
-)
-const recentsSidebar = useStorage<boolean>('Comfy.Assets.RecentsSidebar', false)
 
 const SIDEBAR_MIN_WIDTH = 200
 const SIDEBAR_MAX_WIDTH = 500
@@ -1590,56 +1518,9 @@ const handleApproachEnd = useDebounceFn(async () => {
   }
 }, 300)
 
-// --- Custom directory management ---
-const handleAddDirectory = async () => {
-  const provider = useCustomDirectoryAssets()
-  await provider.selectDirectory()
-
-  if (provider.error.value) {
-    const err = provider.error.value
-    if (err instanceof Error && err.message === 'Directory selection cancelled')
-      return
-    toast.add({
-      severity: 'error',
-      summary: t('mediaAsset.directoryPicker.error'),
-      detail: err instanceof Error ? err.message : String(err)
-    })
-    return
-  }
-
-  if (provider.navigationState.value.rootPath) {
-    const id = `custom-${Date.now()}`
-    const name =
-      provider.navigationState.value.rootPath.split('/').pop() || 'Custom'
-
-    savedCustomDirectories.value = [
-      ...savedCustomDirectories.value,
-      { id, name }
-    ]
-    customDirProviders.set(id, provider)
-    activeSources.value = [...activeSources.value, id]
-  }
-}
-
-const handleRemoveDirectory = (id: string) => {
-  savedCustomDirectories.value = savedCustomDirectories.value.filter(
-    (d) => d.id !== id
-  )
-  activeSources.value = activeSources.value.filter((s) => s !== id)
-  customDirProviders.delete(id)
-}
-
 // --- Folders sidebar (advanced view, folders layout) ---
 const OUTPUT_ROOT_PATH = 'output'
 const INPUT_ROOT_PATH = 'input'
-
-const showFoldersSidebar = computed(
-  () =>
-    showAllAssets.value &&
-    !isInFolderView.value &&
-    directoryLayout.value === 'folders' &&
-    !recentsSidebar.value
-)
 
 const outputFolderTree = computed(() =>
   buildOutputFolderTree(
@@ -1661,39 +1542,12 @@ const inputFolderTree = computed(() =>
   )
 )
 
-const foldersSidebarTrees = computed(() => [
-  outputFolderTree.value,
-  inputFolderTree.value
-])
-
-const foldersSidebarSelectedPath = computed(() => {
-  const source = singleActiveSource.value
-  if (source === 'output') {
-    const rel = outputAssets.currentPath.value
-    return rel ? `${OUTPUT_ROOT_PATH}/${rel}` : OUTPUT_ROOT_PATH
-  }
-  if (source === 'input') {
-    const rel = inputAssets.currentPath.value
-    return rel ? `${INPUT_ROOT_PATH}/${rel}` : INPUT_ROOT_PATH
-  }
-  return OUTPUT_ROOT_PATH
-})
-
 const showRecentsSidebar = computed(
   () =>
-    recentsSidebar.value &&
-    !isInFolderView.value &&
-    !isSearchActive.value &&
-    !filterBarComposing.value
+    !isInFolderView.value && !isSearchActive.value && !filterBarComposing.value
 )
 
-const hasLeftSidebar = computed(
-  () =>
-    (showFoldersSidebar.value &&
-      !isSearchActive.value &&
-      !filterBarComposing.value) ||
-    showRecentsSidebar.value
-)
+const hasLeftSidebar = showRecentsSidebar
 
 const recentsSidebarSelectedPath = computed(() => {
   if (favoritesActive.value) return ''
@@ -1750,48 +1604,10 @@ const handleRecentsSidebarSelect = (absolutePath: string) => {
   else inputAssets.navigateToPath(rel)
 }
 
-const handleFoldersSidebarSelect = (absolutePath: string) => {
-  if (
-    absolutePath === OUTPUT_ROOT_PATH ||
-    absolutePath.startsWith(`${OUTPUT_ROOT_PATH}/`)
-  ) {
-    if (singleActiveSource.value !== 'output') {
-      activeSources.value = ['output']
-    }
-    const rel =
-      absolutePath === OUTPUT_ROOT_PATH
-        ? ''
-        : absolutePath.slice(OUTPUT_ROOT_PATH.length + 1)
-    outputAssets.navigateToPath(rel)
-    return
-  }
-  if (
-    absolutePath === INPUT_ROOT_PATH ||
-    absolutePath.startsWith(`${INPUT_ROOT_PATH}/`)
-  ) {
-    if (singleActiveSource.value !== 'input') {
-      activeSources.value = ['input']
-    }
-    const rel =
-      absolutePath === INPUT_ROOT_PATH
-        ? ''
-        : absolutePath.slice(INPUT_ROOT_PATH.length + 1)
-    inputAssets.navigateToPath(rel)
-  }
-}
-
 watch(
-  [showFoldersSidebar, showRecentsSidebar],
-  ([folders, recents]) => {
-    if (!folders && !recents) return
-    if (
-      folders &&
-      (activeSources.value.length !== 1 ||
-        (activeSources.value[0] !== 'output' &&
-          activeSources.value[0] !== 'input'))
-    ) {
-      activeSources.value = ['output']
-    }
+  showRecentsSidebar,
+  (visible) => {
+    if (!visible) return
     if (assetsStore.historyAssets.length === 0 && !assetsStore.historyLoading) {
       void assetsStore.updateHistory()
     }
@@ -1914,12 +1730,6 @@ const handleBreadcrumbNavigate = (index: number) => {
   }
   // Intermediate breadcrumb clicks are not supported for custom dirs
   // (the last segment is already disabled in the template)
-}
-
-const clearAllFilters = () => {
-  assetFilters.clearFilters()
-  dateRangeFilter.value = null
-  mediaTypeFilters.value = []
 }
 </script>
 

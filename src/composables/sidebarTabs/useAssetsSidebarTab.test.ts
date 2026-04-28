@@ -57,33 +57,12 @@ describe('useAssetsSidebarTab', () => {
     expect((sidebarTab.iconBadge as () => string | null)()).toBeNull()
   })
 
-  it('uses compact width defaults when advanced view is disabled', () => {
+  it('uses fixed panel width tuned for the recents folders sidebar', () => {
     const sidebarTab = useAssetsSidebarTab()
 
-    expect(sidebarTab.panelSize).toBe(20)
-    expect(sidebarTab.panelMinSize).toBe(15)
-    expect(sidebarTab.panelStateKeySuffix).toBe('')
-  })
-
-  it('uses directory width when ShowAllAssets is true without filter panel', () => {
-    localStorage.setItem('Comfy.Assets.ShowAllAssets', 'true')
-
-    const sidebarTab = useAssetsSidebarTab()
-
-    expect(sidebarTab.panelSize).toBe(25)
-    expect(sidebarTab.panelMinSize).toBe(20)
-    expect(sidebarTab.panelStateKeySuffix).toBe('directory')
-  })
-
-  it('uses wider width when both directory view and filter panel are open', () => {
-    localStorage.setItem('Comfy.Assets.ShowAllAssets', 'true')
-    localStorage.setItem('Comfy.Assets.ShowFilterPanel', 'true')
-
-    const sidebarTab = useAssetsSidebarTab()
-
-    expect(sidebarTab.panelSize).toBe(30)
-    expect(sidebarTab.panelMinSize).toBe(25)
-    expect(sidebarTab.panelStateKeySuffix).toBe('directory-filters')
+    expect(sidebarTab.panelSize).toBe(40)
+    expect(sidebarTab.panelMinSize).toBe(40)
+    expect(sidebarTab.panelStateKeySuffix).toBe('recents-folders')
   })
 
   it('provides extra pixel width when detail panel is open', () => {
@@ -91,10 +70,7 @@ describe('useAssetsSidebarTab', () => {
 
     const sidebarTab = useAssetsSidebarTab()
 
-    expect(sidebarTab.panelSize).toBe(20)
-    expect(sidebarTab.panelMinSize).toBe(15)
     expect(sidebarTab.panelExtraWidthPx).toBe(200)
-    expect(sidebarTab.panelStateKeySuffix).toBe('')
   })
 
   it('has no extra pixel width when detail panel is closed', () => {
