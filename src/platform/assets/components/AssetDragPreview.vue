@@ -29,8 +29,7 @@
               cn(
                 'absolute bottom-0 left-0 size-12 origin-bottom-left rounded-md object-cover ring-2 ring-base-background',
                 index === 0 && 'z-20',
-                index === 1 &&
-                  'z-10 translate-x-1 -translate-y-1.5 rotate-6',
+                index === 1 && 'z-10 translate-x-1 -translate-y-1.5 rotate-6',
                 index === 2 && 'z-0 translate-x-2 -translate-y-3 rotate-12'
               )
             "

@@ -82,8 +82,11 @@ import { detectNodeTypeFromFilename } from '@/utils/loaderNodeUtil'
 import { electronAPI } from '@/utils/envUtil'
 import { cn } from '@/utils/tailwindUtil'
 
-import { FAVORITE_COLORS, useAssetFavorites } from '../composables/useAssetFavorites';
-import type { FavoriteColor } from '../composables/useAssetFavorites';
+import {
+  FAVORITE_COLORS,
+  useAssetFavorites
+} from '../composables/useAssetFavorites'
+import type { FavoriteColor } from '../composables/useAssetFavorites'
 import { useMediaAssetActions } from '../composables/useMediaAssetActions'
 import type { AssetItem } from '../schemas/assetSchema'
 import type { AssetContext, MediaKind } from '../schemas/mediaAssetSchema'
