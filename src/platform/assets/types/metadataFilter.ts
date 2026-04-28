@@ -1,11 +1,16 @@
+// Keep in sync with FAVORITE_COLORS in
+// src/platform/assets/composables/useAssetFavorites.ts
+export const FAVORITE_FILTER_OPTIONS = ['yellow', 'blue', 'green'] as const
+
 export type MetadataField =
   | 'model'
   | 'lora'
-  | 'vae'
+  | 'workflowTitle'
   | 'prompt'
   | 'date'
   | 'tag'
   | 'type'
+  | 'favorite'
 
 export interface MetadataFilter {
   field: MetadataField
@@ -15,17 +20,18 @@ export interface MetadataFilter {
 export const METADATA_FIELDS: MetadataField[] = [
   'model',
   'lora',
-  'vae',
+  'workflowTitle',
   'prompt',
   'date',
   'tag',
-  'type'
+  'type',
+  'favorite'
 ]
 
 export const PROMPT_METADATA_FIELDS: MetadataField[] = [
   'model',
   'lora',
-  'vae',
+  'workflowTitle',
   'prompt'
 ]
 
@@ -50,7 +56,7 @@ export const MEDIA_TYPE_OPTIONS = ['image', 'video', 'audio', '3D'] as const
 
 export function isPromptMetadataField(
   field: MetadataField
-): field is 'model' | 'lora' | 'vae' | 'prompt' {
+): field is 'model' | 'lora' | 'workflowTitle' | 'prompt' {
   return (PROMPT_METADATA_FIELDS as string[]).includes(field)
 }
 

@@ -2,6 +2,7 @@ export interface PromptMetadata {
   model: string | null
   lora: string | null
   vae: string | null
+  workflowTitle: string | null
   prompt: string | null
   steps: number | null
   seed: number | null
@@ -80,6 +81,7 @@ export function parsePromptMetadata(
     model,
     lora: loras.length > 0 ? loras.join(', ') : null,
     vae,
+    workflowTitle: null,
     prompt,
     steps,
     seed

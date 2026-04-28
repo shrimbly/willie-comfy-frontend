@@ -6,7 +6,7 @@ describe('isPromptMetadataField', () => {
   it('returns true for prompt metadata fields', () => {
     expect(isPromptMetadataField('model')).toBe(true)
     expect(isPromptMetadataField('lora')).toBe(true)
-    expect(isPromptMetadataField('vae')).toBe(true)
+    expect(isPromptMetadataField('workflowTitle')).toBe(true)
     expect(isPromptMetadataField('prompt')).toBe(true)
   })
 

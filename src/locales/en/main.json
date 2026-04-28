@@ -3826,13 +3826,33 @@
     "metadata": {
       "model": "Model",
       "lora": "LoRA",
-      "vae": "VAE",
+      "workflowTitle": "Workflow title",
       "prompt": "Prompt",
       "date": "Date",
       "tag": "Tag",
       "type": "Type",
+      "favorite": "Favorite",
       "searchPlaceholder": "Search or type {'@'} to filter",
       "enterValue": "Type {field} value...",
+      "noMatches": "No matches",
+      "group": {
+        "metadata": "Metadata",
+        "attributes": "Attributes",
+        "values": "Values",
+        "recent": "Recent",
+        "custom": "Custom"
+      },
+      "addCustom": "Add as custom filter",
+      "descriptions": {
+        "model": "Filter by model name",
+        "lora": "Filter by LoRA",
+        "workflowTitle": "Filter by workflow title",
+        "prompt": "Filter by prompt text",
+        "date": "Filter by date",
+        "tag": "Filter by tag",
+        "type": "Filter by media type",
+        "favorite": "Filter by favorite color"
+      },
       "datePresets": {
         "today": "Today",
         "yesterday": "Yesterday",
@@ -3846,6 +3866,11 @@
         "video": "Video",
         "audio": "Audio",
         "3D": "3D"
+      },
+      "favoriteColors": {
+        "yellow": "Yellow",
+        "blue": "Blue",
+        "green": "Green"
       }
     }
   }

@@ -96,6 +96,11 @@ export function useMediaAssetFiltering(
           return matchDateFilter(asset, filter.value)
         }
 
+        if (filter.field === 'favorite') {
+          const tag = `favorite-${filter.value}`
+          return asset.tags?.includes(tag) ?? false
+        }
+
         if (filter.field === 'tag') {
           return asset.tags?.some((t) =>
             t.toLowerCase().includes(filter.value.toLowerCase())

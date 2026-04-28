@@ -5,6 +5,7 @@ import { getFromPngBuffer } from '@/scripts/metadata/png'
 import type { AssetItem } from '@/platform/assets/schemas/assetSchema'
 import type { PromptMetadata } from '@/platform/assets/utils/promptMetadataParser'
 import { parsePromptMetadata } from '@/platform/assets/utils/promptMetadataParser'
+import { useWorkflowStore } from '@/platform/workflow/management/stores/workflowStore'
 
 export function useAssetPromptMetadata() {
   const cache = shallowReactive(new Map<string, PromptMetadata>())
@@ -40,7 +41,26 @@ export function useAssetPromptMetadata() {
     }
   }
 
-  return { extractMetadata, getCached, extractBatch }
+  function getAvailableValues(
+    field: 'model' | 'lora' | 'workflowTitle'
+  ): string[] {
+    const seen = new Set<string>()
+    for (const meta of cache.values()) {
+      const raw = meta[field]
+      if (!raw) continue
+      if (field === 'lora') {
+        for (const part of raw.split(',')) {
+          const trimmed = part.trim()
+          if (trimmed) seen.add(trimmed)
+        }
+      } else {
+        seen.add(raw)
+      }
+    }
+    return [...seen].sort((a, b) => a.localeCompare(b))
+  }
+
+  return { extractMetadata, getCached, extractBatch, getAvailableValues }
 }
 
 function hasData(meta: PromptMetadata | null): meta is PromptMetadata {
@@ -49,6 +69,7 @@ function hasData(meta: PromptMetadata | null): meta is PromptMetadata {
     meta.model !== null ||
     meta.lora !== null ||
     meta.vae !== null ||
+    meta.workflowTitle !== null ||
     meta.prompt !== null ||
     meta.steps !== null ||
     meta.seed !== null
@@ -69,14 +90,57 @@ async function fetchMetadata(asset: AssetItem): Promise<PromptMetadata | null> {
   return null
 }
 
+function resolveWorkflowTitle(
+  workflowId: string | null | undefined
+): string | null {
+  if (!workflowId) return null
+  const store = useWorkflowStore()
+  for (const wf of store.openWorkflows) {
+    if (wf.activeState?.id === workflowId) {
+      return wf.filename
+    }
+  }
+  return workflowId
+}
+
 async function fetchFromJob(jobId: string): Promise<PromptMetadata | null> {
   try {
     const detail = await api.getJobDetail(jobId)
-    if (!detail?.workflow) return null
+    if (!detail) return null
+
+    const workflowTitle = resolveWorkflowTitle(detail.workflow_id)
+
+    if (!detail.workflow) {
+      return workflowTitle
+        ? {
+            model: null,
+            lora: null,
+            vae: null,
+            workflowTitle,
+            prompt: null,
+            steps: null,
+            seed: null
+          }
+        : null
+    }
 
     const workflow = detail.workflow as Record<string, unknown>
     const prompt = workflow.prompt ?? workflow
-    return parsePromptMetadata(prompt)
+    const parsed = parsePromptMetadata(prompt)
+    if (!parsed) {
+      return workflowTitle
+        ? {
+            model: null,
+            lora: null,
+            vae: null,
+            workflowTitle,
+            prompt: null,
+            steps: null,
+            seed: null
+          }
+        : null
+    }
+    return { ...parsed, workflowTitle }
   } catch {
     return null
   }
