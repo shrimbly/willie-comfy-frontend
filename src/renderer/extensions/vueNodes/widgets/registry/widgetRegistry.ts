@@ -66,6 +66,9 @@ const WidgetPainter = defineAsyncComponent(
 const WidgetRange = defineAsyncComponent(
   () => import('@/components/range/WidgetRange.vue')
 )
+const WidgetImageGridSplit = defineAsyncComponent(
+  () => import('@/components/imageGridSplit/WidgetImageGridSplit.vue')
+)
 
 export const FOR_TESTING = {
   WidgetButton,
@@ -208,6 +211,14 @@ const coreWidgetDefinitions: Array<[string, WidgetDefinition]> = [
       aliases: ['RANGE'],
       essential: false
     }
+  ],
+  [
+    'imagegridsplit',
+    {
+      component: WidgetImageGridSplit,
+      aliases: ['IMAGE_GRID_SPLIT'],
+      essential: false
+    }
   ]
 ]
 
@@ -246,7 +257,8 @@ const EXPANDING_TYPES = [
   'curve',
   'painter',
   'imagecompare',
-  'range'
+  'range',
+  'imagegridsplit'
 ] as const
 
 export function shouldExpand(type: string): boolean {
