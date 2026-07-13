@@ -193,6 +193,17 @@ export function useWorkflowActionsMenu(
     })
 
     addItem({
+      id: 'export-app-snapshot',
+      label: t('menuLabels.Export App Snapshot'),
+      icon: 'pi pi-download',
+      command: async () => {
+        await ensureWorkflowActive(workflow)
+        await commandStore.execute('Comfy.ExportAppSnapshot')
+      },
+      visible: isRoot && isLinearMode
+    })
+
+    addItem({
       id: 'share',
       label: t('breadcrumbsMenu.share'),
       icon: 'icon-[comfy--send]',

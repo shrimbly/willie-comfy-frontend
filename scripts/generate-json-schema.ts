@@ -6,6 +6,7 @@ import {
   zComfyWorkflow,
   zComfyWorkflow1
 } from '../src/platform/workflow/validation/schemas/workflowSchema'
+import { zAppSnapshot } from '../src/platform/workflow/validation/schemas/appSnapshotSchema'
 import { zComfyNodeDef as zComfyNodeDefV2 } from '../src/schemas/nodeDef/nodeDefSchemaV2'
 import { zComfyNodeDef as zComfyNodeDefV1 } from '../src/schemas/nodeDefSchema'
 
@@ -27,6 +28,11 @@ const nodeDefV1Schema = zodToJsonSchema(zComfyNodeDefV1, {
 
 const nodeDefV2Schema = zodToJsonSchema(zComfyNodeDefV2, {
   name: 'ComfyNodeDefV2',
+  $refStrategy: 'none'
+})
+
+const appSnapshotSchema = zodToJsonSchema(zAppSnapshot, {
+  name: 'ComfyAppSnapshot1',
   $refStrategy: 'none'
 })
 
@@ -57,4 +63,9 @@ fs.writeFileSync(
   JSON.stringify(nodeDefV2Schema, null, 2)
 )
 
-console.log('JSON Schemas generated successfully!')
+fs.writeFileSync(
+  path.join(outputDir, 'app-snapshot-1.json'),
+  JSON.stringify(appSnapshotSchema, null, 2)
+)
+
+console.warn('JSON Schemas generated successfully!')

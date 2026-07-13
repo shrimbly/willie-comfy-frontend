@@ -1,0 +1,136 @@
+{
+  "format": "comfy.app-snapshot",
+  "formatVersion": 1,
+  "metadata": {
+    "id": "video-transcode",
+    "name": "Video transcode",
+    "exportedAt": "2026-07-14T00:00:00.000Z",
+    "frontendVersion": "1.48.1"
+  },
+  "interface": {
+    "inputs": [
+      {
+        "id": "source-video",
+        "label": "Source video",
+        "type": "video",
+        "required": true,
+        "binding": {
+          "nodeId": "1",
+          "input": "video"
+        },
+        "default": "input.mp4"
+      },
+      {
+        "id": "codec",
+        "label": "Codec",
+        "type": "select",
+        "required": true,
+        "binding": {
+          "nodeId": "2",
+          "input": "codec"
+        },
+        "default": "h264",
+        "options": [
+          {
+            "value": "h264",
+            "label": "H.264"
+          },
+          {
+            "value": "av1",
+            "label": "AV1"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "id": "save-video",
+        "label": "Save Video",
+        "type": "video",
+        "nodeId": "2"
+      }
+    ]
+  },
+  "requirements": {
+    "nodeClassTypes": ["LoadVideo", "SaveVideo"]
+  },
+  "prompt": {
+    "1": {
+      "inputs": {
+        "video": "input.mp4"
+      },
+      "class_type": "LoadVideo",
+      "_meta": {
+        "title": "Load Video"
+      }
+    },
+    "2": {
+      "inputs": {
+        "video": ["1", 0],
+        "codec": "h264"
+      },
+      "class_type": "SaveVideo",
+      "_meta": {
+        "title": "Save Video"
+      }
+    }
+  },
+  "workflow": {
+    "id": "00000000-0000-4000-8000-000000000001",
+    "last_node_id": 2,
+    "last_link_id": 1,
+    "nodes": [
+      {
+        "id": 1,
+        "type": "LoadVideo",
+        "pos": [0, 0],
+        "size": [280, 120],
+        "flags": {},
+        "order": 0,
+        "mode": 0,
+        "outputs": [
+          {
+            "name": "VIDEO",
+            "type": "VIDEO",
+            "links": [1]
+          }
+        ],
+        "properties": {},
+        "widgets_values": ["input.mp4"]
+      },
+      {
+        "id": 2,
+        "type": "SaveVideo",
+        "pos": [340, 0],
+        "size": [280, 140],
+        "flags": {},
+        "order": 1,
+        "mode": 0,
+        "inputs": [
+          {
+            "name": "video",
+            "type": "VIDEO",
+            "link": 1
+          }
+        ],
+        "properties": {},
+        "widgets_values": ["h264"]
+      }
+    ],
+    "links": [[1, 1, 0, 2, 0, "VIDEO"]],
+    "groups": [],
+    "config": {},
+    "extra": {
+      "frontendVersion": "1.48.1",
+      "linearMode": true,
+      "linearData": {
+        "inputs": [
+          ["00000000-0000-4000-8000-000000000001:1:video", "Source video"],
+          ["00000000-0000-4000-8000-000000000001:2:codec", "Codec"]
+        ],
+        "outputs": [2]
+      }
+    },
+    "version": 0.4
+  }
+}

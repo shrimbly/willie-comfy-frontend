@@ -10,6 +10,7 @@ import {
   normalizePendingWarnings,
   updatePendingWarnings
 } from '@/platform/workflow/core/utils/pendingWarnings'
+import { createAppSnapshot } from '@/platform/workflow/core/utils/appSnapshot'
 import { useWorkflowDraftStoreV2 } from '@/platform/workflow/persistence/stores/workflowDraftStoreV2'
 import {
   ComfyWorkflow,
@@ -97,10 +98,13 @@ export const useWorkflowService = () => {
     })
   }
 
-  async function getFilename(defaultName: string): Promise<string | null> {
+  async function getFilename(
+    defaultName: string,
+    title = t('workflowService.exportWorkflow')
+  ): Promise<string | null> {
     if (settingStore.get('Comfy.PromptFilename')) {
       let filename = await dialogService.prompt({
-        title: t('workflowService.exportWorkflow'),
+        title,
         message: t('workflowService.enterFilenamePrompt'),
         defaultValue: defaultName
       })
@@ -148,6 +152,56 @@ export const useWorkflowService = () => {
     const file = await getFilename(filename)
     if (!file) return
     downloadBlob(file, blob)
+  }
+
+  const exportAppSnapshot = async (): Promise<void> => {
+    const activeWorkflow = workflowStore.activeWorkflow
+    const sourceFilename = activeWorkflow?.filename ?? 'workflow.json'
+    const name = sourceFilename.replace(/(?:\.app)?\.json$/i, '')
+    const filename = `${name}.app.json`
+    const compiled = await app.graphToPrompt()
+    addViewRestore(compiled.workflow)
+
+    const linearData = useAppModeStore().pruneLinearData(
+      compiled.workflow.extra?.linearData
+    )
+    if (!linearData.inputs.length || !linearData.outputs.length) {
+      toastStore.add({
+        severity: 'error',
+        summary: t('g.error'),
+        detail: t('workflowService.appSnapshotRequiresInterface')
+      })
+      return
+    }
+
+    const snapshot = createAppSnapshot({
+      name,
+      workflow: compiled.workflow,
+      prompt: compiled.output,
+      rootGraph: app.rootGraph,
+      linearData
+    })
+    const file = await getFilename(
+      filename,
+      t('workflowService.exportAppSnapshot')
+    )
+    if (!file) return
+
+    downloadBlob(
+      file,
+      new Blob([JSON.stringify(snapshot, null, 2)], {
+        type: 'application/json'
+      })
+    )
+    if (snapshot.warnings?.length) {
+      toastStore.add({
+        severity: 'warn',
+        summary: t('workflowService.appSnapshotExportedWithWarnings'),
+        detail: t('workflowService.appSnapshotWarningCount', {
+          count: snapshot.warnings.length
+        })
+      })
+    }
   }
   /**
    * Save a workflow as a new file
@@ -636,6 +690,7 @@ export const useWorkflowService = () => {
 
   return {
     exportWorkflow,
+    exportAppSnapshot,
     saveWorkflowAs,
     saveWorkflow,
     loadDefaultWorkflow,

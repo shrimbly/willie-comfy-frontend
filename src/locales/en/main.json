@@ -1218,8 +1218,12 @@
   },
   "workflowService": {
     "exportWorkflow": "Export Workflow",
+    "exportAppSnapshot": "Export App Snapshot",
     "enterFilename": "Enter the filename",
     "enterFilenamePrompt": "Enter the filename:",
+    "appSnapshotRequiresInterface": "Choose at least one input and one output in App Mode before exporting.",
+    "appSnapshotExportedWithWarnings": "App snapshot exported with warnings",
+    "appSnapshotWarningCount": "Review the {count} warning in the exported file. | Review the {count} warnings in the exported file.",
     "saveWorkflow": "Save workflow",
     "savedAsApp": "Converted to app workflow",
     "savedAsWorkflow": "Converted to node graph only workflow"
@@ -1426,6 +1430,7 @@
     "Duplicate Current Workflow": "Duplicate Current Workflow",
     "Export": "Export",
     "Export (API)": "Export (API)",
+    "Export App Snapshot": "Export App Snapshot",
     "Convert Selection to Subgraph": "Convert Selection to Subgraph",
     "Edit Subgraph Widgets": "Edit Subgraph Widgets",
     "Exit Subgraph": "Exit Subgraph",

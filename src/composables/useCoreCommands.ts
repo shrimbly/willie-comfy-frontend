@@ -238,6 +238,15 @@ export function useCoreCommands(): ComfyCommand[] {
       }
     },
     {
+      id: 'Comfy.ExportAppSnapshot',
+      icon: 'pi pi-download',
+      label: 'Export App Snapshot',
+      menubarLabel: 'Export App Snapshot',
+      function: async () => {
+        await workflowService.exportAppSnapshot()
+      }
+    },
+    {
       id: 'Comfy.Undo',
       icon: 'pi pi-undo',
       label: 'Undo',

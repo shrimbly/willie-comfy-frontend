@@ -136,8 +136,23 @@ describe('useWorkflowActionsMenu', () => {
     expect(labels).toContain('menuLabels.Save As')
     expect(labels).toContain('menuLabels.Export')
     expect(labels).toContain('menuLabels.Export (API)')
+    expect(labels).not.toContain('menuLabels.Export App Snapshot')
     expect(labels).toContain('breadcrumbsMenu.clearWorkflow')
     expect(labels).toContain('breadcrumbsMenu.deleteWorkflow')
+  })
+
+  it('shows app snapshot export for App Mode workflows', () => {
+    mockWorkflowStore.activeWorkflow = {
+      path: 'test.app.json',
+      isPersisted: true,
+      activeMode: 'app'
+    } as ComfyWorkflow
+
+    const { menuItems } = useWorkflowActionsMenu(vi.fn(), { isRoot: true })
+
+    expect(menuLabels(menuItems.value)).toContain(
+      'menuLabels.Export App Snapshot'
+    )
   })
 
   it('hides root-only items when isRoot is false', () => {
