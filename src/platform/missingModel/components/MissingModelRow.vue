@@ -152,6 +152,59 @@
       </Button>
     </div>
 
+    <div
+      v-if="showServerDownloadProgress"
+      data-testid="missing-model-download-progress"
+      role="progressbar"
+      :aria-label="
+        t('modelManager.inlineProgress', {
+          name: model.name
+        })
+      "
+      :aria-valuenow="serverDownloadProgressPercent"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      class="mx-1 mb-1 flex flex-col gap-1"
+    >
+      <span
+        class="flex items-center justify-between gap-2 text-2xs/tight text-muted-foreground"
+      >
+        <span>{{ serverDownloadStatusLabel }}</span>
+        <span v-if="serverDownloadProgressPercent !== undefined">
+          {{ serverDownloadProgressPercent }}%
+        </span>
+      </span>
+      <span
+        class="block h-1.5 w-full overflow-hidden rounded-full bg-secondary-background-selected"
+      >
+        <span
+          :class="
+            cn(
+              'block h-full rounded-full bg-primary-background transition-[width] duration-200 ease-linear',
+              serverDownloadProgressPercent === undefined &&
+                'w-1/3 animate-pulse'
+            )
+          "
+          :style="serverDownloadProgressStyle"
+        />
+      </span>
+    </div>
+
+    <div
+      v-else-if="showServerDownloadFailure"
+      data-testid="missing-model-download-failure"
+      role="status"
+      class="mx-1 mb-1 flex min-h-8 items-center justify-between gap-2 text-xs"
+    >
+      <span class="text-danger flex items-center gap-1.5">
+        <i aria-hidden="true" class="icon-[lucide--circle-alert] size-3.5" />
+        {{ serverDownloadStatusLabel }}
+      </span>
+      <Button variant="link" size="sm" @click="openDownloads">
+        {{ t('modelManager.prototype.openDownloads') }}
+      </Button>
+    </div>
+
     <TransitionCollapse>
       <ul
         v-if="showReferenceList"
@@ -222,6 +275,12 @@ import {
   toBrowsableUrl
 } from '@/platform/missingModel/missingModelDownload'
 import { formatSize } from '@/utils/formatUtil'
+import {
+  downloadProgressFraction,
+  useModelDownloadStore
+} from '@/platform/modelManager/stores/modelDownloadStore'
+import { buildModelId } from '@/platform/modelManager/utils/modelId'
+import { useSidebarTabStore } from '@/stores/workspace/sidebarTabStore'
 
 const {
   model,
@@ -244,6 +303,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { copyToClipboard } = useCopyToClipboard()
+const modelDownloadStore = useModelDownloadStore()
+const sidebarTabStore = useSidebarTabStore()
 
 const modelKey = computed(() =>
   getModelStateKey(model.name, directory, isAssetSupported)
@@ -314,10 +375,58 @@ const downloadable = computed(() => {
   )
 })
 
-const showDownloadAction = computed(() => !isCloud && downloadable.value)
+const serverModelId = computed(() => {
+  const rep = model.representative
+  return rep.directory ? buildModelId(rep.directory, rep.name) : null
+})
+const serverDownload = computed(() => {
+  const modelId = serverModelId.value
+  return modelId ? modelDownloadStore.findByModelId(modelId) : undefined
+})
+const isServerDownloadEnqueueing = computed(() => {
+  const modelId = serverModelId.value
+  return modelId ? modelDownloadStore.enqueueingModelIds.has(modelId) : false
+})
+const showServerDownloadProgress = computed(
+  () =>
+    !isCloud &&
+    (isServerDownloadEnqueueing.value ||
+      ['queued', 'active', 'paused', 'verifying'].includes(
+        serverDownload.value?.status ?? ''
+      ))
+)
+const showServerDownloadFailure = computed(
+  () => !isCloud && serverDownload.value?.status === 'failed'
+)
+const serverDownloadProgressPercent = computed(() => {
+  const download = serverDownload.value
+  if (!download) return undefined
+
+  const progress = downloadProgressFraction(download)
+  return progress === null ? undefined : Math.round(progress * 100)
+})
+const serverDownloadProgressStyle = computed(() => {
+  const percent = serverDownloadProgressPercent.value
+  return percent === undefined ? undefined : { width: `${percent}%` }
+})
+const serverDownloadStatusLabel = computed(() => {
+  if (isServerDownloadEnqueueing.value) {
+    return t('modelManager.status.queued')
+  }
+  const status = serverDownload.value?.status
+  return status ? t(`modelManager.status.${status}`) : ''
+})
+
+const showDownloadAction = computed(
+  () =>
+    !isCloud &&
+    downloadable.value &&
+    !showServerDownloadProgress.value &&
+    !showServerDownloadFailure.value
+)
 
 const downloadSizeLabel = computed(() => {
-  if (!showDownloadAction.value) return undefined
+  if (isCloud || !downloadable.value) return undefined
 
   const url = model.representative.url
   const size = url ? store.fileSizes[url] : undefined
@@ -388,6 +497,10 @@ function handleDownload() {
   } else {
     console.warn('[MissingModelRow] Cannot download: missing url or directory')
   }
+}
+
+function openDownloads() {
+  sidebarTabStore.activeSidebarTabId = 'model-manager'
 }
 
 function handleLocatePrimary() {

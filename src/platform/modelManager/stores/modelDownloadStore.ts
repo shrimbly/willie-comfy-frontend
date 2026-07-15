@@ -79,6 +79,7 @@ export interface CompletedDownload {
 
 export const useModelDownloadStore = defineStore('modelDownload', () => {
   const downloads = ref<Map<string, DownloadStatus>>(new Map())
+  const enqueueingModelIds = ref<Set<string>>(new Set())
   const lastWsUpdate = ref(0)
   const lastCompletedDownload = ref<CompletedDownload | null>(null)
 
@@ -97,8 +98,36 @@ export const useModelDownloadStore = defineStore('modelDownload', () => {
   }
 
   function findByModelId(modelId: string): DownloadStatus | undefined {
-    return downloadList.value.find((d) => d.model_id === modelId)
+    return downloadList.value
+      .filter((download) => download.model_id === modelId)
+      .reduce<DownloadStatus | undefined>((selected, download) => {
+        if (!selected) return download
+
+        const selectedIsActive = ACTIVE_STATES.has(selected.status)
+        const downloadIsActive = ACTIVE_STATES.has(download.status)
+        if (selectedIsActive !== downloadIsActive) {
+          return downloadIsActive ? download : selected
+        }
+
+        if (download.updated_at !== selected.updated_at) {
+          return download.updated_at > selected.updated_at ? download : selected
+        }
+
+        return download.created_at > selected.created_at ? download : selected
+      }, undefined)
   }
+
+  const failedDownloadCount = computed(
+    () =>
+      Array.from(
+        new Set(downloadList.value.map((download) => download.model_id))
+      )
+        .map(findByModelId)
+        .filter((download) => download?.status === 'failed').length
+  )
+  const indicatorDownloadCount = computed(
+    () => activeDownloadCount.value + failedDownloadCount.value
+  )
 
   function handleProgress(e: CustomEvent<DownloadStatus>) {
     lastWsUpdate.value = Date.now()
@@ -146,9 +175,18 @@ export const useModelDownloadStore = defineStore('modelDownload', () => {
   }
 
   async function enqueue(request: EnqueueRequest): Promise<EnqueueResponse> {
-    const response = await enqueueDownload(request)
-    upsert(optimisticRow(response.download_id, request))
-    return response
+    enqueueingModelIds.value = new Set(enqueueingModelIds.value).add(
+      request.model_id
+    )
+    try {
+      const response = await enqueueDownload(request)
+      upsert(optimisticRow(response.download_id, request))
+      return response
+    } finally {
+      const nextIds = new Set(enqueueingModelIds.value)
+      nextIds.delete(request.model_id)
+      enqueueingModelIds.value = nextIds
+    }
   }
 
   function patchStatus(id: string, status: DownloadState) {
@@ -214,6 +252,9 @@ export const useModelDownloadStore = defineStore('modelDownload', () => {
     historyDownloads,
     hasActiveDownloads,
     activeDownloadCount,
+    failedDownloadCount,
+    indicatorDownloadCount,
+    enqueueingModelIds,
     lastCompletedDownload,
     upsert,
     findByModelId,

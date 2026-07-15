@@ -21,7 +21,7 @@
       <div ref="topToolbarRef" :class="groupClasses">
         <ComfyMenuButton />
         <SidebarIcon
-          v-for="tab in tabs"
+          v-for="tab in topTabs"
           :key="tab.id"
           :icon="tab.icon"
           :icon-badge="tab.iconBadge"
@@ -40,6 +40,18 @@
         <SidebarLogoutIcon
           v-if="userStore.isMultiUserServer"
           :is-small="isSmall"
+        />
+        <SidebarIcon
+          v-if="showModelManagerInBottom && modelManagerTab"
+          :icon="modelManagerTab.icon"
+          :icon-badge="modelManagerTab.iconBadge"
+          :tooltip="modelManagerTooltip"
+          :tooltip-suffix="getTabTooltipSuffix(modelManagerTab)"
+          :label="modelManagerTab.label || modelManagerTab.title"
+          :is-small="isSmall"
+          :selected="modelManagerTab.id === selectedTab?.id"
+          class="model-manager-tab-button"
+          @click="onTabClick(modelManagerTab)"
         />
         <SidebarHelpCenterIcon :is-small="isSmall" />
         <SidebarBottomPanelToggleButton v-if="!isCloud" :is-small="isSmall" />
@@ -76,6 +88,11 @@ import SidebarShortcutsToggleButton from '@/components/sidebar/SidebarShortcutsT
 import { isCloud, isDesktop, isNightly } from '@/platform/distribution/types'
 import { useSettingStore } from '@/platform/settings/settingStore'
 import { useTelemetry } from '@/platform/telemetry'
+import { useModelDownloadStore } from '@/platform/modelManager/stores/modelDownloadStore'
+import {
+  shouldShowModelDownloadSidebarIndicator,
+  useModelDownloadUiStore
+} from '@/platform/modelManager/stores/modelDownloadUiStore'
 import { useCanvasStore } from '@/renderer/core/canvas/canvasStore'
 import { useCommandStore } from '@/stores/commandStore'
 import { useKeybindingStore } from '@/platform/keybindings/keybindingStore'
@@ -102,6 +119,8 @@ const settingStore = useSettingStore()
 const userStore = useUserStore()
 const commandStore = useCommandStore()
 const canvasStore = useCanvasStore()
+const modelDownloadUiStore = useModelDownloadUiStore()
+const modelDownloadStore = useModelDownloadStore()
 const sideToolbarRef = ref<HTMLElement>()
 const topToolbarRef = ref<HTMLElement>()
 const bottomToolbarRef = ref<HTMLElement>()
@@ -121,7 +140,44 @@ const isConnected = computed(
 )
 
 const tabs = computed(() => workspaceStore.getSidebarTabs())
+const topTabs = computed(() =>
+  tabs.value.filter((tab) => tab.id !== 'model-manager')
+)
+const modelManagerTab = computed(() =>
+  tabs.value.find((tab) => tab.id === 'model-manager')
+)
 const selectedTab = computed(() => workspaceStore.sidebarTab.activeSidebarTab)
+const topbarIndicatorAvailable = computed(
+  () =>
+    settingStore.get('Comfy.Workflow.WorkflowTabsPosition') === 'Topbar' &&
+    settingStore.get('Comfy.UI.TabBarLayout') !== 'Legacy'
+)
+const showModelManagerInBottom = computed(() =>
+  shouldShowModelDownloadSidebarIndicator(
+    modelDownloadUiStore.trackingPlacement,
+    selectedTab.value?.id === 'model-manager',
+    topbarIndicatorAvailable.value
+  )
+)
+const modelManagerTooltip = computed(() =>
+  [
+    t('modelManager.title'),
+    modelDownloadStore.activeDownloadCount > 0
+      ? t(
+          'modelManager.prototype.activeDownloads',
+          modelDownloadStore.activeDownloadCount
+        )
+      : '',
+    modelDownloadStore.failedDownloadCount > 0
+      ? t(
+          'modelManager.prototype.downloadsNeedAttention',
+          modelDownloadStore.failedDownloadCount
+        )
+      : ''
+  ]
+    .filter(Boolean)
+    .join('. ')
+)
 
 /**
  * Handle sidebar tab icon click.

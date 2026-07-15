@@ -15,7 +15,7 @@ export function useModelManagerSidebarTab(): SidebarTabExtension {
     component: markRaw(ModelManagerSidebarTab),
     type: 'vue',
     iconBadge: () => {
-      const count = useModelDownloadStore().activeDownloadCount
+      const count = useModelDownloadStore().indicatorDownloadCount
       return count > 0 ? count.toString() : null
     }
   }

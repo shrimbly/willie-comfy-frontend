@@ -111,6 +111,16 @@ vi.mock('./LoginButton.vue', () => ({
   })
 }))
 
+vi.mock(
+  '@/platform/modelManager/components/ModelDownloadTopbarButton.vue',
+  () => ({
+    default: defineComponent({
+      name: 'ModelDownloadTopbarButtonStub',
+      render: () => h('div')
+    })
+  })
+)
+
 function renderComponent() {
   const user = userEvent.setup()
   const i18n = createI18n({

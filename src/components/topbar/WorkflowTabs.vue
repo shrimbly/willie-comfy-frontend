@@ -95,6 +95,7 @@
       >
         <i class="icon-[lucide--message-square-text]" />
       </Button>
+      <ModelDownloadTopbarButton />
       <CurrentUserButton v-if="showCurrentUser" compact class="shrink-0 p-1" />
       <LoginButton
         v-else-if="flags.showSignInButton ?? isDesktop"
@@ -127,6 +128,7 @@ import { useWorkflowStore } from '@/platform/workflow/management/stores/workflow
 import { useCommandStore } from '@/stores/commandStore'
 import { useWorkspaceStore } from '@/stores/workspaceStore'
 import { isCloud, isDesktop, isNightly } from '@/platform/distribution/types'
+import ModelDownloadTopbarButton from '@/platform/modelManager/components/ModelDownloadTopbarButton.vue'
 import { whileMouseDown } from '@/utils/mouseDownUtil'
 
 import WorkflowOverflowMenu from './WorkflowOverflowMenu.vue'

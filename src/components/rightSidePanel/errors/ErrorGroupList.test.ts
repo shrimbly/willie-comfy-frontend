@@ -6,6 +6,8 @@ import PrimeVue from 'primevue/config'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { testI18n } from '@/components/searchbox/v2/__test__/testUtils'
+import { useMissingModelStore } from '@/platform/missingModel/missingModelStore'
+import type { MissingModelCandidate } from '@/platform/missingModel/types'
 import { useCanvasStore } from '@/renderer/core/canvas/canvasStore'
 import { useExecutionErrorStore } from '@/stores/executionErrorStore'
 import { isLGraphNode } from '@/utils/litegraphUtil'
@@ -234,6 +236,44 @@ describe('ErrorGroupList selection emphasis', () => {
     canvasStore.selectedItems = []
     await waitFor(() => {
       expect(strip).toHaveTextContent('2 nodes — 2 errors')
+    })
+  })
+
+  it('keeps workflow and selection context when only models are missing', async () => {
+    const pinia = createPinia()
+    const missingModelStore = useMissingModelStore(pinia)
+    missingModelStore.setMissingModels([
+      {
+        nodeId: '1',
+        nodeType: 'CheckpointLoaderSimple',
+        widgetName: 'ckpt_name',
+        name: 'model-a.safetensors',
+        directory: 'checkpoints',
+        isMissing: true,
+        isAssetSupported: true
+      },
+      {
+        nodeId: '2',
+        nodeType: 'CheckpointLoaderSimple',
+        widgetName: 'ckpt_name',
+        name: 'model-b.safetensors',
+        directory: 'checkpoints',
+        isMissing: true,
+        isAssetSupported: true
+      }
+    ] satisfies MissingModelCandidate[])
+    renderList(pinia)
+    const canvasStore = useCanvasStore(pinia)
+
+    const strip = screen.getByTestId('selection-context-strip')
+    expect(strip).toHaveTextContent('2 nodes — 2 errors')
+
+    canvasStore.selectedItems = fromAny<
+      typeof canvasStore.selectedItems,
+      unknown
+    >([SAMPLER_NODE])
+    await waitFor(() => {
+      expect(strip).toHaveTextContent('SamplerNode — 1 error')
     })
   })
 })

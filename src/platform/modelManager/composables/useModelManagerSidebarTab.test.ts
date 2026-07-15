@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 
-const mockActiveDownloadCount = { value: 0 }
+const mockIndicatorDownloadCount = { value: 0 }
 
 vi.mock('../stores/modelDownloadStore', () => ({
   useModelDownloadStore: () => ({
-    get activeDownloadCount() {
-      return mockActiveDownloadCount.value
+    get indicatorDownloadCount() {
+      return mockIndicatorDownloadCount.value
     }
   })
 }))
@@ -27,16 +27,16 @@ describe('useModelManagerSidebarTab', () => {
     expect(tab.label).toBe('modelManager.title')
   })
 
-  it('shows no badge when there are no active downloads', () => {
-    mockActiveDownloadCount.value = 0
+  it('shows no badge when no downloads need an indicator', () => {
+    mockIndicatorDownloadCount.value = 0
     const tab = useModelManagerSidebarTab()
 
     expect(typeof tab.iconBadge).toBe('function')
     expect((tab.iconBadge as () => string | null)()).toBeNull()
   })
 
-  it('shows the active download count as a badge', () => {
-    mockActiveDownloadCount.value = 3
+  it('shows the download indicator count as a badge', () => {
+    mockIndicatorDownloadCount.value = 3
     const tab = useModelManagerSidebarTab()
 
     expect((tab.iconBadge as () => string | null)()).toBe('3')

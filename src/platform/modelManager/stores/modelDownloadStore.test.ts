@@ -134,6 +134,45 @@ describe('useModelDownloadStore', () => {
     expect(row?.model_id).toBe('loras/x.safetensors')
   })
 
+  it('tracks a model while its enqueue request is pending', async () => {
+    let resolveEnqueue:
+      | ((value: { download_id: string; accepted: boolean }) => void)
+      | undefined
+    vi.mocked(downloadApi.enqueueDownload).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveEnqueue = resolve
+        })
+    )
+    const store = useModelDownloadStore()
+
+    const enqueuePromise = store.enqueue({
+      url: 'https://huggingface.co/x.safetensors',
+      model_id: 'loras/x.safetensors'
+    })
+
+    expect(store.enqueueingModelIds.has('loras/x.safetensors')).toBe(true)
+
+    resolveEnqueue?.({ download_id: 'new-id', accepted: true })
+    await enqueuePromise
+
+    expect(store.enqueueingModelIds.has('loras/x.safetensors')).toBe(false)
+  })
+
+  it('stops tracking a model when enqueue fails', async () => {
+    vi.mocked(downloadApi.enqueueDownload).mockRejectedValue(new Error('boom'))
+    const store = useModelDownloadStore()
+
+    await expect(
+      store.enqueue({
+        url: 'https://huggingface.co/x.safetensors',
+        model_id: 'loras/x.safetensors'
+      })
+    ).rejects.toThrow('boom')
+
+    expect(store.enqueueingModelIds.has('loras/x.safetensors')).toBe(false)
+  })
+
   it('optimistically updates status when pausing', async () => {
     vi.mocked(downloadApi.pauseDownload).mockResolvedValue()
     const store = useModelDownloadStore()
@@ -204,6 +243,58 @@ describe('useModelDownloadStore', () => {
 
     expect(store.findByModelId('loras/x.safetensors')?.download_id).toBe('d1')
     expect(store.findByModelId('loras/missing.safetensors')).toBeUndefined()
+  })
+
+  it('prefers an active retry over older history for the same model', () => {
+    const store = useModelDownloadStore()
+    dispatch(
+      createStatus({
+        download_id: 'failed',
+        model_id: 'loras/x.safetensors',
+        status: 'failed',
+        updated_at: 20
+      })
+    )
+    dispatch(
+      createStatus({
+        download_id: 'retry',
+        model_id: 'loras/x.safetensors',
+        status: 'queued',
+        updated_at: 10
+      })
+    )
+
+    expect(store.findByModelId('loras/x.safetensors')?.download_id).toBe(
+      'retry'
+    )
+    expect(store.failedDownloadCount).toBe(0)
+    expect(store.indicatorDownloadCount).toBe(1)
+  })
+
+  it('selects the newest history row when a model has no active download', () => {
+    const store = useModelDownloadStore()
+    dispatch(
+      createStatus({
+        download_id: 'older',
+        model_id: 'loras/x.safetensors',
+        status: 'failed',
+        updated_at: 10
+      })
+    )
+    dispatch(
+      createStatus({
+        download_id: 'newer',
+        model_id: 'loras/x.safetensors',
+        status: 'failed',
+        updated_at: 20
+      })
+    )
+
+    expect(store.findByModelId('loras/x.safetensors')?.download_id).toBe(
+      'newer'
+    )
+    expect(store.failedDownloadCount).toBe(1)
+    expect(store.indicatorDownloadCount).toBe(1)
   })
 
   describe('hydrate', () => {

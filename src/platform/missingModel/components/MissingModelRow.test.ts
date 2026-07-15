@@ -14,6 +14,8 @@ import type { MissingModelViewModel } from '@/platform/missingModel/types'
 import type * as MissingModelDownload from '@/platform/missingModel/missingModelDownload'
 import type * as GraphTraversalUtil from '@/utils/graphTraversalUtil'
 import { useMissingModelStore } from '@/platform/missingModel/missingModelStore'
+import { useModelDownloadStore } from '@/platform/modelManager/stores/modelDownloadStore'
+import { useSidebarTabStore } from '@/stores/workspace/sidebarTabStore'
 
 const mockIsCloud = vi.hoisted(() => ({ value: true }))
 const mockShowUploadDialog = vi.hoisted(() => vi.fn())
@@ -456,5 +458,91 @@ describe('MissingModelRow', () => {
       },
       {}
     )
+  })
+
+  it('shows server download progress beneath the missing model row', async () => {
+    mockIsCloud.value = false
+    const model = makeModel([{ nodeId: '1', widgetName: 'ckpt_name' }])
+    model.representative.url =
+      'https://huggingface.co/comfy/test/resolve/main/model.safetensors'
+
+    renderRow(model, vi.fn(), false)
+    useModelDownloadStore().upsert({
+      download_id: 'failed-download',
+      model_id: 'checkpoints/model.safetensors',
+      url: model.representative.url,
+      status: 'failed',
+      priority: 0,
+      total_bytes: null,
+      bytes_done: 0,
+      progress: null,
+      speed_bps: null,
+      eta_seconds: null,
+      segments: null,
+      error: '401 Unauthorized',
+      created_at: 10,
+      updated_at: 20
+    })
+    useModelDownloadStore().upsert({
+      download_id: 'download-1',
+      model_id: 'checkpoints/model.safetensors',
+      url: model.representative.url,
+      status: 'active',
+      priority: 0,
+      total_bytes: 100,
+      bytes_done: 25,
+      progress: 0.25,
+      speed_bps: null,
+      eta_seconds: null,
+      segments: null,
+      error: null,
+      created_at: 1,
+      updated_at: 2
+    })
+    await nextTick()
+
+    const progress = screen.getByRole('progressbar', {
+      name: 'Download progress for model.safetensors'
+    })
+    expect(progress).toHaveAttribute('aria-valuenow', '25')
+    expect(progress).not.toHaveAttribute('aria-valuetext')
+    expect(progress).toHaveTextContent('Downloading')
+    expect(progress).toHaveTextContent('25%')
+    expect(screen.queryByTestId('missing-model-download')).toBeNull()
+  })
+
+  it('keeps a failed server download visible with a recovery action', async () => {
+    mockIsCloud.value = false
+    const model = makeModel([{ nodeId: '1', widgetName: 'ckpt_name' }])
+    model.representative.url =
+      'https://huggingface.co/comfy/test/resolve/main/model.safetensors'
+    const user = userEvent.setup()
+
+    renderRow(model, vi.fn(), false)
+    useModelDownloadStore().upsert({
+      download_id: 'download-1',
+      model_id: 'checkpoints/model.safetensors',
+      url: model.representative.url,
+      status: 'failed',
+      priority: 0,
+      total_bytes: null,
+      bytes_done: 0,
+      progress: null,
+      speed_bps: null,
+      eta_seconds: null,
+      segments: null,
+      error: '401 Unauthorized',
+      created_at: 1,
+      updated_at: 2
+    })
+    await nextTick()
+
+    expect(
+      screen.getByTestId('missing-model-download-failure')
+    ).toHaveTextContent('Failed')
+    expect(screen.queryByTestId('missing-model-download')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Open downloads' }))
+    expect(useSidebarTabStore().activeSidebarTabId).toBe('model-manager')
   })
 })

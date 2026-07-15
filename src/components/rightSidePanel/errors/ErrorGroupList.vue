@@ -24,300 +24,386 @@
         }}
       </div>
 
-      <div
-        v-else
-        class="overflow-hidden rounded-lg border border-secondary-background"
-      >
-        <!-- Errors summary hero -->
-        <div
-          data-testid="errors-summary-hero"
-          class="flex items-center gap-2 bg-base-foreground/5 p-2"
+      <div v-else class="flex flex-col gap-3">
+        <section
+          v-if="missingModelGroup"
+          data-testid="missing-model-summary-section"
+          class="group overflow-hidden rounded-lg border border-secondary-background"
         >
-          <span
-            class="flex h-12 min-w-9 shrink-0 items-center justify-center px-1 text-[2rem]/none font-extrabold text-destructive-background-hover tabular-nums"
+          <div
+            data-testid="missing-model-summary-hero"
+            class="flex items-center gap-2 bg-base-foreground/5 p-2"
           >
-            {{ totalErrorCount }}
-          </span>
-          <span
-            aria-hidden="true"
-            class="h-9 w-px shrink-0 bg-interface-stroke"
-          />
-          <div class="flex min-w-0 flex-1 flex-col gap-1 px-2">
-            <span class="text-xs/tight font-semibold text-base-foreground">
-              {{ t('rightSidePanel.errorsDetected', totalErrorCount) }}
-            </span>
-            <span class="text-xs/tight text-muted-foreground">
-              {{ t('rightSidePanel.resolveBeforeRun') }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Context strip: workflow summary, or the selection's errors -->
-        <div
-          data-testid="selection-context-strip"
-          role="status"
-          class="flex items-center border-t border-secondary-background px-3 pt-3.5 pb-1.5"
-        >
-          <i18n-t
-            :keypath="strip.keypath"
-            :plural="strip.count"
-            tag="span"
-            :class="
-              cn(
-                'min-w-0 flex-1 truncate text-xs font-semibold transition-colors duration-200',
-                hasSelectionEmphasis
-                  ? 'text-primary-background-hover'
-                  : 'text-muted-foreground'
-              )
-            "
-          >
-            <template #node>{{ selectionStripNodeLabel }}</template>
-            <template #nodes>{{ strip.nodes }}</template>
-            <template #count>{{ strip.count }}</template>
-          </i18n-t>
-        </div>
-
-        <!-- Group by Class Type -->
-        <TransitionGroup tag="div" name="list-scale" class="relative">
-          <ErrorCardSection
-            v-for="group in filteredGroups"
-            :key="group.groupKey"
-            :data-testid="'error-group-' + group.type.replaceAll('_', '-')"
-            :title="group.displayTitle"
-            :count="group.count"
-            :collapse="isSectionCollapsed(group.groupKey) && !isSearching"
-            class="border-t border-secondary-background first:border-t-0"
-            @update:collapse="setSectionCollapsed(group.groupKey, $event)"
-          >
-            <template #actions>
-              <Button
-                v-if="
-                  group.type === 'missing_node' &&
-                  missingNodePacks.length > 0 &&
-                  shouldShowInstallButton
-                "
-                variant="secondary"
-                size="sm"
-                class="shrink-0"
-                :disabled="isInstallingAll"
-                @click.stop="installAll"
-              >
-                <DotSpinner v-if="isInstallingAll" duration="1s" :size="12" />
-                {{
-                  isInstallingAll
-                    ? t('rightSidePanel.missingNodePacks.installing')
-                    : t('rightSidePanel.missingNodePacks.installAll')
-                }}
-              </Button>
-              <Button
-                v-else-if="group.type === 'swap_nodes'"
-                v-tooltip.top="
-                  t(
-                    'nodeReplacement.replaceAllWarning',
-                    'Replaces all available nodes in this group.'
-                  )
-                "
-                variant="secondary"
-                size="sm"
-                class="shrink-0"
-                @click.stop="handleReplaceAll()"
-              >
-                {{ t('nodeReplacement.replaceAll', 'Replace All') }}
-              </Button>
-              <Button
-                v-else-if="
-                  group.type === 'missing_model' &&
-                  showMissingModelHeaderRefresh
-                "
-                data-testid="missing-model-header-refresh"
-                variant="muted-textonly"
-                size="icon"
-                class="shrink-0 rounded-lg hover:bg-transparent hover:text-base-foreground"
-                :aria-label="t('rightSidePanel.missingModels.refresh')"
-                :aria-busy="missingModelStore.isRefreshingMissingModels"
-                :aria-disabled="missingModelStore.isRefreshingMissingModels"
-                @click.stop="handleMissingModelRefresh"
-              >
-                <DotSpinner
-                  v-if="missingModelStore.isRefreshingMissingModels"
-                  aria-hidden="true"
-                  duration="1s"
-                  :size="12"
-                />
-                <i
-                  v-else
-                  aria-hidden="true"
-                  class="icon-[lucide--refresh-cw] size-4 shrink-0"
-                />
-              </Button>
-              <span
-                v-if="
-                  group.type === 'missing_model' &&
-                  showMissingModelHeaderRefresh
-                "
-                role="status"
-                aria-live="polite"
-                class="sr-only"
-              >
-                {{
-                  missingModelStore.isRefreshingMissingModels
-                    ? t('rightSidePanel.missingModels.refreshing')
-                    : ''
-                }}
-              </span>
-            </template>
-
-            <div
-              v-if="group.displayMessage"
-              data-testid="error-group-display-message"
-              class="px-3 py-1"
+            <button
+              type="button"
+              class="focus-visible:ring-ring flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-sm border-0 bg-transparent p-0 text-left outline-none focus-visible:ring-1"
+              :aria-expanded="!isMissingModelSectionCollapsed"
+              :aria-controls="missingModelSectionBodyId"
+              @click="toggleMissingModelSection"
             >
-              <p
-                class="m-0 text-xs/normal wrap-break-word whitespace-pre-wrap text-base-foreground/50"
+              <span
+                class="flex h-12 min-w-9 shrink-0 items-center justify-center px-1 text-[2rem]/none font-extrabold text-destructive-background-hover tabular-nums"
               >
-                {{ group.displayMessage }}
-              </p>
-            </div>
-
-            <!-- Missing Node Packs -->
-            <MissingNodeCard
-              v-if="group.type === 'missing_node'"
-              :show-info-button="shouldShowManagerButtons"
-              :missing-pack-groups="missingPackGroups"
-              :highlighted-node-ids="selectionMatchedAssetNodeIds"
-              @locate-node="handleLocateMissingNode"
-              @open-manager-info="handleOpenManagerInfo"
-            />
-
-            <!-- Swap Nodes -->
-            <SwapNodesCard
-              v-if="group.type === 'swap_nodes'"
-              :swap-node-groups="swapNodeGroups"
-              :highlighted-node-ids="selectionMatchedAssetNodeIds"
-              @locate-node="handleLocateMissingNode"
-              @replace="handleReplaceGroup"
-            />
-
-            <!-- Execution Errors -->
-            <div v-if="isExecutionItemListGroup(group)" class="px-3">
-              <ul class="m-0 list-none space-y-1 p-0">
-                <li
-                  v-for="item in getExecutionItemList(group)"
-                  :key="item.key"
-                  :aria-current="
-                    isCardInSelection(item.cardId) ? 'true' : undefined
-                  "
-                  :class="
-                    cn(
-                      'min-w-0',
-                      selectionEmphasisClass(isCardInSelection(item.cardId))
-                    )
-                  "
+                {{ missingModelGroup.count }}
+              </span>
+              <span
+                aria-hidden="true"
+                class="h-9 w-px shrink-0 bg-interface-stroke"
+              />
+              <span class="flex min-w-0 flex-1 flex-col gap-1 px-2">
+                <span class="text-xs/tight font-semibold text-base-foreground">
+                  {{ missingModelGroup.displayTitle }}
+                </span>
+                <span
+                  v-if="missingModelGroup.displayMessage"
+                  data-testid="error-group-display-message"
+                  class="text-xs/tight text-muted-foreground"
                 >
-                  <div class="flex min-w-0 items-center gap-2">
-                    <span class="flex min-w-0 flex-1 items-center gap-1">
-                      <button
-                        v-tooltip.top="{
-                          value: item.displayDetails || undefined,
-                          showDelay: 300
-                        }"
-                        type="button"
-                        class="focus-visible:ring-ring m-0 inline max-w-full cursor-pointer appearance-none rounded-sm border-0 bg-transparent p-0 text-left text-xs/relaxed font-normal wrap-break-word text-muted-foreground outline-none hover:text-base-foreground focus:outline-none focus-visible:ring-1 focus-visible:outline-none focus-visible:ring-inset"
-                        @click="handleLocateNode(item.nodeId)"
-                      >
-                        {{ item.label }}
-                      </button>
-                      <Button
-                        v-if="item.displayDetails"
-                        variant="textonly"
-                        size="icon-sm"
-                        :class="
-                          cn(
-                            'size-6 shrink-0 text-muted-foreground hover:text-base-foreground focus-visible:ring-inset',
-                            isExecutionItemDetailExpanded(item.key) &&
-                              'bg-secondary-background-selected text-base-foreground hover:bg-secondary-background-selected'
-                          )
-                        "
-                        :aria-label="
-                          t('rightSidePanel.infoFor', { item: item.label })
-                        "
-                        :aria-controls="getExecutionItemDetailId(item.key)"
-                        :aria-expanded="isExecutionItemDetailExpanded(item.key)"
-                        @click.stop="toggleExecutionItemDetail(item.key)"
-                      >
-                        <i class="icon-[lucide--info] size-3.5" />
-                      </Button>
-                    </span>
-                    <Button
-                      variant="textonly"
-                      size="icon-sm"
-                      class="size-8 shrink-0 text-muted-foreground hover:text-base-foreground focus-visible:ring-inset"
-                      :aria-label="
-                        t('rightSidePanel.locateNodeFor', {
-                          item: item.label
-                        })
-                      "
-                      @click.stop="handleLocateNode(item.nodeId)"
-                    >
-                      <i class="icon-[lucide--locate] size-4" />
-                    </Button>
-                  </div>
-                  <TransitionCollapse>
-                    <p
-                      v-if="
-                        item.displayDetails &&
-                        isExecutionItemDetailExpanded(item.key)
-                      "
-                      :id="getExecutionItemDetailId(item.key)"
-                      class="m-0 mt-0.5 pr-10 text-2xs/relaxed wrap-break-word whitespace-pre-wrap text-muted-foreground"
-                    >
-                      {{ item.displayDetails }}
-                    </p>
-                  </TransitionCollapse>
-                </li>
-              </ul>
-            </div>
-            <div v-else-if="group.type === 'execution'" class="space-y-3 px-3">
-              <ErrorNodeCard
-                v-for="card in group.cards"
-                :key="card.id"
-                :card="card"
-                :aria-current="isCardInSelection(card.id) ? 'true' : undefined"
+                  {{ missingModelGroup.displayMessage }}
+                </span>
+              </span>
+            </button>
+            <Button
+              v-if="showMissingModelHeaderRefresh"
+              data-testid="missing-model-header-refresh"
+              variant="muted-textonly"
+              size="icon"
+              class="shrink-0 rounded-lg hover:bg-transparent hover:text-base-foreground"
+              :aria-label="t('rightSidePanel.missingModels.refresh')"
+              :aria-busy="missingModelStore.isRefreshingMissingModels"
+              :aria-disabled="missingModelStore.isRefreshingMissingModels"
+              @click.stop="handleMissingModelRefresh"
+            >
+              <DotSpinner
+                v-if="missingModelStore.isRefreshingMissingModels"
+                aria-hidden="true"
+                duration="1s"
+                :size="12"
+              />
+              <i
+                v-else
+                aria-hidden="true"
+                class="icon-[lucide--refresh-cw] size-4 shrink-0"
+              />
+            </Button>
+            <span
+              v-if="showMissingModelHeaderRefresh"
+              role="status"
+              aria-live="polite"
+              class="sr-only"
+            >
+              {{
+                missingModelStore.isRefreshingMissingModels
+                  ? t('rightSidePanel.missingModels.refreshing')
+                  : ''
+              }}
+            </span>
+            <button
+              type="button"
+              class="focus-visible:ring-ring flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm border-0 bg-transparent p-0 outline-none focus-visible:ring-1"
+              :aria-expanded="!isMissingModelSectionCollapsed"
+              :aria-controls="missingModelSectionBodyId"
+              :aria-label="
+                isMissingModelSectionCollapsed
+                  ? t('rightSidePanel.expand')
+                  : t('rightSidePanel.collapse')
+              "
+              @click="toggleMissingModelSection"
+            >
+              <i
+                aria-hidden="true"
                 :class="
                   cn(
-                    selectionEmphasisClass(isCardInSelection(card.id)),
-                    isCardInSelection(card.id) && '-my-1 py-1'
+                    'icon-[lucide--chevron-up] size-4 text-muted-foreground transition-transform group-hover:text-base-foreground',
+                    isMissingModelSectionCollapsed && '-rotate-180'
                   )
                 "
-                @locate-node="handleLocateNode"
-                @copy-to-clipboard="copyToClipboard"
               />
-            </div>
-
-            <!-- Missing Models -->
+            </button>
+          </div>
+          <div
+            v-if="nonModelGroups.length === 0"
+            data-testid="selection-context-strip"
+            role="status"
+            class="flex items-center border-t border-secondary-background px-3 pt-3.5 pb-1.5"
+          >
+            <i18n-t
+              :keypath="strip.keypath"
+              :plural="strip.count"
+              tag="span"
+              :class="
+                cn(
+                  'min-w-0 flex-1 truncate text-xs font-semibold transition-colors duration-200',
+                  hasSelectionEmphasis
+                    ? 'text-primary-background-hover'
+                    : 'text-muted-foreground'
+                )
+              "
+            >
+              <template #node>{{ selectionStripNodeLabel }}</template>
+              <template #nodes>{{ strip.nodes }}</template>
+              <template #count>{{ strip.count }}</template>
+            </i18n-t>
+          </div>
+          <TransitionCollapse>
             <MissingModelCard
-              v-if="group.type === 'missing_model'"
+              v-if="!isMissingModelSectionCollapsed"
+              :id="missingModelSectionBodyId"
+              class="py-2"
               :missing-model-groups="missingModelGroups"
               :highlighted-node-ids="selectionMatchedAssetNodeIds"
               @locate-model="handleLocateAssetNode"
             />
+          </TransitionCollapse>
+        </section>
 
-            <!-- Missing Media -->
-            <MissingMediaCard
-              v-if="group.type === 'missing_media'"
-              :missing-media-groups="missingMediaGroups"
-              :highlighted-node-ids="selectionMatchedAssetNodeIds"
-              @locate-node="handleLocateAssetNode"
+        <section
+          v-if="nonModelGroups.length > 0"
+          data-testid="errors-summary-section"
+          class="overflow-hidden rounded-lg border border-secondary-background"
+        >
+          <div
+            data-testid="errors-summary-hero"
+            class="flex items-center gap-2 bg-base-foreground/5 p-2"
+          >
+            <span
+              class="flex h-12 min-w-9 shrink-0 items-center justify-center px-1 text-[2rem]/none font-extrabold text-destructive-background-hover tabular-nums"
+            >
+              {{ totalErrorCount }}
+            </span>
+            <span
+              aria-hidden="true"
+              class="h-9 w-px shrink-0 bg-interface-stroke"
             />
-          </ErrorCardSection>
-        </TransitionGroup>
+            <div class="flex min-w-0 flex-1 flex-col gap-1 px-2">
+              <span class="text-xs/tight font-semibold text-base-foreground">
+                {{ t('rightSidePanel.errorsDetected', totalErrorCount) }}
+              </span>
+              <span class="text-xs/tight text-muted-foreground">
+                {{ t('rightSidePanel.resolveBeforeRun') }}
+              </span>
+            </div>
+          </div>
+
+          <div
+            data-testid="selection-context-strip"
+            role="status"
+            class="flex items-center border-t border-secondary-background px-3 pt-3.5 pb-1.5"
+          >
+            <i18n-t
+              :keypath="strip.keypath"
+              :plural="strip.count"
+              tag="span"
+              :class="
+                cn(
+                  'min-w-0 flex-1 truncate text-xs font-semibold transition-colors duration-200',
+                  hasSelectionEmphasis
+                    ? 'text-primary-background-hover'
+                    : 'text-muted-foreground'
+                )
+              "
+            >
+              <template #node>{{ selectionStripNodeLabel }}</template>
+              <template #nodes>{{ strip.nodes }}</template>
+              <template #count>{{ strip.count }}</template>
+            </i18n-t>
+          </div>
+
+          <TransitionGroup tag="div" name="list-scale" class="relative">
+            <ErrorCardSection
+              v-for="group in nonModelGroups"
+              :key="group.groupKey"
+              :data-testid="'error-group-' + group.type.replaceAll('_', '-')"
+              :title="group.displayTitle"
+              :count="group.count"
+              :collapse="isSectionCollapsed(group.groupKey) && !isSearching"
+              class="border-t border-secondary-background first:border-t-0"
+              @update:collapse="setSectionCollapsed(group.groupKey, $event)"
+            >
+              <template #actions>
+                <Button
+                  v-if="
+                    group.type === 'missing_node' &&
+                    missingNodePacks.length > 0 &&
+                    shouldShowInstallButton
+                  "
+                  variant="secondary"
+                  size="sm"
+                  class="shrink-0"
+                  :disabled="isInstallingAll"
+                  @click.stop="installAll"
+                >
+                  <DotSpinner v-if="isInstallingAll" duration="1s" :size="12" />
+                  {{
+                    isInstallingAll
+                      ? t('rightSidePanel.missingNodePacks.installing')
+                      : t('rightSidePanel.missingNodePacks.installAll')
+                  }}
+                </Button>
+                <Button
+                  v-else-if="group.type === 'swap_nodes'"
+                  v-tooltip.top="
+                    t(
+                      'nodeReplacement.replaceAllWarning',
+                      'Replaces all available nodes in this group.'
+                    )
+                  "
+                  variant="secondary"
+                  size="sm"
+                  class="shrink-0"
+                  @click.stop="handleReplaceAll()"
+                >
+                  {{ t('nodeReplacement.replaceAll', 'Replace All') }}
+                </Button>
+              </template>
+
+              <div
+                v-if="group.displayMessage"
+                data-testid="error-group-display-message"
+                class="px-3 py-1"
+              >
+                <p
+                  class="m-0 text-xs/normal wrap-break-word whitespace-pre-wrap text-base-foreground/50"
+                >
+                  {{ group.displayMessage }}
+                </p>
+              </div>
+
+              <MissingNodeCard
+                v-if="group.type === 'missing_node'"
+                :show-info-button="shouldShowManagerButtons"
+                :missing-pack-groups="missingPackGroups"
+                :highlighted-node-ids="selectionMatchedAssetNodeIds"
+                @locate-node="handleLocateMissingNode"
+                @open-manager-info="handleOpenManagerInfo"
+              />
+
+              <SwapNodesCard
+                v-if="group.type === 'swap_nodes'"
+                :swap-node-groups="swapNodeGroups"
+                :highlighted-node-ids="selectionMatchedAssetNodeIds"
+                @locate-node="handleLocateMissingNode"
+                @replace="handleReplaceGroup"
+              />
+
+              <div v-if="isExecutionItemListGroup(group)" class="px-3">
+                <ul class="m-0 list-none space-y-1 p-0">
+                  <li
+                    v-for="item in getExecutionItemList(group)"
+                    :key="item.key"
+                    :aria-current="
+                      isCardInSelection(item.cardId) ? 'true' : undefined
+                    "
+                    :class="
+                      cn(
+                        'min-w-0',
+                        selectionEmphasisClass(isCardInSelection(item.cardId))
+                      )
+                    "
+                  >
+                    <div class="flex min-w-0 items-center gap-2">
+                      <span class="flex min-w-0 flex-1 items-center gap-1">
+                        <button
+                          v-tooltip.top="{
+                            value: item.displayDetails || undefined,
+                            showDelay: 300
+                          }"
+                          type="button"
+                          class="focus-visible:ring-ring m-0 inline max-w-full cursor-pointer appearance-none rounded-sm border-0 bg-transparent p-0 text-left text-xs/relaxed font-normal wrap-break-word text-muted-foreground outline-none hover:text-base-foreground focus:outline-none focus-visible:ring-1 focus-visible:outline-none focus-visible:ring-inset"
+                          @click="handleLocateNode(item.nodeId)"
+                        >
+                          {{ item.label }}
+                        </button>
+                        <Button
+                          v-if="item.displayDetails"
+                          variant="textonly"
+                          size="icon-sm"
+                          :class="
+                            cn(
+                              'size-6 shrink-0 text-muted-foreground hover:text-base-foreground focus-visible:ring-inset',
+                              isExecutionItemDetailExpanded(item.key) &&
+                                'bg-secondary-background-selected text-base-foreground hover:bg-secondary-background-selected'
+                            )
+                          "
+                          :aria-label="
+                            t('rightSidePanel.infoFor', { item: item.label })
+                          "
+                          :aria-controls="getExecutionItemDetailId(item.key)"
+                          :aria-expanded="
+                            isExecutionItemDetailExpanded(item.key)
+                          "
+                          @click.stop="toggleExecutionItemDetail(item.key)"
+                        >
+                          <i class="icon-[lucide--info] size-3.5" />
+                        </Button>
+                      </span>
+                      <Button
+                        variant="textonly"
+                        size="icon-sm"
+                        class="size-8 shrink-0 text-muted-foreground hover:text-base-foreground focus-visible:ring-inset"
+                        :aria-label="
+                          t('rightSidePanel.locateNodeFor', {
+                            item: item.label
+                          })
+                        "
+                        @click.stop="handleLocateNode(item.nodeId)"
+                      >
+                        <i class="icon-[lucide--locate] size-4" />
+                      </Button>
+                    </div>
+                    <TransitionCollapse>
+                      <p
+                        v-if="
+                          item.displayDetails &&
+                          isExecutionItemDetailExpanded(item.key)
+                        "
+                        :id="getExecutionItemDetailId(item.key)"
+                        class="m-0 mt-0.5 pr-10 text-2xs/relaxed wrap-break-word whitespace-pre-wrap text-muted-foreground"
+                      >
+                        {{ item.displayDetails }}
+                      </p>
+                    </TransitionCollapse>
+                  </li>
+                </ul>
+              </div>
+              <div
+                v-else-if="group.type === 'execution'"
+                class="space-y-3 px-3"
+              >
+                <ErrorNodeCard
+                  v-for="card in group.cards"
+                  :key="card.id"
+                  :card="card"
+                  :aria-current="
+                    isCardInSelection(card.id) ? 'true' : undefined
+                  "
+                  :class="
+                    cn(
+                      selectionEmphasisClass(isCardInSelection(card.id)),
+                      isCardInSelection(card.id) && '-my-1 py-1'
+                    )
+                  "
+                  @locate-node="handleLocateNode"
+                  @copy-to-clipboard="copyToClipboard"
+                />
+              </div>
+
+              <MissingMediaCard
+                v-if="group.type === 'missing_media'"
+                :missing-media-groups="missingMediaGroups"
+                :highlighted-node-ids="selectionMatchedAssetNodeIds"
+                @locate-node="handleLocateAssetNode"
+              />
+            </ErrorCardSection>
+          </TransitionGroup>
+        </section>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cn } from '@comfyorg/tailwind-utils'
 
@@ -443,12 +529,41 @@ const {
   errorNodeCount
 } = useErrorGroups(searchQuery)
 
+const missingModelSectionBodyId = useId()
+const missingModelGroup = computed(() =>
+  filteredGroups.value.find((group) => group.type === 'missing_model')
+)
+const nonModelGroups = computed(() =>
+  filteredGroups.value.filter((group) => group.type !== 'missing_model')
+)
 const totalErrorCount = computed(() =>
-  filteredGroups.value.reduce((sum, group) => sum + group.count, 0)
+  nonModelGroups.value.reduce((sum, group) => sum + group.count, 0)
 )
 
+const selectionMissingModelCount = computed(
+  () =>
+    missingModelGroups.value
+      .flatMap((group) => group.models)
+      .filter((model) =>
+        model.referencingNodes.some((node) =>
+          selectionMatchedAssetNodeIds.value.has(String(node.nodeId))
+        )
+      ).length
+)
+const selectionNonModelErrorCount = computed(() =>
+  Math.max(0, selectionErrorCount.value - selectionMissingModelCount.value)
+)
+const showsOnlyMissingModels = computed(
+  () =>
+    missingModelGroup.value !== undefined && nonModelGroups.value.length === 0
+)
+const selectionContextErrorCount = computed(() =>
+  showsOnlyMissingModels.value
+    ? selectionErrorCount.value
+    : selectionNonModelErrorCount.value
+)
 const hasSelectionEmphasis = computed(
-  () => hasSelection.value && selectionErrorCount.value > 0
+  () => hasSelection.value && selectionContextErrorCount.value > 0
 )
 const selectionStripNodeLabel = computed(
   () => selectedNodeTitle.value ?? t('g.untitled')
@@ -457,7 +572,13 @@ const selectionStripNodeLabel = computed(
 // The strip is a status line, not a view of the current filter — summary
 // numbers are workflow-wide, never search-filtered.
 const workflowErrorCount = computed(() =>
-  allErrorGroups.value.reduce((sum, group) => sum + group.count, 0)
+  allErrorGroups.value.reduce(
+    (sum, group) =>
+      !showsOnlyMissingModels.value && group.type === 'missing_model'
+        ? sum
+        : sum + group.count,
+    0
+  )
 )
 
 const strip = computed(() => {
@@ -468,11 +589,12 @@ const strip = computed(() => {
           ? 'rightSidePanel.selectedNodeErrors'
           : 'rightSidePanel.selectedNodesErrors',
       nodes: selectedNodeCount.value,
-      count: selectionErrorCount.value
+      count: selectionContextErrorCount.value
     }
   }
   return {
     keypath:
+      (!showsOnlyMissingModels.value && missingModelGroup.value) ||
       errorNodeCount.value === 0
         ? // Node-less errors (e.g. prompt-level) would read as "0 nodes"
           'rightSidePanel.errorsSummary'
@@ -525,6 +647,20 @@ watch(
 const showMissingModelHeaderRefresh = computed(
   () => !isCloud && missingModelGroups.value.length > 0
 )
+
+const isMissingModelSectionCollapsed = computed(() => {
+  const group = missingModelGroup.value
+  return group
+    ? isSectionCollapsed(group.groupKey) && !isSearching.value
+    : false
+})
+
+function toggleMissingModelSection() {
+  const group = missingModelGroup.value
+  if (!group) return
+
+  setSectionCollapsed(group.groupKey, !isMissingModelSectionCollapsed.value)
+}
 
 function handleMissingModelRefresh() {
   if (missingModelStore.isRefreshingMissingModels) return

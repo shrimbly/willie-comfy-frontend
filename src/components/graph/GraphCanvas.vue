@@ -49,6 +49,7 @@
         "
         class="pointer-events-auto"
       />
+      <ModelDownloadPrototypeHost />
     </template>
   </LiteGraphCanvasSplitterOverlay>
   <canvas
@@ -140,6 +141,7 @@ import NodeContextMenu from '@/components/graph/NodeContextMenu.vue'
 import NodeDragPreview from '@/components/graph/NodeDragPreview.vue'
 import SelectionToolbox from '@/components/graph/SelectionToolbox.vue'
 import TitleEditor from '@/components/graph/TitleEditor.vue'
+import ModelDownloadPrototypeHost from '@/platform/modelManager/components/ModelDownloadPrototypeHost.vue'
 import NodePropertiesPanel from '@/components/rightSidePanel/RightSidePanel.vue'
 import NodeSearchboxPopover from '@/components/searchbox/NodeSearchBoxPopover.vue'
 import SideToolbar from '@/components/sidebar/SideToolbar.vue'

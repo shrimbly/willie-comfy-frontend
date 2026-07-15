@@ -57,7 +57,7 @@ export const TestIds = {
     whatsNewSection: 'whats-new-section',
     errorGroupDisplayMessage: 'error-group-display-message',
     missingNodePacksGroup: 'error-group-missing-node',
-    missingModelsGroup: 'error-group-missing-model',
+    missingModelsGroup: 'missing-model-summary-section',
     missingModelExpand: 'missing-model-expand',
     missingModelImport: 'missing-model-import',
     missingModelImportableRows: 'missing-model-importable-rows',

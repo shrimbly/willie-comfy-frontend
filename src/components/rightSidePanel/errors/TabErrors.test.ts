@@ -388,7 +388,7 @@ describe('TabErrors.vue', () => {
     expect(screen.getAllByText('Execution failed')).toHaveLength(1)
   })
 
-  it('shows missing model Refresh in the section header when no model is downloadable', async () => {
+  it('shows Refresh in the collapsible missing model hero', async () => {
     const missingModel = {
       nodeId: '1',
       nodeType: 'CheckpointLoaderSimple',
@@ -414,6 +414,12 @@ describe('TabErrors.vue', () => {
     await user.click(screen.getByTestId('missing-model-header-refresh'))
 
     expect(missingModelStore.refreshMissingModels).toHaveBeenCalled()
+
+    const section = screen.getByTestId('missing-model-summary-section')
+    await user.click(within(section).getByRole('button', { name: 'Collapse' }))
+    expect(
+      within(section).getByRole('button', { name: 'Expand' })
+    ).toBeInTheDocument()
   })
 
   it('counts missing models per file when several share one directory', () => {
@@ -442,15 +448,17 @@ describe('TabErrors.vue', () => {
       }
     })
 
+    const missingModelHero = screen.getByTestId('missing-model-summary-hero')
+    expect(within(missingModelHero).getByText('2')).toBeInTheDocument()
+    expect(within(missingModelHero).getByText('Missing Models')).toBeVisible()
+    expect(screen.getAllByText('Missing Models')).toHaveLength(1)
     expect(
-      within(screen.getByTestId('error-group-missing-model')).getByText('2')
-    ).toBeInTheDocument()
-    expect(
-      within(screen.getByTestId('errors-summary-hero')).getByText('2')
-    ).toBeInTheDocument()
+      screen.queryByTestId('error-group-missing-model')
+    ).not.toBeInTheDocument()
+    expect(screen.queryByTestId('errors-summary-hero')).not.toBeInTheDocument()
   })
 
-  it('renders missing model display message below the section title', () => {
+  it('renders the missing model display message in the summary hero', () => {
     const missingModel = {
       nodeId: '1',
       nodeType: 'CheckpointLoaderSimple',
@@ -467,10 +475,13 @@ describe('TabErrors.vue', () => {
       }
     })
 
-    expect(screen.getByText('Missing Models')).toBeInTheDocument()
+    const missingModelHero = screen.getByTestId('missing-model-summary-hero')
+    expect(within(missingModelHero).getByText('Missing Models')).toBeVisible()
     expect(
-      screen.getByText('Download a model, or open the node to replace it.')
-    ).toBeInTheDocument()
+      within(missingModelHero).getByText(
+        'Download a model, or open the node to replace it.'
+      )
+    ).toBeVisible()
   })
 
   it('renders missing media display message below the section title', () => {
@@ -545,7 +556,7 @@ describe('TabErrors.vue', () => {
     expect(mockFocusNode.mock.calls.at(-1)?.[0]).toBe('4')
   })
 
-  it('sums the summary hero count across error types', async () => {
+  it('separates missing models from the other error types', async () => {
     const { getNodeByExecutionId } = await import('@/utils/graphTraversalUtil')
     vi.mocked(getNodeByExecutionId).mockReturnValue({
       title: 'Node'
@@ -603,13 +614,32 @@ describe('TabErrors.vue', () => {
             isMissing: true
           }
         ]
-      } satisfies { missingMediaCandidates: MissingMediaCandidate[] }
+      } satisfies { missingMediaCandidates: MissingMediaCandidate[] },
+      missingModel: {
+        missingModelCandidates: [
+          {
+            nodeId: '5',
+            nodeType: 'CheckpointLoaderSimple',
+            widgetName: 'ckpt_name',
+            name: 'missing.safetensors',
+            directory: 'checkpoints',
+            isMissing: true,
+            isAssetSupported: true
+          }
+        ] satisfies MissingModelCandidate[]
+      }
     })
 
-    // 3 validation items + 2 missing media references
     expect(
       within(screen.getByTestId('errors-summary-hero')).getByText('5')
     ).toBeInTheDocument()
+    expect(
+      within(screen.getByTestId('missing-model-summary-hero')).getByText('1')
+    ).toBeInTheDocument()
+    expect(screen.getAllByTestId(/summary-section$/)).toEqual([
+      screen.getByTestId('missing-model-summary-section'),
+      screen.getByTestId('errors-summary-section')
+    ])
   })
 
   it('renders swap node rows below the section display message', () => {

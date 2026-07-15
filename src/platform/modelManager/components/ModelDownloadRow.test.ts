@@ -294,7 +294,13 @@ describe('ModelDownloadRow', () => {
           "This model is gated. Accept its license on the model's page, set up download access, then resume."
         )
       ).not.toBeInTheDocument()
-      expect(screen.getByText(notFoundError)).toBeInTheDocument()
+      const errorMessage = screen.getByText(/404 Client Error/)
+      expect(errorMessage).toHaveTextContent(
+        'Repository Not Found for url: https://huggingface.co/org/renamed-model/resolve/main/model.safetensors.'
+      )
+      expect(errorMessage).toHaveTextContent(
+        'If you are trying to access a private or gated repo'
+      )
     })
 
     it('omits the accept-license link when no huggingface url is present', () => {

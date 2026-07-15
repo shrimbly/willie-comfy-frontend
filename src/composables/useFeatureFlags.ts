@@ -33,7 +33,7 @@ export enum ServerFeatureFlag {
   SHOW_SIGNIN_BUTTON = 'show_signin_button',
   UNIFIED_CLOUD_AUTH = 'unified_cloud_auth',
   CONSOLIDATED_BILLING_ENABLED = 'consolidated_billing_enabled',
-  SIGNUP_TURNSTILE = 'signup_turnstile'
+  SIGNUP_TURNSTILE = 'signup_turnstile',
   SERVER_SIDE_MODEL_DOWNLOADS = 'server_side_model_downloads'
 }
 

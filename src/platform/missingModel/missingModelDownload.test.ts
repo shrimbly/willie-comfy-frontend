@@ -15,6 +15,7 @@ const {
   mockSidebarTabStore,
   mockStartDownload,
   mockEnqueue,
+  mockHydrate,
   mockToastAdd,
   mockFlags
 } = vi.hoisted(() => ({
@@ -23,6 +24,7 @@ const {
   mockSidebarTabStore: { activeSidebarTabId: null as string | null },
   mockStartDownload: vi.fn(),
   mockEnqueue: vi.fn(),
+  mockHydrate: vi.fn(),
   mockToastAdd: vi.fn(),
   mockFlags: { serverSideModelDownloads: false }
 }))
@@ -50,7 +52,10 @@ vi.mock('@/composables/useFeatureFlags', () => ({
 }))
 
 vi.mock('@/platform/modelManager/stores/modelDownloadStore', () => ({
-  useModelDownloadStore: () => ({ enqueue: mockEnqueue })
+  useModelDownloadStore: () => ({
+    enqueue: mockEnqueue,
+    hydrate: mockHydrate
+  })
 }))
 
 vi.mock('@/platform/updates/common/toastStore', () => ({
@@ -465,7 +470,7 @@ describe('downloadModel', () => {
     expect(mockEnqueue).not.toHaveBeenCalled()
   })
 
-  it('enqueues a server-side download and reveals the manager when enabled', async () => {
+  it('enqueues a server-side download without opening the manager', async () => {
     mockFlags.serverSideModelDownloads = true
     mockEnqueue.mockResolvedValue({ download_id: 'd1', accepted: true })
     const anchorClick = vi
@@ -482,12 +487,12 @@ describe('downloadModel', () => {
     )
 
     await vi.waitFor(() => {
-      expect(mockSidebarTabStore.activeSidebarTabId).toBe('model-manager')
+      expect(mockEnqueue).toHaveBeenCalledWith({
+        url: 'https://huggingface.co/org/model/resolve/main/model.safetensors',
+        model_id: 'checkpoints/model.safetensors'
+      })
     })
-    expect(mockEnqueue).toHaveBeenCalledWith({
-      url: 'https://huggingface.co/org/model/resolve/main/model.safetensors',
-      model_id: 'checkpoints/model.safetensors'
-    })
+    expect(mockSidebarTabStore.activeSidebarTabId).toBeNull()
     expect(anchorClick).not.toHaveBeenCalled()
   })
 
@@ -512,8 +517,9 @@ describe('downloadModel', () => {
     expect(mockSidebarTabStore.activeSidebarTabId).toBeNull()
   })
 
-  it('reveals the download manager and shows an info toast for an in-progress download', async () => {
+  it('hydrates existing downloads and shows an info toast for an in-progress download', async () => {
     mockFlags.serverSideModelDownloads = true
+    mockHydrate.mockResolvedValue(undefined)
     mockEnqueue.mockRejectedValue(
       new DownloadApiError('exists', 'ALREADY_DOWNLOADING', 409)
     )
@@ -528,7 +534,7 @@ describe('downloadModel', () => {
     )
 
     await vi.waitFor(() => {
-      expect(mockSidebarTabStore.activeSidebarTabId).toBe('model-manager')
+      expect(mockHydrate).toHaveBeenCalledOnce()
     })
     expect(mockToastAdd).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -536,6 +542,7 @@ describe('downloadModel', () => {
         detail: 'model.safetensors'
       })
     )
+    expect(mockSidebarTabStore.activeSidebarTabId).toBeNull()
   })
 
   it('refreshes the model folder and re-scans missing models when already available', async () => {

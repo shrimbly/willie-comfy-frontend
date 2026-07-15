@@ -35,7 +35,6 @@ const WHITE_LISTED_URLS: ReadonlySet<string> = new Set([
 ])
 
 const MODEL_LIBRARY_TAB_ID = 'model-library'
-const MODEL_MANAGER_TAB_ID = 'model-manager'
 
 export interface ModelWithUrl {
   name: string
@@ -52,10 +51,6 @@ async function startDesktop2ModelDownload(
   } catch (error: unknown) {
     console.error('Failed to start Desktop2 model download:', error)
   }
-}
-
-function revealDownloadManager(): void {
-  useSidebarTabStore().activeSidebarTabId = MODEL_MANAGER_TAB_ID
 }
 
 /**
@@ -88,26 +83,19 @@ async function refreshAfterModelAvailable(model: ModelWithUrl): Promise<void> {
   }
 }
 
-/**
- * Enqueues a server-side download and reveals the Model Manager panel so the
- * user can watch live progress, status, and completion. The two benign `409`
- * cases get an info toast: `ALREADY_DOWNLOADING` links to the existing job,
- * `ALREADY_AVAILABLE` confirms it's installed and clears the node error. Any
- * other failure is reported via an error toast.
- */
 async function startServerSideModelDownload(
   model: ModelWithUrl
 ): Promise<void> {
   const toast = useToastStore()
+  const downloadStore = useModelDownloadStore()
   try {
-    await useModelDownloadStore().enqueue({
+    await downloadStore.enqueue({
       url: model.url,
       model_id: buildModelId(model.directory, model.name)
     })
-    revealDownloadManager()
   } catch (error: unknown) {
     if (error instanceof DownloadApiError && error.is('ALREADY_DOWNLOADING')) {
-      revealDownloadManager()
+      void downloadStore.hydrate().catch(() => {})
       toast.add({
         severity: 'info',
         summary: t('modelManager.alreadyDownloading'),

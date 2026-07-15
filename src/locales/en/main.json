@@ -1093,6 +1093,7 @@
     "filenamePlaceholder": "model.safetensors",
     "allowAnyExtension": "Allow any file extension (advanced)",
     "download": "Download",
+    "inlineProgress": "Download progress for {name}",
     "downloadQueued": "Download queued",
     "alreadyInstalled": "Model already installed",
     "alreadyDownloading": "Model is already downloading",
@@ -1108,6 +1109,15 @@
     "cancelConfirmTitle": "Cancel download?",
     "cancelConfirmMessage": "This will stop the download and delete the partial file for \"{name}\".",
     "cancelConfirm": "Cancel download",
+    "prototype": {
+      "trackingPlacement": "Download tracking",
+      "floating": "Floating",
+      "topbar": "Top bar",
+      "sidebar": "Sidebar",
+      "openDownloads": "Open downloads",
+      "activeDownloads": "{count} active download | {count} active downloads",
+      "downloadsNeedAttention": "{count} download needs attention | {count} downloads need attention"
+    },
     "status": {
       "queued": "Queued",
       "active": "Downloading",
